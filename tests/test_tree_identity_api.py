@@ -501,6 +501,94 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertEqual(recording["content_type"], "audio/wav")
         self.assertNotEqual(recording["metadata_json"].get("stored_path"), "/tmp/wrong.wav")
 
+    def test_image_upload_and_patch_persist_db_metadata_even_if_meta_file_is_stale(self) -> None:
+        token = self._register_and_approve_device("device-image")
+        create_job = self._endpoint("/v1/jobs", "POST")
+        create_response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Image",
+                job_name="Job Image",
+                job_address="123 Image St",
+                job_phone="555-0777",
+                contact_preference="text",
+                billing_name="Customer Image",
+                billing_address="123 Image St",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(create_response.job_id, x_api_key=token)
+
+        async def receive() -> dict[str, object]:
+            return {
+                "type": "http.request",
+                "body": b"fake image bytes",
+                "more_body": False,
+            }
+
+        request = Request(
+            {
+                "type": "http",
+                "method": "PUT",
+                "path": f"/v1/jobs/{create_response.job_id}/sections/job_photos/images/img_1",
+                "headers": [],
+            },
+            receive,
+        )
+        upload_image = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PUT",
+        )
+        response = asyncio.run(
+            upload_image(
+                create_response.job_id,
+                "job_photos",
+                "img_1",
+                request,
+                content_type="image/jpeg",
+                x_api_key=token,
+            )
+        )
+        self.assertTrue(response["ok"])
+
+        meta_path = (
+            self.storage_root
+            / "jobs"
+            / create_response.job_id
+            / "sections"
+            / "job_photos"
+            / "images"
+            / "img_1.meta.json"
+        )
+        stale = json.loads(meta_path.read_text(encoding="utf-8"))
+        stale["caption"] = "Wrong File Caption"
+        meta_path.write_text(json.dumps(stale), encoding="utf-8")
+
+        patch_image = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PATCH",
+        )
+        patch_image(
+            create_response.job_id,
+            "job_photos",
+            "img_1",
+            {"caption": "Correct Caption", "gps": {"latitude": "38.5", "longitude": "-121.0"}},
+            x_api_key=token,
+        )
+
+        store = DatabaseStore()
+        image = store.get_round_image(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            section_id="job_photos",
+            image_id="img_1",
+        )
+        self.assertIsNotNone(image)
+        self.assertEqual(image["caption"], "Correct Caption")
+        self.assertEqual(image["latitude"], "38.5")
+        self.assertEqual(image["longitude"], "-121.0")
+        self.assertNotEqual(image["metadata_json"].get("caption"), "Wrong File Caption")
+
 
 if __name__ == "__main__":
     unittest.main()

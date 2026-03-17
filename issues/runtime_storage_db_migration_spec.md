@@ -22,12 +22,16 @@ Checkpoint:
 - Phase 2 is complete for recording metadata.
 - Runtime recording metadata is now DB-authoritative.
 - Exported recording `.meta.json` files are debug/compatibility output only.
+- Phase 3 is complete for image metadata.
+- Runtime image metadata is now DB-authoritative.
+- Exported image `.meta.json` files are debug/compatibility output only.
 
 Already DB-authoritative:
 
 - devices, approval, tokens, assignments
 - runtime profiles
 - recording metadata
+- image metadata
 - customers, billing profiles, trees
 - jobs
 - rounds
@@ -39,7 +43,6 @@ Already DB-authoritative:
 Still file-backed at runtime:
 
 - processed recording tracking in `processed_artifacts.json`
-- image metadata in `sections/*/images/*.meta.json`
 - transcript cache in `*.transcript.txt`
 - reprocess manifest synthesis that scans section storage and metadata files
 
@@ -260,6 +263,10 @@ Status:
 Deliverable:
 
 - no runtime dependence on `images/*.meta.json`
+
+Status:
+
+- complete
 
 ### Phase 4: Processed State and Transcripts
 

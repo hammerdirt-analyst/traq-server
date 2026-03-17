@@ -1585,23 +1585,18 @@ def create_app() -> FastAPI:
         return report_path, report_path.stat().st_size
 
     def _load_job_report_images(job_id: str) -> list[dict[str, str]]:
-        """Load and normalize report image metadata for job."""
-        images_dir = _section_dir(job_id, JOB_PHOTOS_SECTION_ID) / "images"
-        if not images_dir.exists():
-            return []
+        """Load and normalize report image metadata for job from DB-backed image state."""
         images: list[dict[str, str]] = []
-        for meta_path in sorted(images_dir.glob("*.meta.json")):
-            try:
-                meta = json.loads(meta_path.read_text(encoding="utf-8"))
-            except Exception:
-                continue
+        for row in db_store.list_round_images(job_id, round_id=_ensure_job_record(job_id).latest_round_id or ""):
+            meta = dict(row.get("metadata_json") or {})
             report_path = str(meta.get("report_image_path") or "").strip()
-            stored_path = str(meta.get("stored_path") or "").strip()
+            stored_path = str(meta.get("stored_path") or row.get("artifact_path") or "").strip()
             candidate = Path(report_path) if report_path else Path(stored_path)
             if not candidate.exists():
                 continue
             caption = str(
-                meta.get("caption")
+                row.get("caption")
+                or meta.get("caption")
                 or meta.get("caption_text")
                 or ""
             ).strip()
@@ -3158,9 +3153,13 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail="Empty image payload")
         images_dir = _section_dir(job_id, section_id) / "images"
         images_dir.mkdir(parents=True, exist_ok=True)
-        existing_meta = list(images_dir.glob("*.meta.json"))
+        round_id = record.latest_round_id
+        if not round_id:
+            raise HTTPException(status_code=400, detail="No active round for image upload")
         existing_ids = {
-            meta_path.name[: -len(".meta.json")] for meta_path in existing_meta
+            str(row.get("image_id") or "")
+            for row in db_store.list_round_images(job_id, round_id)
+            if str(row.get("section_id") or "") == section_id
         }
         if image_id not in existing_ids and len(existing_ids) >= 5:
             raise HTTPException(status_code=400, detail="Maximum 5 images per job")
@@ -3178,6 +3177,15 @@ def create_app() -> FastAPI:
             "report_bytes": report_bytes,
             "uploaded_at": datetime.utcnow().isoformat() + "Z",
         }
+        db_store.upsert_round_image(
+            job_id=job_id,
+            round_id=round_id,
+            section_id=section_id,
+            image_id=image_id,
+            upload_status="uploaded",
+            artifact_path=str(file_path),
+            metadata_json=meta,
+        )
         _write_json(images_dir / f"{image_id}.meta.json", meta)
         _log_event(
             "IMAGE",
@@ -3216,17 +3224,34 @@ def create_app() -> FastAPI:
         if record is None:
             raise HTTPException(status_code=404, detail="Job not found")
         _assert_job_editable(record, auth, allow_correction=True)
-        images_dir = _section_dir(job_id, section_id) / "images"
-        meta_path = images_dir / f"{image_id}.meta.json"
-        meta: dict[str, Any] = {}
-        if meta_path.exists():
-            try:
-                meta = json.loads(meta_path.read_text(encoding="utf-8"))
-            except json.JSONDecodeError:
-                meta = {}
+        round_id = record.latest_round_id
+        if not round_id:
+            raise HTTPException(status_code=400, detail="No active round for image patch")
+        existing = db_store.get_round_image(
+            job_id=job_id,
+            round_id=round_id,
+            section_id=section_id,
+            image_id=image_id,
+        )
+        if not isinstance(existing, dict):
+            raise HTTPException(status_code=404, detail="Image not found")
+        meta = dict(existing.get("metadata_json") or {})
         meta.update(payload)
         meta["updated_at"] = datetime.utcnow().isoformat() + "Z"
-        _write_json(meta_path, meta)
+        db_store.upsert_round_image(
+            job_id=job_id,
+            round_id=round_id,
+            section_id=section_id,
+            image_id=image_id,
+            upload_status=str(existing.get("upload_status") or "uploaded"),
+            caption=str(payload.get("caption") or meta.get("caption") or "").strip() or None,
+            latitude=str((payload.get("gps") or {}).get("latitude") or payload.get("latitude") or meta.get("latitude") or "").strip() or None,
+            longitude=str((payload.get("gps") or {}).get("longitude") or payload.get("longitude") or meta.get("longitude") or "").strip() or None,
+            artifact_path=str(existing.get("artifact_path") or meta.get("stored_path") or "").strip() or None,
+            metadata_json=meta,
+        )
+        images_dir = _section_dir(job_id, section_id) / "images"
+        _write_json(images_dir / f"{image_id}.meta.json", meta)
         _log_event(
             "IMAGE",
             "patch job=%s section=%s image=%s keys=%s",

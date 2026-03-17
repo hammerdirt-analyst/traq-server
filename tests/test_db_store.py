@@ -172,6 +172,53 @@ class DatabaseStoreTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["recording_id"], "rec_1")
 
+    def test_round_image_flow(self) -> None:
+        self.store.upsert_job(
+            job_id="job_image",
+            job_number="J0010",
+            status="DRAFT",
+            latest_round_id="round_1",
+            latest_round_status="DRAFT",
+            details={},
+        )
+        self.store.upsert_job_round(
+            job_id="job_image",
+            round_id="round_1",
+            status="DRAFT",
+            manifest=[],
+        )
+
+        stored = self.store.upsert_round_image(
+            job_id="job_image",
+            round_id="round_1",
+            section_id="job_photos",
+            image_id="img_1",
+            upload_status="uploaded",
+            caption="Tree base",
+            latitude="38.5",
+            longitude="-121.0",
+            artifact_path="/tmp/img_1.jpg",
+            metadata_json={
+                "stored_path": "/tmp/img_1.jpg",
+                "report_image_path": "/tmp/img_1.report.jpg",
+            },
+        )
+        self.assertEqual(stored["image_id"], "img_1")
+        self.assertEqual(stored["caption"], "Tree base")
+
+        fetched = self.store.get_round_image(
+            job_id="job_image",
+            round_id="round_1",
+            section_id="job_photos",
+            image_id="img_1",
+        )
+        self.assertEqual(fetched["artifact_path"], "/tmp/img_1.jpg")
+        self.assertEqual(fetched["latitude"], "38.5")
+
+        rows = self.store.list_round_images("job_image", "round_1")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["image_id"], "img_1")
+
 
 if __name__ == "__main__":
     unittest.main()

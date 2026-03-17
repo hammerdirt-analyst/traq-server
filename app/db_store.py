@@ -25,6 +25,7 @@ from .db_models import (
     JobAssignment,
     JobRound,
     JobStatus,
+    RoundImage,
     RoundRecording,
     RoundStatus,
     RuntimeProfile,
@@ -477,6 +478,120 @@ class DatabaseStore:
                 "upload_status": row.upload_status.value,
                 "content_type": row.content_type,
                 "duration_ms": row.duration_ms,
+                "artifact_path": row.artifact_path,
+                "metadata_json": row.metadata_json or {},
+            }
+
+    def list_round_images(self, job_id: str, round_id: str) -> list[dict[str, Any]]:
+        """Return DB-authoritative image metadata for one round."""
+        with session_scope() as session:
+            rows = session.scalars(
+                select(RoundImage)
+                .join(JobRound)
+                .join(Job)
+                .where(Job.job_id == job_id, JobRound.round_id == round_id)
+                .order_by(RoundImage.section_id, RoundImage.image_id)
+            ).all()
+            return [
+                {
+                    "section_id": row.section_id,
+                    "image_id": row.image_id,
+                    "upload_status": row.upload_status.value,
+                    "caption": row.caption,
+                    "latitude": row.latitude,
+                    "longitude": row.longitude,
+                    "artifact_path": row.artifact_path,
+                    "metadata_json": row.metadata_json or {},
+                }
+                for row in rows
+            ]
+
+    def get_round_image(
+        self,
+        *,
+        job_id: str,
+        round_id: str,
+        section_id: str,
+        image_id: str,
+    ) -> dict[str, Any] | None:
+        """Return DB-authoritative image metadata for one uploaded image."""
+        with session_scope() as session:
+            row = session.scalar(
+                select(RoundImage)
+                .join(JobRound)
+                .join(Job)
+                .where(
+                    Job.job_id == job_id,
+                    JobRound.round_id == round_id,
+                    RoundImage.section_id == section_id,
+                    RoundImage.image_id == image_id,
+                )
+            )
+            if row is None:
+                return None
+            return {
+                "section_id": row.section_id,
+                "image_id": row.image_id,
+                "upload_status": row.upload_status.value,
+                "caption": row.caption,
+                "latitude": row.latitude,
+                "longitude": row.longitude,
+                "artifact_path": row.artifact_path,
+                "metadata_json": row.metadata_json or {},
+            }
+
+    def upsert_round_image(
+        self,
+        *,
+        job_id: str,
+        round_id: str,
+        section_id: str,
+        image_id: str,
+        upload_status: str,
+        caption: str | None = None,
+        latitude: str | None = None,
+        longitude: str | None = None,
+        artifact_path: str | None = None,
+        metadata_json: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Persist DB-authoritative image metadata for one round image."""
+        with session_scope() as session:
+            round_row = session.scalar(
+                select(JobRound)
+                .join(Job)
+                .where(Job.job_id == job_id, JobRound.round_id == round_id)
+            )
+            if round_row is None:
+                raise KeyError(f"Round not found: {job_id}/{round_id}")
+            row = session.scalar(
+                select(RoundImage).where(
+                    RoundImage.round_pk == round_row.id,
+                    RoundImage.section_id == section_id,
+                    RoundImage.image_id == image_id,
+                )
+            )
+            if row is None:
+                row = RoundImage(
+                    round=round_row,
+                    section_id=section_id,
+                    image_id=image_id,
+                    upload_status=UploadStatus(upload_status.strip().lower()),
+                )
+                session.add(row)
+            row.upload_status = UploadStatus(upload_status.strip().lower())
+            row.caption = caption
+            row.latitude = latitude
+            row.longitude = longitude
+            row.artifact_path = artifact_path
+            row.metadata_json = dict(metadata_json or {})
+            session.flush()
+            return {
+                "section_id": row.section_id,
+                "image_id": row.image_id,
+                "upload_status": row.upload_status.value,
+                "caption": row.caption,
+                "latitude": row.latitude,
+                "longitude": row.longitude,
                 "artifact_path": row.artifact_path,
                 "metadata_json": row.metadata_json or {},
             }
