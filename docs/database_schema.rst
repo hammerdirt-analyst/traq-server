@@ -27,12 +27,12 @@ Design rules
 Model modules
 -------------
 
-- ``server/app/db.py``
+- ``app/db.py``
   - engine/session bootstrap
   - declarative base
   - schema creation helper for local bootstrap
 
-- ``server/app/db_models.py``
+- ``app/db_models.py``
   - ORM tables for devices, jobs, rounds, media metadata, finals, artifacts,
     and events
 

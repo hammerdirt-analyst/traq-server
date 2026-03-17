@@ -51,10 +51,10 @@ Implementation boundary
 The current implementation is descriptive and testable, not yet destructive.
 
 Code:
-- ``server/app/archive_policy.py``
+- ``app/archive_policy.py``
 
 Tests:
-- ``server/tests/test_archive_policy.py``
+- ``tests/test_archive_policy.py``
 
 Query support:
-- ``server/tools/query_imported_jobs.py archive-retention``
+- ``tools/query_imported_jobs.py archive-retention``

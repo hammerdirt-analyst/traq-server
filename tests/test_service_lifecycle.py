@@ -8,14 +8,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from server.app import db as db_module
-from server.app.config import load_settings
-from server.app.db import create_schema, init_database
-from server.app.db_store import DatabaseStore
-from server.app.services.customer_service import CustomerService
-from server.app.services.final_mutation_service import FinalMutationService
-from server.app.services.inspection_service import InspectionService
-from server.app.services.job_mutation_service import JobMutationService
+from app import db as db_module
+from app.config import load_settings
+from app.db import create_schema, init_database
+from app.db_store import DatabaseStore
+from app.services.customer_service import CustomerService
+from app.services.final_mutation_service import FinalMutationService
+from app.services.inspection_service import InspectionService
+from app.services.job_mutation_service import JobMutationService
 
 
 class ServiceLifecycleTests(unittest.TestCase):

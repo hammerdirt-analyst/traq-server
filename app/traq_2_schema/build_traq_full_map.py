@@ -7,7 +7,7 @@ Authors:
 Purpose:
     Compiles the page-level visual overlay templates and the human-curated
     mapping specs (`mapone.md`, `maptwo.md`) into one canonical
-    `traq_full_map.json` used by `server/app/pdf_fill.py`.
+    `traq_full_map.json` used by `app/pdf_fill.py`.
 
 Backstory / design rationale:
     The TRAQ PDF copy used in this project has incomplete/inconsistent AcroForm
@@ -27,10 +27,10 @@ Coordinate system:
 References:
     - `references/overlay_readme.md`
     - `references/docs/IMPLEMENTATION_PLAN_2026-02-11.md`
-    - `server/app/traq_2_schema/overlay_page1.json`
-    - `server/app/traq_2_schema/overlay_page2.json`
-    - `server/app/traq_2_schema/mapone.md`
-    - `server/app/traq_2_schema/maptwo.md`
+    - `app/traq_2_schema/overlay_page1.json`
+    - `app/traq_2_schema/overlay_page2.json`
+    - `app/traq_2_schema/mapone.md`
+    - `app/traq_2_schema/maptwo.md`
 """
 from __future__ import annotations
 

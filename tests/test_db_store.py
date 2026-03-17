@@ -7,10 +7,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from server.app import db as db_module
-from server.app.config import load_settings
-from server.app.db import create_schema, init_database
-from server.app.db_store import DatabaseStore
+from app import db as db_module
+from app.config import load_settings
+from app.db import create_schema, init_database
+from app.db_store import DatabaseStore
 
 
 class DatabaseStoreTests(unittest.TestCase):

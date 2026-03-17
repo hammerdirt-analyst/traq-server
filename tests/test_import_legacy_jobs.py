@@ -11,8 +11,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from server.app.db_models import ArtifactKind, JobStatus, RoundStatus, UploadStatus
-from server.tools import import_legacy_jobs
+from app.db_models import ArtifactKind, JobStatus, RoundStatus, UploadStatus
+from tools import import_legacy_jobs
 
 
 class ImportLegacyJobsTests(unittest.TestCase):

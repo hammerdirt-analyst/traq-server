@@ -11,7 +11,7 @@ Purpose:
 
 Architecture highlights:
     - Overlay-based PDF fill (`pdf_fill.py`) using canonical mapping
-      (`server/app/traq_2_schema/traq_full_map.json`)
+      (`app/traq_2_schema/traq_full_map.json`)
     - Registry-driven section extraction (`extractors/registry.py`)
     - File-backed security and assignment control (`security_store.py`)
     - JSON artifacts persisted per job/round under `server_data/jobs/`

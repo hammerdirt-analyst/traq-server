@@ -7,11 +7,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from server.app import db as db_module
-from server.app.config import load_settings
-from server.app.services.customer_service import CustomerService
-from server.app.services.job_mutation_service import JobMutationService
-from server.app.db import create_schema, init_database
+from app import db as db_module
+from app.config import load_settings
+from app.services.customer_service import CustomerService
+from app.services.job_mutation_service import JobMutationService
+from app.db import create_schema, init_database
 
 
 class CustomerServiceTests(unittest.TestCase):

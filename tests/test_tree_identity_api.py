@@ -14,9 +14,9 @@ import unittest
 from fastapi.routing import APIRoute
 from starlette.requests import Request
 
-from server.app import db as db_module
-from server.app.db import create_schema
-from server.app.db_store import DatabaseStore
+from app import db as db_module
+from app.db import create_schema
+from app.db_store import DatabaseStore
 
 
 class TreeIdentityApiTests(unittest.TestCase):
@@ -34,8 +34,8 @@ class TreeIdentityApiTests(unittest.TestCase):
 
         db_module._engine = None
         db_module._SessionLocal = None
-        from server.app import service_discovery as discovery_module
-        from server.app import main as main_module
+        from app import service_discovery as discovery_module
+        from app import main as main_module
 
         discovery_module.ServiceDiscoveryAdvertiser.start_in_background = lambda self: None
         discovery_module.ServiceDiscoveryAdvertiser.stop = lambda self: None

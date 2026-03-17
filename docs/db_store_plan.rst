@@ -10,7 +10,7 @@ existing file-backed auth/assignment/job metadata contracts.
 Module
 ------
 
-- ``server/app/db_store.py``
+- ``app/db_store.py``
 
 Scope
 -----
@@ -57,13 +57,13 @@ Current status
   - admin assign / unassign
   - job metadata upsert during job record persistence
 
-- file-backed security metadata remains as a fallback during the migration
-  window
-- ``server/admin_cli.py`` device approval, revocation, listing, and token
+- ``admin_cli.py`` device approval, revocation, listing, and token
   issuance now use the database-backed store directly
+  and runtime auth/assignment state is DB-backed
 
 Next migration step
 -------------------
 
-Move the remaining server-side admin management paths fully onto
-``db_store.py`` so the file-backed security store can be retired.
+Continue reducing remaining legacy file-backed helpers so runtime inspection and
+operational paths depend on PostgreSQL for state and local storage only for
+artifacts/exports.

@@ -10,7 +10,7 @@ Purpose:
 Backstory / rationale:
     The available TRAQ template has incomplete/inconsistent AcroForm metadata.
     Runtime filling therefore uses explicit box coordinates from the overlay
-    mapping pipeline (`server/app/traq_2_schema/*`) to ensure every visual
+    mapping pipeline (`app/traq_2_schema/*`) to ensure every visual
     field can be addressed deterministically.
 
 Coordinate system contract:
@@ -20,8 +20,8 @@ Coordinate system contract:
       before drawing text/check marks.
 
 References:
-    - `server/app/traq_2_schema/traq_full_map.json`
-    - `server/app/traq_2_schema/build_traq_full_map.py`
+    - `app/traq_2_schema/traq_full_map.json`
+    - `app/traq_2_schema/build_traq_full_map.py`
     - `references/overlay_readme.md`
 """
 from __future__ import annotations

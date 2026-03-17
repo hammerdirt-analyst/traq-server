@@ -50,7 +50,8 @@ def load_settings() -> Settings:
 
     Important variables:
     - `TRAQ_API_KEY`: admin API key for privileged endpoints
-    - `TRAQ_STORAGE_ROOT`: on-disk artifact root for media and final exports
+    - `TRAQ_STORAGE_ROOT`: on-disk artifact root for media and final exports;
+      defaults to the repo-local `./local_data`
     - `TRAQ_DATABASE_URL`: required SQLAlchemy connection string; PostgreSQL is
       the required deployment target
     - `TRAQ_ADMIN_BASE_URL`: default server base URL for admin CLI HTTP
@@ -63,7 +64,7 @@ def load_settings() -> Settings:
     storage_root = Path(
         os.environ.get(
             "TRAQ_STORAGE_ROOT",
-            str(Path(__file__).resolve().parents[2] / "server_data"),
+            str(Path(__file__).resolve().parents[1] / "local_data"),
         )
     )
     database_url = (os.environ.get("TRAQ_DATABASE_URL") or "").strip()

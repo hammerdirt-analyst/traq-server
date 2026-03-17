@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traq-server"
+version = "0.1.0"
+description = "Standalone TRAQ server API and admin CLI."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.115.8",
+  "uvicorn[standard]==0.30.6",
+  "pydantic==2.9.2",
+  "sqlalchemy==2.0.36",
+  "alembic==1.14.0",
+  "psycopg[binary]==3.2.9",
+  "python-multipart==0.0.12",
+  "openai==1.59.3",
+  "outlines",
+  "PyPDF2==3.0.1",
+  "reportlab==4.2.0",
+  "zeroconf==0.146.3",
+  "python-docx==1.1.2",
+]
+
+[project.scripts]
+traq-admin = "admin_cli:main"
+traq-server = "app.server_cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["app", "app.*"]

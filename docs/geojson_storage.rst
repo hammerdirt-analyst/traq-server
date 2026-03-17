@@ -49,10 +49,10 @@ Current tooling
 ---------------
 
 Import:
-- ``server/tools/import_legacy_jobs.py``
+- ``tools/import_legacy_jobs.py``
 
 Read-only query:
-- ``server/tools/query_imported_jobs.py geojson-exports``
+- ``tools/query_imported_jobs.py geojson-exports``
 
 Test:
-- ``server/tests/test_geojson_export_storage.py``
+- ``tests/test_geojson_export_storage.py``

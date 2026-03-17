@@ -13,11 +13,11 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
-from server.app import db as db_module
-from server.app.config import load_settings
-from server.app.db import create_schema, init_database
-from server.app.db_store import DatabaseStore
-from server.app.services.inspection_service import InspectionService
+from app import db as db_module
+from app.config import load_settings
+from app.db import create_schema, init_database
+from app.db_store import DatabaseStore
+from app.services.inspection_service import InspectionService
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import admin_cli  # type: ignore  # noqa: E402
@@ -232,7 +232,7 @@ class AdminCliTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn('"status": "DRAFT"', output)
 
-    @patch("server.app.cli.net_commands.subprocess.check_output")
+    @patch("app.cli.net_commands.subprocess.check_output")
     def test_net_ipv4_and_ipv6(self, check_output_mock) -> None:
         check_output_mock.side_effect = [
             "2: wlp0s20f3: <BROADCAST>\n    inet 192.168.12.231/24 scope global dynamic wlp0s20f3\n",

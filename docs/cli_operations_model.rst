@@ -4,7 +4,7 @@ CLI Operations Model
 Purpose
 -------
 
-This note defines the intended operational model for ``server/admin_cli.py``.
+This note defines the intended operational model for ``admin_cli.py``.
 The CLI is not a separate admin toy. It should exercise the same workflow
 surfaces that the mobile client depends on, using the same service boundaries
 and the same underlying state model.
@@ -12,23 +12,12 @@ and the same underlying state model.
 Why this matters
 ----------------
 
-The database migration is meant to take over what currently lives under
-``server_data/``. The filesystem layout is therefore the reference workflow
-shape, not an implementation detail to ignore.
+The operational runtime is now DB-backed. Local storage exists for binary
+artifacts and debug/export copies only. The CLI should inspect and control that
+runtime model without treating exported JSON on disk as an authoritative
+workflow source.
 
-For example, the completed job at:
-
-- ``server_data/jobs/job_ea452ac859b5``
-
-contains the full operational lifecycle:
-
-- ``job_record.json`` for job state
-- ``rounds/<round_id>/manifest.json`` for round-scoped submit intent
-- ``rounds/<round_id>/review.json`` for returned review payload
-- ``sections/*/recordings/*.meta.json`` and ``*.transcript.txt`` for media state
-- final and correction outputs at the job root
-
-The CLI should let an operator inspect and control this same lifecycle in a way
+The CLI should let an operator inspect and control the same lifecycle in a way
 that is modular, service-backed, and easy to debug.
 
 Client contract boundary
@@ -66,8 +55,8 @@ The intended server layering is:
   - final/correction/archive service
   - import/query service
 - persistence layer
-  - PostgreSQL for metadata/state
-  - filesystem for artifacts during the current migration phase
+  - PostgreSQL for runtime metadata/state
+  - local artifact storage for uploaded media and generated outputs
 
 Business rules should live in services, not in the CLI.
 
@@ -141,14 +130,14 @@ Current command-to-boundary map
     HTTP ``GET /v1/admin/jobs/assignments``
 
   Current runtime backing:
-    DB-backed assignment listing with migration fallback
+    DB-backed assignment listing
 
 ``job assign`` / ``job unassign``
   Contract boundary:
     HTTP admin endpoints
 
   Current runtime backing:
-    DB-backed assignment service with migration fallback
+    DB-backed assignment service
 
   Job reference resolution:
     official ``job_id`` passes through directly; official ``job_number`` is
@@ -205,7 +194,7 @@ What is structurally sound already
 - Device approval and token issuance are now DB-backed in the CLI.
 - Assignment administration has a clear contract surface via admin endpoints.
 - Job reference resolution now uses the operational store rather than reading
-  ``server_data/jobs/*/job_record.json`` directly.
+  exported ``local_data/jobs/*/job_record.json`` files directly.
 - Lifecycle inspection for jobs, rounds, reviews, and final/correction outputs
   now lives behind ``InspectionService`` instead of ad hoc CLI file reads.
 - The tree identity contract is now live in the FastAPI job/create/status/review
@@ -284,13 +273,14 @@ This distinction should be explicit per command.
 Reference operational example
 -----------------------------
 
-Use ``server_data/jobs/job_ea452ac859b5`` as the reference example for:
+Use a real imported job under ``local_data/jobs/<job_id>`` as the reference
+example for:
 
 - job record shape
 - round manifest/review lifecycle
 - final vs correction outputs
 - audio/image artifact layout
-- what the database is expected to take over
+- the artifact layout the database references, but does not replace
 
 Definition of done for the CLI layer
 ------------------------------------

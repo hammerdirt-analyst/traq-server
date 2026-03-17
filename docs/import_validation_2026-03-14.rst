@@ -4,9 +4,9 @@ Legacy Import Validation 2026-03-14
 Purpose
 -------
 
-This report captures the first PostgreSQL import run against real job data in
-``server_data/jobs``. The goal is to validate the schema and importer before
-changing any live runtime behavior.
+This report captures the first PostgreSQL import run against legacy job data.
+It is a historical validation note for the import path, not a description of
+the current runtime authority model.
 
 Environment
 -----------
@@ -14,7 +14,7 @@ Environment
 - database: ``traq_demo``
 - role: ``traq_app``
 - driver: ``psycopg 3.2.9``
-- importer: ``server/tools/import_legacy_jobs.py``
+- importer: ``tools/import_legacy_jobs.py``
 
 Import command used
 -------------------
@@ -22,7 +22,7 @@ Import command used
 ::
 
    TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:change-this-password@127.0.0.1:5432/traq_demo' \
-   /home/roger/anaconda3/envs/traq-demo-server/bin/python server/tools/import_legacy_jobs.py --init-schema
+   /home/roger/anaconda3/envs/traq-demo-server/bin/python tools/import_legacy_jobs.py --init-schema
 
 Importer result
 ---------------
@@ -37,14 +37,14 @@ Importer result
      "finals": 8,
      "artifacts": 250,
      "skipped": [
-       "/home/roger/projects/codex_trial/agent_client/server_data/jobs/job_1"
+       "<legacy storage root>/jobs/job_1"
      ]
    }
 
 Observed filesystem reality
 ---------------------------
 
-Job directories under ``server_data/jobs``: ``9``
+Job directories under the legacy storage root: ``9``
 
 Breakdown:
 - ``7`` jobs with ``job_record.json``

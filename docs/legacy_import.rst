@@ -11,13 +11,12 @@ changing the live server workflow.
 Tool
 ----
 
-- ``server/tools/import_legacy_jobs.py``
+- ``tools/import_legacy_jobs.py``
 
 Current import scope
 --------------------
 
-The importer reads the current filesystem-backed job layout and loads it into
-PostgreSQL:
+The importer reads the legacy job layout and loads it into PostgreSQL:
 
 - ``job_record.json``
 - ``rounds/*/manifest.json``
@@ -47,7 +46,7 @@ The first phase is successful when all of the following are true:
    - PostgreSQL tables can be created from the current SQLAlchemy models.
 
 2. Real jobs import cleanly
-   - legacy jobs under ``server_data/jobs`` import without fatal errors.
+   - legacy jobs under the legacy storage root import without fatal errors.
 
 3. Imported counts match filesystem reality
    - job count in PostgreSQL matches imported job directories
@@ -64,8 +63,8 @@ The first phase is successful when all of the following are true:
      DOCX, and GeoJSON are represented as artifact path records.
 
 6. No runtime behavior changes
-   - the live server still runs from the filesystem-backed metadata path while
-     the importer is being developed.
+   - the live server runtime remains independent from the importer while the
+     import path is being developed and validated.
 
 Recommended verification queries
 --------------------------------

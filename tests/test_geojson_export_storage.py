@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from server.app.db_models import Job, JobGeoJSONExport, JobStatus
+from app.db_models import Job, JobGeoJSONExport, JobStatus
 
 
 class GeoJSONExportStorageTests(unittest.TestCase):

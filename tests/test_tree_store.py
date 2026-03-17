@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import Mock
 
-from server.app.services.tree_store import parse_tree_number
+from app.services.tree_store import parse_tree_number
 
 
 class TreeStoreParsingTests(unittest.TestCase):

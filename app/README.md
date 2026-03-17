@@ -33,8 +33,8 @@ Recommended database URL:
 
 Bootstrap notes are tracked in:
 
-- `server/docs/postgresql_bootstrap.md`
-- `server/docs/database_schema.rst`
+- `docs/postgresql_bootstrap.md`
+- `docs/database_schema.rst`
 
 ## Current Processing Flow
 1. Client creates a round.
@@ -56,16 +56,16 @@ Bootstrap notes are tracked in:
 ## Key Modules
 - `main.py`: FastAPI endpoints, round/review lifecycle, merge logic.
 - `extractors/`: section extractor models/prompts/registry wiring.
-- `pdf_fill.py`: overlay-only TRAQ PDF generation using `server/app/traq_2_schema/traq_full_map.json`.
+- `pdf_fill.py`: overlay-only TRAQ PDF generation using `app/traq_2_schema/traq_full_map.json`.
 - `report_letter.py`: summary/report letter generation and PDF output.
 - `geojson_export.py`: public-map GeoJSON export (`final.geojson`) from scrubbed form data.
 
 ## Mapping and PDF Fill
-- Runtime map source: `server/app/traq_2_schema/traq_full_map.json`.
+- Runtime map source: `app/traq_2_schema/traq_full_map.json`.
 - Fill mode: visual overlay (no AcroForm dependency in runtime path).
 - Canonical semantic sources:
-  - `server/app/traq_2_schema/mapone.md`
-  - `server/app/traq_2_schema/maptwo.md`
+  - `app/traq_2_schema/mapone.md`
+  - `app/traq_2_schema/maptwo.md`
 
 ## API Surface (Core)
 - `POST /v1/jobs/{job_id}/rounds`
@@ -115,30 +115,30 @@ Credential transport:
 
 Admin CLI (host machine):
 - `export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'`
-- `python server/admin_cli.py device pending`
-- `python server/admin_cli.py device validate --index 1 --role arborist`
-- `python server/admin_cli.py device approve <device_id> --role arborist`
-- `python server/admin_cli.py device revoke <device_id>`
-- `python server/admin_cli.py device issue-token <device_id> --ttl 900`
-- `python server/admin_cli.py customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
-- `python server/admin_cli.py customer list --search Arboretum`
-- `python server/admin_cli.py customer update C0001 --phone "555-3434"`
-- `python server/admin_cli.py customer billing create --billing-name "Customer Name" --billing-address "123 Oak St"`
-- `python server/admin_cli.py customer billing list --search Customer`
-- `python server/admin_cli.py customer billing update B0001 --contact-preference email`
-- `python server/admin_cli.py job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"`
-- `python server/admin_cli.py job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED`
-- `python server/admin_cli.py final set-final --job J0001 --from-json ./final.json [--geojson-json ./final.geojson]`
-- `python server/admin_cli.py final set-correction --job J0001 --from-json ./final_correction.json [--geojson-json ./final_correction.geojson]`
-- `python server/admin_cli.py job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python server/admin_cli.py job unassign --job J0001 --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python server/admin_cli.py job list-assignments --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python server/admin_cli.py job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python server/admin_cli.py job inspect --job J0001`
-- `python server/admin_cli.py round reopen --job-id <job_id> --round-id <round_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python server/admin_cli.py round inspect --job J0001 --round-id <round_id>`
-- `python server/admin_cli.py review inspect --job J0001 --round-id <round_id>`
-- `python server/admin_cli.py final inspect --job J0001`
+- `python admin_cli.py device pending`
+- `python admin_cli.py device validate --index 1 --role arborist`
+- `python admin_cli.py device approve <device_id> --role arborist`
+- `python admin_cli.py device revoke <device_id>`
+- `python admin_cli.py device issue-token <device_id> --ttl 900`
+- `python admin_cli.py customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
+- `python admin_cli.py customer list --search Arboretum`
+- `python admin_cli.py customer update C0001 --phone "555-3434"`
+- `python admin_cli.py customer billing create --billing-name "Customer Name" --billing-address "123 Oak St"`
+- `python admin_cli.py customer billing list --search Customer`
+- `python admin_cli.py customer billing update B0001 --contact-preference email`
+- `python admin_cli.py job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"`
+- `python admin_cli.py job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED`
+- `python admin_cli.py final set-final --job J0001 --from-json ./final.json [--geojson-json ./final.geojson]`
+- `python admin_cli.py final set-correction --job J0001 --from-json ./final_correction.json [--geojson-json ./final_correction.geojson]`
+- `python admin_cli.py job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `python admin_cli.py job unassign --job J0001 --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `python admin_cli.py job list-assignments --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `python admin_cli.py job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `python admin_cli.py job inspect --job J0001`
+- `python admin_cli.py round reopen --job-id <job_id> --round-id <round_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `python admin_cli.py round inspect --job J0001 --round-id <round_id>`
+- `python admin_cli.py review inspect --job J0001 --round-id <round_id>`
+- `python admin_cli.py final inspect --job J0001`
 
 ### Admin CLI Usage
 
@@ -146,7 +146,7 @@ Start interactive CLI:
 
 ```bash
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
-python server/admin_cli.py
+python admin_cli.py
 ```
 
 Interactive meta-commands:
@@ -170,8 +170,8 @@ export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:543
 export TRAQ_ADMIN_BASE_URL='http://127.0.0.1:8000'
 ```
 
-For local operator workflows, `server/.env` is loaded automatically by
-`server/app/config.py`. Shell exports still win if both are present.
+For local operator workflows, `.env` is loaded automatically by
+`app/config.py`. Shell exports still win if both are present.
 
 The CLI now fails fast if ``TRAQ_DATABASE_URL`` is not set. There is no silent
 SQLite fallback. HTTP-backed CLI commands now default to
@@ -184,72 +184,72 @@ command.
 Device commands:
 
 ```bash
-python server/admin_cli.py device list [--status pending|approved|revoked] [--json]
-python server/admin_cli.py device pending [--json]
-python server/admin_cli.py device validate [--index N] [--role arborist|admin]
-python server/admin_cli.py device approve <device_id> [--role arborist|admin]
-python server/admin_cli.py device revoke <device_id>
-python server/admin_cli.py device issue-token <device_id> [--ttl 900]
+python admin_cli.py device list [--status pending|approved|revoked] [--json]
+python admin_cli.py device pending [--json]
+python admin_cli.py device validate [--index N] [--role arborist|admin]
+python admin_cli.py device approve <device_id> [--role arborist|admin]
+python admin_cli.py device revoke <device_id>
+python admin_cli.py device issue-token <device_id> [--ttl 900]
 ```
 
 Customer commands:
 
 ```bash
-python server/admin_cli.py customer list [--search <term>]
-python server/admin_cli.py customer duplicates
-python server/admin_cli.py customer create --name <customer_name> [--phone <phone>] [--address <address>]
-python server/admin_cli.py customer update <customer_id_or_code> [--name <customer_name>] [--phone <phone>] [--address <address>]
-python server/admin_cli.py customer usage <customer_id_or_code>
-python server/admin_cli.py customer merge <source_customer_id_or_code> --into <target_customer_id_or_code>
-python server/admin_cli.py customer delete <customer_id_or_code>
-python server/admin_cli.py customer billing list [--search <term>]
-python server/admin_cli.py customer billing duplicates
-python server/admin_cli.py customer billing create [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
-python server/admin_cli.py customer billing update <billing_profile_id_or_code> [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
-python server/admin_cli.py customer billing usage <billing_profile_id_or_code>
-python server/admin_cli.py customer billing merge <source_billing_profile_id_or_code> --into <target_billing_profile_id_or_code>
-python server/admin_cli.py customer billing delete <billing_profile_id_or_code>
+python admin_cli.py customer list [--search <term>]
+python admin_cli.py customer duplicates
+python admin_cli.py customer create --name <customer_name> [--phone <phone>] [--address <address>]
+python admin_cli.py customer update <customer_id_or_code> [--name <customer_name>] [--phone <phone>] [--address <address>]
+python admin_cli.py customer usage <customer_id_or_code>
+python admin_cli.py customer merge <source_customer_id_or_code> --into <target_customer_id_or_code>
+python admin_cli.py customer delete <customer_id_or_code>
+python admin_cli.py customer billing list [--search <term>]
+python admin_cli.py customer billing duplicates
+python admin_cli.py customer billing create [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
+python admin_cli.py customer billing update <billing_profile_id_or_code> [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
+python admin_cli.py customer billing usage <billing_profile_id_or_code>
+python admin_cli.py customer billing merge <source_billing_profile_id_or_code> --into <target_billing_profile_id_or_code>
+python admin_cli.py customer billing delete <billing_profile_id_or_code>
 ```
 
 Job commands:
 
 ```bash
-python server/admin_cli.py job create --job-id <job_id> --job-number <job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
-python server/admin_cli.py job update --job <job_id_or_job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
-python server/admin_cli.py job list-assignments [--host <admin_base_url>] [--api-key <admin_key>] [--raw]
-python server/admin_cli.py job assign --job <job_id_or_job_number> --device-id <device_id> [--host <admin_base_url>] [--api-key <admin_key>]
-python server/admin_cli.py job unassign --job <job_id_or_job_number> [--host <admin_base_url>] [--api-key <admin_key>]
-python server/admin_cli.py job set-status --job <job_id_or_job_number> --status NOT_STARTED|DRAFT|SUBMITTED_FOR_PROCESSING|REVIEW_RETURNED|ARCHIVED|FAILED [--host <admin_base_url>] [--api-key <admin_key>]
-python server/admin_cli.py job set-status --job <job_id_or_job_number> --status REVIEW_RETURNED --round-id <round_id> --round-status REVIEW_RETURNED [--host <admin_base_url>] [--api-key <admin_key>]
-python server/admin_cli.py job inspect --job <job_id_or_job_number>
+python admin_cli.py job create --job-id <job_id> --job-number <job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
+python admin_cli.py job update --job <job_id_or_job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
+python admin_cli.py job list-assignments [--host <admin_base_url>] [--api-key <admin_key>] [--raw]
+python admin_cli.py job assign --job <job_id_or_job_number> --device-id <device_id> [--host <admin_base_url>] [--api-key <admin_key>]
+python admin_cli.py job unassign --job <job_id_or_job_number> [--host <admin_base_url>] [--api-key <admin_key>]
+python admin_cli.py job set-status --job <job_id_or_job_number> --status NOT_STARTED|DRAFT|SUBMITTED_FOR_PROCESSING|REVIEW_RETURNED|ARCHIVED|FAILED [--host <admin_base_url>] [--api-key <admin_key>]
+python admin_cli.py job set-status --job <job_id_or_job_number> --status REVIEW_RETURNED --round-id <round_id> --round-status REVIEW_RETURNED [--host <admin_base_url>] [--api-key <admin_key>]
+python admin_cli.py job inspect --job <job_id_or_job_number>
 ```
 
 Round commands:
 
 ```bash
-python server/admin_cli.py round reopen --job-id <job_id> --round-id <round_id> [--host <admin_base_url>] [--api-key <admin_key>]
-python server/admin_cli.py round inspect --job <job_id_or_job_number> --round-id <round_id>
+python admin_cli.py round reopen --job-id <job_id> --round-id <round_id> [--host <admin_base_url>] [--api-key <admin_key>]
+python admin_cli.py round inspect --job <job_id_or_job_number> --round-id <round_id>
 ```
 
 Review commands:
 
 ```bash
-python server/admin_cli.py review inspect --job <job_id_or_job_number> --round-id <round_id>
+python admin_cli.py review inspect --job <job_id_or_job_number> --round-id <round_id>
 ```
 
 Final commands:
 
 ```bash
-python server/admin_cli.py final inspect --job <job_id_or_job_number>
-python server/admin_cli.py final set-final --job <job_id_or_job_number> --from-json <final_json_path> [--geojson-json <geojson_path>]
-python server/admin_cli.py final set-correction --job <job_id_or_job_number> --from-json <correction_json_path> [--geojson-json <geojson_path>]
+python admin_cli.py final inspect --job <job_id_or_job_number>
+python admin_cli.py final set-final --job <job_id_or_job_number> --from-json <final_json_path> [--geojson-json <geojson_path>]
+python admin_cli.py final set-correction --job <job_id_or_job_number> --from-json <correction_json_path> [--geojson-json <geojson_path>]
 ```
 
 Network command:
 
 ```bash
-python server/admin_cli.py net ipv4 [--json]
-python server/admin_cli.py net ipv6 [--json]
+python admin_cli.py net ipv4 [--json]
+python admin_cli.py net ipv6 [--json]
 ```
 
 ### Admin CLI Usage Examples
@@ -258,7 +258,7 @@ Interactive mode (recommended):
 
 ```bash
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
-python server/admin_cli.py
+python admin_cli.py
 ```
 
 Inside interactive mode:
@@ -299,47 +299,47 @@ One-shot mode:
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
 
 # Device
-python server/admin_cli.py device pending
-python server/admin_cli.py device validate --index 1 --role arborist
-python server/admin_cli.py device list --status approved --json
-python server/admin_cli.py device approve <device_id> --role arborist
-python server/admin_cli.py device revoke <device_id>
-python server/admin_cli.py device issue-token <device_id> --ttl 900
+python admin_cli.py device pending
+python admin_cli.py device validate --index 1 --role arborist
+python admin_cli.py device list --status approved --json
+python admin_cli.py device approve <device_id> --role arborist
+python admin_cli.py device revoke <device_id>
+python admin_cli.py device issue-token <device_id> --ttl 900
 
 # Customers
-python server/admin_cli.py customer create --name "Sacramento State Arboretum" --phone "555-1212" --address "6000 J St"
-python server/admin_cli.py customer list --search Arboretum
-python server/admin_cli.py customer update C0001 --phone "555-3434"
-python server/admin_cli.py customer usage C0001
-python server/admin_cli.py customer merge C0002 --into C0001
-python server/admin_cli.py customer billing create --billing-name "City of Trees" --billing-contact-name "A. Manager" --billing-address "123 Elm" --contact-preference email
-python server/admin_cli.py customer billing list --search Trees
-python server/admin_cli.py customer billing update B0001 --contact-preference phone
-python server/admin_cli.py customer billing usage B0001
-python server/admin_cli.py customer billing merge B0002 --into B0001
+python admin_cli.py customer create --name "Sacramento State Arboretum" --phone "555-1212" --address "6000 J St"
+python admin_cli.py customer list --search Arboretum
+python admin_cli.py customer update C0001 --phone "555-3434"
+python admin_cli.py customer usage C0001
+python admin_cli.py customer merge C0002 --into C0001
+python admin_cli.py customer billing create --billing-name "City of Trees" --billing-contact-name "A. Manager" --billing-address "123 Elm" --contact-preference email
+python admin_cli.py customer billing list --search Trees
+python admin_cli.py customer billing update B0001 --contact-preference phone
+python admin_cli.py customer billing usage B0001
+python admin_cli.py customer billing merge B0002 --into B0001
 
 # Jobs
-python server/admin_cli.py job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"
-python server/admin_cli.py job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED
-python server/admin_cli.py job list-assignments --host http://127.0.0.1:8000 --api-key demo-key
-python server/admin_cli.py job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key demo-key
-python server/admin_cli.py job unassign --job J0001 --host http://127.0.0.1:8000 --api-key demo-key
-python server/admin_cli.py job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key demo-key
-python server/admin_cli.py job inspect --job J0001
+python admin_cli.py job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"
+python admin_cli.py job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED
+python admin_cli.py job list-assignments --host http://127.0.0.1:8000 --api-key demo-key
+python admin_cli.py job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key demo-key
+python admin_cli.py job unassign --job J0001 --host http://127.0.0.1:8000 --api-key demo-key
+python admin_cli.py job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key demo-key
+python admin_cli.py job inspect --job J0001
 
 # Rounds
-python server/admin_cli.py round reopen --job-id job_1 --round-id round_1 --host http://127.0.0.1:8000 --api-key demo-key
-python server/admin_cli.py round inspect --job J0001 --round-id round_1
+python admin_cli.py round reopen --job-id job_1 --round-id round_1 --host http://127.0.0.1:8000 --api-key demo-key
+python admin_cli.py round inspect --job J0001 --round-id round_1
 
 # Review / final inspection
-python server/admin_cli.py review inspect --job J0001 --round-id round_1
-python server/admin_cli.py final inspect --job J0001
-python server/admin_cli.py final set-final --job J0001 --from-json ./final.json --geojson-json ./final.geojson
-python server/admin_cli.py final set-correction --job J0001 --from-json ./final_correction.json --geojson-json ./final_correction.geojson
+python admin_cli.py review inspect --job J0001 --round-id round_1
+python admin_cli.py final inspect --job J0001
+python admin_cli.py final set-final --job J0001 --from-json ./final.json --geojson-json ./final.geojson
+python admin_cli.py final set-correction --job J0001 --from-json ./final_correction.json --geojson-json ./final_correction.geojson
 
 # Network
-python server/admin_cli.py net ipv4
-python server/admin_cli.py net ipv6
+python admin_cli.py net ipv4
+python admin_cli.py net ipv6
 ```
 
 ### Step-by-step: Correct billing or contact information
@@ -356,7 +356,6 @@ Use those codes in the CLI instead of UUIDs whenever possible.
 1. Start the CLI:
 
 ```bash
-cd server
 python admin_cli.py
 ```
 
@@ -429,11 +428,11 @@ Example sequence:
 ```bash
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
 
-python server/admin_cli.py device list --status pending
-python server/admin_cli.py job inspect --job J0004
-python server/admin_cli.py round inspect --job J0004 --round-id round_2
-python server/admin_cli.py review inspect --job J0004 --round-id round_2
-python server/admin_cli.py final inspect --job J0004
+python admin_cli.py device list --status pending
+python admin_cli.py job inspect --job J0004
+python admin_cli.py round inspect --job J0004 --round-id round_2
+python admin_cli.py review inspect --job J0004 --round-id round_2
+python admin_cli.py final inspect --job J0004
 ```
 
 This verifies the current hybrid operational model:
@@ -443,8 +442,8 @@ This verifies the current hybrid operational model:
 - filesystem-backed final/correction artifact inspection
 
 ## Storage
-- Job artifacts and round payloads: `server_data/jobs/...`
-- Logs: `server_data/logs/...`
+- Job artifacts and round payloads: `local_data/jobs/...`
+- Logs: `local_data/logs/...`
 - Cached review payload: `review.json` per round
 - Final outputs: job-level final PDFs, `final.json`, and `final.geojson`
 
@@ -458,7 +457,7 @@ This verifies the current hybrid operational model:
 - Client-identifying fields are removed from `client_tree_details` in exported `form_data`.
 
 ## Audio Guidance (Integrated)
-Reference: `references/docs/audio_recomendations.md`
+Reference: tracked as an internal documentation migration follow-up.
 
 Operational guidance used in this project:
 - Prefer Android capture at PCM 16-bit, mono, 16 kHz.
@@ -468,7 +467,7 @@ Operational guidance used in this project:
 - Log audio metadata (codec, sample rate, channels, duration) for diagnosis.
 
 ## Network Guidance (Integrated)
-Reference: `references/docs/network_connections.md`
+Reference: tracked as an internal documentation migration follow-up.
 
 Operational guidance used in this project:
 - Use `--host 0.0.0.0` for IPv4 LAN testing.
@@ -496,6 +495,6 @@ TRAQ_FFPROBE_BIN=/home/roger/anaconda3/envs/traq-demo-server/bin/ffprobe \
 ```
 
 ## Notes for Developers
-- Keep extractor output schema aligned with canonical map semantics in `server/app/traq_2_schema/mapone.md` and `server/app/traq_2_schema/maptwo.md`.
+- Keep extractor output schema aligned with canonical map semantics in `app/traq_2_schema/mapone.md` and `app/traq_2_schema/maptwo.md`.
 - Keep `traq_full_map.json` as the single runtime mapping source for fill.
 - Do not reintroduce AcroForm-only mapping paths for runtime PDF generation.

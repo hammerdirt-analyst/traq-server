@@ -39,7 +39,7 @@ This keeps extractors consistent and avoids duplicate wiring across the codebase
 
 ## Adding a new extractor
 
-1) Create a new folder under `server/app/extractors/<section_id>`
+1) Create a new folder under `app/extractors/<section_id>`
 2) Add `models.py` with a Pydantic model (inherit `StrictBaseModel`)
 3) Add `<section_id>.txt` prompt
 4) Add `extractor.py` (thin wrapper):
@@ -65,7 +65,7 @@ def run_my_section_extraction(transcript: str) -> MySectionExtraction:
 ),
 ```
 
-6) Wire it in `server/app/main.py` where extraction happens (merge into `draft_form`).
+6) Wire it in `app/main.py` where extraction happens (merge into `draft_form`).
 
 ## Notes
 

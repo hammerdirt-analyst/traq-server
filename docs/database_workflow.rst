@@ -83,7 +83,7 @@ Read-only query tool
 --------------------
 
 Use:
-- ``server/tools/query_imported_jobs.py``
+- ``tools/query_imported_jobs.py``
 
 Current query presets:
 - ``summary``

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import unittest
 
-from server.app.services.archive_policy import build_archive_retention_decision, path_should_be_deleted
-from server.app.db_models import Artifact, ArtifactKind, Job, JobFinal, JobRound, JobStatus
+from app.services.archive_policy import build_archive_retention_decision, path_should_be_deleted
+from app.db_models import Artifact, ArtifactKind, Job, JobFinal, JobRound, JobStatus
 
 
 class ArchivePolicyTests(unittest.TestCase):
