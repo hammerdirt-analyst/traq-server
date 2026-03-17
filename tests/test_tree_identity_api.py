@@ -589,6 +589,128 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertEqual(image["longitude"], "-121.0")
         self.assertNotEqual(image["metadata_json"].get("caption"), "Wrong File Caption")
 
+    def test_submit_uses_db_transcript_state_not_transcript_cache_file(self) -> None:
+        token = self._register_and_approve_device("device-transcript")
+        create_job = self._endpoint("/v1/jobs", "POST")
+        create_response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Transcript",
+                job_name="Job Transcript",
+                job_address="123 Transcript St",
+                job_phone="555-0888",
+                contact_preference="text",
+                billing_name="Customer Transcript",
+                billing_address="123 Transcript St",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(create_response.job_id, x_api_key=token)
+
+        async def receive() -> dict[str, object]:
+            return {
+                "type": "http.request",
+                "body": b"fake audio bytes",
+                "more_body": False,
+            }
+
+        request = Request(
+            {
+                "type": "http",
+                "method": "PUT",
+                "path": f"/v1/jobs/{create_response.job_id}/sections/site_factors/recordings/rec_1",
+                "headers": [],
+            },
+            receive,
+        )
+        upload_recording = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/recordings/{recording_id}",
+            "PUT",
+        )
+        asyncio.run(
+            upload_recording(
+                create_response.job_id,
+                "site_factors",
+                "rec_1",
+                request,
+                content_type="audio/wav",
+                x_api_key=token,
+            )
+        )
+
+        set_manifest = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/manifest", "PUT")
+        set_manifest(
+            create_response.job_id,
+            round_response.round_id,
+            [
+                self.main_module.ManifestItem(
+                    artifact_id="rec_1",
+                    section_id="site_factors",
+                    kind="recording",
+                )
+            ],
+            x_api_key=token,
+        )
+
+        transcript_path = (
+            self.storage_root
+            / "jobs"
+            / create_response.job_id
+            / "sections"
+            / "site_factors"
+            / "recordings"
+            / "rec_1.transcript.txt"
+        )
+        transcript_path.write_text("WRONG FILE TRANSCRIPT", encoding="utf-8")
+
+        processed_path = self.storage_root / "jobs" / create_response.job_id / "processed_artifacts.json"
+        processed_path.write_text(
+            json.dumps({"recordings": {"site_factors": ["wrong_rec"]}}),
+            encoding="utf-8",
+        )
+
+        store = DatabaseStore()
+        existing = store.get_round_recording(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            section_id="site_factors",
+            recording_id="rec_1",
+        )
+        updated_meta = dict(existing["metadata_json"])
+        updated_meta["transcript_text"] = "DB TRANSCRIPT"
+        updated_meta["processed"] = True
+        store.upsert_round_recording(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            section_id="site_factors",
+            recording_id="rec_1",
+            upload_status=existing["upload_status"],
+            content_type=existing["content_type"],
+            duration_ms=existing["duration_ms"],
+            artifact_path=existing["artifact_path"],
+            metadata_json=updated_meta,
+        )
+
+        self.main_module._run_extraction_core = lambda section_id, transcript: type(
+            "ExtractionResult",
+            (),
+            {"model_dump": lambda self: {}},
+        )()
+        self.main_module._generate_summary = lambda **kwargs: "Generated summary"
+
+        submit_round = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/submit", "POST")
+        submit_round(
+            create_response.job_id,
+            round_response.round_id,
+            None,
+            x_api_key=token,
+        )
+
+        get_review = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/review", "GET")
+        payload = get_review(create_response.job_id, round_response.round_id, x_api_key=token)
+        self.assertIn("DB TRANSCRIPT", payload["transcript"])
+        self.assertNotIn("WRONG FILE TRANSCRIPT", payload["transcript"])
+
 
 if __name__ == "__main__":
     unittest.main()

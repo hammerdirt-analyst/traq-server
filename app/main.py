@@ -890,41 +890,6 @@ def create_app() -> FastAPI:
         _write_json(_profile_path(identity_key), stored)
         return stored
 
-    def _processed_artifacts_path(job_id: str) -> Path:
-        """Return processed-artifacts state file path."""
-        return _job_dir(job_id) / "processed_artifacts.json"
-
-    def _load_processed_artifacts(job_id: str) -> dict[str, set[str]]:
-        """Load processed recording tracking state."""
-        path = _processed_artifacts_path(job_id)
-        if not path.exists():
-            return {}
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            return {}
-        if not isinstance(payload, dict):
-            return {}
-        recordings = payload.get("recordings") or {}
-        if not isinstance(recordings, dict):
-            return {}
-        result: dict[str, set[str]] = {}
-        for section_id, items in recordings.items():
-            if not isinstance(items, list):
-                continue
-            result[str(section_id)] = {str(item) for item in items if item}
-        return result
-
-    def _save_processed_artifacts(job_id: str, recordings: dict[str, set[str]]) -> None:
-        """Persist processed recording tracking state."""
-        payload = {
-            "recordings": {
-                section_id: sorted(list(values))
-                for section_id, values in recordings.items()
-            }
-        }
-        _write_json(_processed_artifacts_path(job_id), payload)
-
     def _load_round_manifest(job_id: str, round_id: str) -> list[dict[str, Any]]:
         """Load one round manifest payload from the authoritative DB store."""
         payload = (db_store.get_job_round(job_id, round_id) or {}).get("manifest")
@@ -1715,20 +1680,54 @@ def create_app() -> FastAPI:
         ) from last_exc
 
     def _transcript_cache_path(job_id: str, section_id: str, recording_id: str) -> Path:
-        """Return transcript cache path for recording."""
+        """Return exported transcript path for one recording."""
         return _section_dir(job_id, section_id) / "recordings" / f"{recording_id}.transcript.txt"
+
+    def _save_recording_runtime_state(
+        job_id: str,
+        round_id: str,
+        section_id: str,
+        recording_id: str,
+        meta: dict[str, Any],
+    ) -> None:
+        """Persist DB-authoritative recording runtime state and export transcript text."""
+        existing = db_store.get_round_recording(
+            job_id=job_id,
+            round_id=round_id,
+            section_id=section_id,
+            recording_id=recording_id,
+        )
+        if not isinstance(existing, dict):
+            return
+        db_store.upsert_round_recording(
+            job_id=job_id,
+            round_id=round_id,
+            section_id=section_id,
+            recording_id=recording_id,
+            upload_status=str(existing.get("upload_status") or "uploaded"),
+            content_type=existing.get("content_type"),
+            duration_ms=existing.get("duration_ms"),
+            artifact_path=existing.get("artifact_path"),
+            metadata_json=meta,
+        )
+        transcript_text = str(meta.get("transcript_text") or "").strip()
+        if transcript_text:
+            _transcript_cache_path(job_id, section_id, recording_id).write_text(
+                transcript_text,
+                encoding="utf-8",
+            )
 
     def _build_section_transcript(
         job_id: str,
+        round_id: str,
         section_id: str,
         manifest: list[dict[str, Any]],
         issue_id: str | None = None,
         seen_recordings: set[str] | None = None,
-        processed_recordings: set[str] | None = None,
         force_reprocess: bool = False,
         force_transcribe: bool = False,
     ) -> tuple[str, list[str], list[dict[str, Any]]]:
-        """Build section transcript by processing manifest recordings."""
+        """Build section transcript using DB-backed recording runtime state."""
         lines: list[str] = []
         used: list[str] = []
         failures: list[dict[str, Any]] = []
@@ -1745,15 +1744,13 @@ def create_app() -> FastAPI:
                 continue
             if not force_reprocess and seen_recordings and rec_id in seen_recordings:
                 continue
-            if not force_reprocess and processed_recordings and rec_id in processed_recordings:
-                continue
-            meta = _recording_meta(job_id, round_record.round_id, section_id, rec_id)
+            meta = _recording_meta(job_id, round_id, section_id, rec_id)
             stored_path = meta.get("stored_path")
             if not stored_path:
                 continue
-            transcript_path = _transcript_cache_path(job_id, section_id, rec_id)
-            if transcript_path.exists() and not force_transcribe:
-                transcript = transcript_path.read_text(encoding="utf-8").strip()
+            transcript = str(meta.get("transcript_text") or "").strip()
+            if transcript and not force_transcribe:
+                pass
             else:
                 probe = meta.get("audio_probe") or {}
                 _log_event(
@@ -1775,7 +1772,10 @@ def create_app() -> FastAPI:
                 )
                 try:
                     transcript = _transcribe_recording(Path(stored_path), probe=probe).strip()
-                    transcript_path.write_text(transcript, encoding="utf-8")
+                    meta["transcript_text"] = transcript
+                    meta["processed"] = True
+                    meta.pop("transcription_error", None)
+                    _save_recording_runtime_state(job_id, round_id, section_id, rec_id, meta)
                     if os.environ.get("TRAQ_LOG_RAW_TRANSCRIPTS", "0").strip() == "1":
                         _log_event(
                             "TRANSCRIBE",
@@ -1805,6 +1805,9 @@ def create_app() -> FastAPI:
                             "error": str(exc),
                         }
                     )
+                    meta["processed"] = False
+                    meta["transcription_error"] = str(exc)
+                    _save_recording_runtime_state(job_id, round_id, section_id, rec_id, meta)
                     local_seen.add(rec_id)
                     continue
             if transcript:
@@ -1850,7 +1853,6 @@ def create_app() -> FastAPI:
             if base_review_override is not None
             else _load_latest_review(job_id, exclude_round_id=round_id)
         )
-        processed_artifacts = _load_processed_artifacts(job_id)
         section_recordings: dict[str, list[str]] = dict(
             base_review.get("section_recordings") or {}
         )
@@ -1858,13 +1860,12 @@ def create_app() -> FastAPI:
         transcription_failures: list[dict[str, Any]] = []
         for section_id in section_ids:
             seen = set(section_recordings.get(section_id) or [])
-            processed = processed_artifacts.get(section_id) or set()
             transcript, used, failures = _build_section_transcript(
                 job_id,
+                round_id,
                 section_id,
                 manifest,
                 seen_recordings=seen,
-                processed_recordings=processed,
                 force_reprocess=force_reprocess,
                 force_transcribe=force_transcribe,
             )
@@ -1873,14 +1874,6 @@ def create_app() -> FastAPI:
                 transcription_failures.extend(failures)
             if used:
                 section_recordings[section_id] = list(seen.union(used))
-                processed_artifacts[section_id] = set(processed).union(used)
-            else:
-                if processed and section_id not in section_recordings:
-                    section_recordings[section_id] = list(processed)
-                elif processed:
-                    section_recordings[section_id] = list(
-                        set(section_recordings.get(section_id) or []).union(processed)
-                    )
         earliest_recorded_at: datetime | None = None
         for item in manifest:
             if item.get("kind") != "recording":
@@ -2149,6 +2142,7 @@ def create_app() -> FastAPI:
             for issue_id in sorted(issue_ids):
                 transcript, used, failures = _build_section_transcript(
                     job_id,
+                    round_id,
                     section_id,
                     manifest,
                     issue_id=issue_id,
@@ -2157,7 +2151,6 @@ def create_app() -> FastAPI:
                         .get(issue_id, [])
                         or []
                     ),
-                    processed_recordings=processed_artifacts.get(section_id) or set(),
                     force_reprocess=force_reprocess,
                     force_transcribe=force_transcribe,
                 )
@@ -2316,7 +2309,6 @@ def create_app() -> FastAPI:
             len(transcription_failures),
         )
         _save_round_record(job_id, round_record, review_payload=review_payload)
-        _save_processed_artifacts(job_id, processed_artifacts)
         return review_payload
 
     @app.get("/health")

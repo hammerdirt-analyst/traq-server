@@ -25,6 +25,10 @@ Checkpoint:
 - Phase 3 is complete for image metadata.
 - Runtime image metadata is now DB-authoritative.
 - Exported image `.meta.json` files are debug/compatibility output only.
+- Phase 4 is complete for processed recording state and transcript runtime authority.
+- Runtime no longer depends on `processed_artifacts.json`.
+- Runtime no longer depends on `*.transcript.txt` as an authority source.
+- Transcript text remains exportable to disk for debugging, but DB-backed recording metadata is authoritative.
 
 Already DB-authoritative:
 
@@ -32,6 +36,8 @@ Already DB-authoritative:
 - runtime profiles
 - recording metadata
 - image metadata
+- processed recording state
+- transcript runtime state
 - customers, billing profiles, trees
 - jobs
 - rounds
@@ -42,9 +48,7 @@ Already DB-authoritative:
 
 Still file-backed at runtime:
 
-- processed recording tracking in `processed_artifacts.json`
-- transcript cache in `*.transcript.txt`
-- reprocess manifest synthesis that scans section storage and metadata files
+- none outside artifact bytes and generated deliverables
 
 Allowed to remain file-backed:
 
@@ -279,6 +283,10 @@ Status:
 Deliverable:
 
 - no runtime dependence on processed-state JSON or transcript cache files
+
+Status:
+
+- complete
 
 ### Phase 5: Runtime Verification
 
