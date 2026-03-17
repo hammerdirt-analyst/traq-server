@@ -3508,6 +3508,16 @@ def create_app() -> FastAPI:
                 status_code=500,
                 detail="Final GeoJSON generation failed",
             ) from exc
+        try:
+            _unassign_job_record(job_id)
+        except KeyError:
+            logger.info("Finalized job %s had no assignment to remove", job_id)
+        except Exception:
+            logger.exception("Failed to unassign finalized job %s", job_id)
+            raise HTTPException(
+                status_code=500,
+                detail="Finalization cleanup failed",
+            )
         return FileResponse(
             path=str(pdf_path),
             media_type="application/pdf",

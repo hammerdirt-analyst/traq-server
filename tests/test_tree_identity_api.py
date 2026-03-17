@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from fastapi.routing import APIRoute
 from starlette.requests import Request
@@ -354,6 +355,92 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertEqual(len(assigned_jobs), 1)
         self.assertEqual(assigned_jobs[0].job_name, "Job Refresh Updated")
         self.assertEqual(assigned_jobs[0].job_address, "500 Updated Ave")
+
+    def test_final_submit_unassigns_job_from_device(self) -> None:
+        token = self._register_and_approve_device("device-final")
+        create_job = self._endpoint("/v1/jobs", "POST")
+        create_response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Final",
+                job_name="Job Final",
+                job_address="1 Final Way",
+                job_phone="555-0600",
+                contact_preference="text",
+                billing_name="Customer Final",
+                billing_address="1 Final Way",
+            ),
+            x_api_key=token,
+        )
+
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(create_response.job_id, x_api_key=token)
+
+        submit_round = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/submit", "POST")
+        submit_round(
+            create_response.job_id,
+            round_response.round_id,
+            self.main_module.SubmitRoundRequest(
+                form={
+                    "schema_name": "demo",
+                    "schema_version": "0.0",
+                    "data": {"client_tree_details": {"tree_number": "1"}},
+                },
+                narrative={"text": "Ready for final"},
+            ),
+            x_api_key=token,
+        )
+
+        submit_final = self._endpoint("/v1/jobs/{job_id}/final", "POST")
+        from app import report_letter as report_letter_module
+        from app import geojson_export as geojson_export_module
+
+        def _write_placeholder(path: str) -> None:
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
+            Path(path).write_bytes(b"placeholder")
+
+        with (
+            patch.object(report_letter_module, "polish_summary", return_value="summary"),
+            patch.object(report_letter_module, "build_report_letter", return_value="letter"),
+            patch.object(
+                report_letter_module,
+                "generate_report_letter_pdf",
+                side_effect=lambda _text, output_path, **_kwargs: _write_placeholder(output_path),
+            ),
+            patch.object(
+                report_letter_module,
+                "generate_report_letter_docx",
+                side_effect=lambda _text, output_path, **_kwargs: _write_placeholder(output_path),
+            ),
+            patch.object(
+                geojson_export_module,
+                "write_final_geojson",
+                side_effect=lambda output_path, **_kwargs: _write_placeholder(str(output_path)),
+            ),
+        ):
+            response = submit_final(
+                create_response.job_id,
+                self.main_module.FinalSubmitRequest(
+                    round_id=round_response.round_id,
+                    server_revision_id="server-rev-1",
+                    client_revision_id="client-rev-1",
+                    form={
+                        "schema_name": "demo",
+                        "schema_version": "0.0",
+                        "data": {"client_tree_details": {"tree_number": 1}},
+                    },
+                    narrative={"text": "Final narrative"},
+                    profile=self.main_module.ProfilePayload(name="Tester"),
+                ),
+                x_api_key=token,
+            )
+        self.assertTrue(str(response.path).endswith("final_traq_page1.pdf"))
+
+        store = DatabaseStore()
+        self.assertIsNone(store.get_job_assignment(create_response.job_id))
+
+        list_assigned_jobs = self._endpoint("/v1/jobs/assigned", "GET")
+        assigned_jobs = list_assigned_jobs(x_api_key=token)
+        self.assertEqual(assigned_jobs, [])
 
     def test_submit_and_review_surface_server_tree_number(self) -> None:
         create_job = self._endpoint("/v1/jobs", "POST")
