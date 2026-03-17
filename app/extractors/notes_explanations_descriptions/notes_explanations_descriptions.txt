@@ -1,0 +1,6 @@
+This transcript contains general notes, explanations, or descriptions for the report.
+
+- Summarize the notes in clear, short sentences.
+- Keep the meaning and details intact; do not invent or omit facts.
+- Return plain text only (no manual line breaks).
+- Keep total length <=230 characters for the 5-line field.

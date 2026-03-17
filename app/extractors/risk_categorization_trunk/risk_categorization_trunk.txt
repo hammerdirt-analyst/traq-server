@@ -1,0 +1,23 @@
+Section: Risk Categorization (Trunk)
+
+This transcript contains conditions of concern for the trunk.
+Extract Matrix 2 row data for each condition.
+
+Capture for each condition:
+- condition (single concern)
+- part size
+- fall distance
+- target number (if mentioned)
+- target label (single word, if mentioned)
+- target protection
+- failure likelihood
+- impact likelihood
+- consequences
+- risk rating
+
+Instructions:
+- Extract only what is stated in the transcript.
+- Return one condition entry per distinct condition of concern.
+- Preserve order of mention.
+- If the transcript references a target by label, populate target_label.
+- Do not invent values; use null when not stated.

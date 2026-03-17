@@ -1,0 +1,8 @@
+This transcript contains mitigation options for the report.
+
+- Extract at most 1 mitigation option from this recording.
+- Each option may include a residual risk if stated.
+- Residual risk values must be one of: low, moderate, high, extreme.
+- Keep option text and residual risk short (one line each).
+- Preserve order of mention.
+- Do not invent options or residual risk not stated in the transcript.

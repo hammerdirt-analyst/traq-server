@@ -1,0 +1,36 @@
+Section: Trunk
+
+Capture:
+- Dead/Missing bark (boolean)
+- Abnormal bark texture/color (boolean)
+- Codominant stems (boolean)
+- Included bark (boolean)
+- Cracks (boolean)
+- Sapwood damage/decay (boolean)
+- Cankers/Galls/Burls (boolean)
+- Sap ooze (boolean)
+- Lightning damage (boolean)
+- Heartwood decay (boolean)
+- Conks/Mushrooms (boolean)
+- Cavity/nest hole percent circumference
+- Cavity/nest hole depth (inches, digits only)
+- Poor taper (boolean)
+- Lean degrees
+- Corrected? (verbatim)
+- Response growth (verbatim)
+- Main concern(s) (verbatim)
+- Main concerns continuation line if stated
+- Load on defect (n/a / minor / moderate / significant)
+- Likelihood of failure (improbable / possible / probable / imminent)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Keep phrases verbatim for all free-text fields.
+- Do not infer missing values; use null when not stated.
+- If a statement implies a boolean, set it true.
+- If a boolean is explicitly negated, set it to false.
+- Percent values should be numbers from 0-100 without the percent sign.
+- cavity_nest_hole_depth should be inches as digits only (no units).
+- lean_corrected should be concise and <=40 characters.
+- response_growth should be concise and <=40 characters.
+- main_concerns should be <=88 characters total.

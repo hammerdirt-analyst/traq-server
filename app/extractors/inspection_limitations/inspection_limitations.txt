@@ -1,0 +1,12 @@
+Section: Inspection Limitations
+
+Capture:
+- None (no limitations)
+- Visibility limitations
+- Access limitations
+- Vines
+- Root collar buried
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- If not stated, return null.

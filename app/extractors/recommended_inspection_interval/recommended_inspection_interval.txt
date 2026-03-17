@@ -1,0 +1,13 @@
+Section: Recommended Inspection Interval
+
+Capture:
+- Recommended inspection interval as a compact duration/range.
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Output `text` as one compact phrase using numeric duration:
+  - Examples: `18 months`, `2 years`, `18-24 months`, `2-3 years`.
+- Prefer numbers over spelled words.
+- Do not include extra words like "within the next" or "if no action is taken".
+- Keep `text` <= 30 characters.
+- If not stated, return null.

@@ -1,0 +1,8 @@
+Section: Overall Residual Risk
+
+Capture:
+- Overall residual risk rating (low / moderate / high / extreme)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- If not stated, return null.

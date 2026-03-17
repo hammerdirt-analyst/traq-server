@@ -1,0 +1,8 @@
+Section: Advanced Assessment Needed
+
+Capture:
+- Advanced assessment needed (yes / no)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- If not stated, return null.

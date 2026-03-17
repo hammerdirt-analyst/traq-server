@@ -1,0 +1,21 @@
+Section: Client & Tree details
+
+Memory aides / prompts:
+- Client name
+- Date / time
+- Address / tree location
+- Tree number / sheet
+- Tree species
+- DBH / height / crown spread diameter
+- Assessor(s)
+- Time frame
+- Tools used
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Keep phrases verbatim for all fields.
+- Return `tree_number`, `sheet`, and `of` as digits only (e.g., 1, 2, 27), never words.
+- Return `dbh` as inches digits only (e.g., 52). Do not include units.
+- Return `height` and `crown_spread_dia` as feet digits only (e.g., 38, 42). Do not include units.
+- Do not infer missing values; use null when not stated.
+- If multiple values are mentioned (e.g., multiple assessors or tools), keep them in a single comma-separated string as spoken.

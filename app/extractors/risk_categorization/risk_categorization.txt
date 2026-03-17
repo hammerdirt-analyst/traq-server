@@ -1,0 +1,28 @@
+Section: Risk Categorization (Matrix 2)
+
+Each row describes a single condition of concern and its ratings.
+
+Capture per row:
+- Condition number (if stated)
+- Tree part (Crown, Trunk, Roots) if stated
+- Condition of concern (short)
+- Part size
+- Fall distance
+- Target number
+- Target protection
+- Failure likelihood (improbable / possible / probable / imminent)
+- Impact likelihood (very_low / low / medium / high)
+- Failure and impact (unlikely / somewhat / likely / very_likely)
+- Consequences (negligible / minor / significant / severe)
+- Risk rating (low / moderate / high / extreme)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Do not invent rows; only include rows mentioned.
+- Keep short, verbatim phrases for text fields.
+- If a value is not stated, set it to null.
+Formatting:
+- condition_number: digits only (e.g., "1", "2"). No words.
+- part_size: inches using a double-quote mark (e.g., 2", 1.5"). Do not use "inch" or "in".
+- fall_distance: feet using a single-quote mark (e.g., 20', 6.5'). Do not use "ft" or "feet".
+- target_number: digits only (e.g., "1", "2"). Do not include the word "target".

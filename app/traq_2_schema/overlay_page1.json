@@ -1,0 +1,2033 @@
+{
+  "source_pdf": "basic_traq_example.pdf",
+  "page": 1,
+  "render_size_px": [
+    2448,
+    3168
+  ],
+  "top_source_map": "page1_tophalf_visual_overlay_v8_map.json",
+  "bottom_source_map": "page1_bottomhalf_visual_overlay_OPTION_A_v22_map.json",
+  "duplicate_ids_skipped": [],
+  "removed_ids": [
+    4,
+    5,
+    81,
+    96
+  ],
+  "renumbering": "removed ids 47-54 from v3; row-clustered by y-center (tol_px=19), then left-to-right within row, starting at 1",
+  "row_cluster_tol_px": 19,
+  "removed_ids_from_v3": [
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54
+  ],
+  "elements": [
+    {
+      "id": 1,
+      "type": "line_field",
+      "bbox_px": [
+        189,
+        175,
+        1455,
+        214
+      ]
+    },
+    {
+      "id": 2,
+      "type": "line_field",
+      "bbox_px": [
+        1534,
+        175,
+        1926,
+        214
+      ]
+    },
+    {
+      "id": 3,
+      "type": "line_field",
+      "bbox_px": [
+        2007,
+        175,
+        2358,
+        214
+      ]
+    },
+    {
+      "id": 4,
+      "type": "line_field",
+      "bbox_px": [
+        457,
+        227,
+        1605,
+        266
+      ]
+    },
+    {
+      "id": 5,
+      "type": "line_field",
+      "bbox_px": [
+        1739,
+        229,
+        1990,
+        267
+      ]
+    },
+    {
+      "id": 6,
+      "type": "line_field",
+      "bbox_px": [
+        2092,
+        228,
+        2203,
+        260
+      ]
+    },
+    {
+      "id": 7,
+      "type": "line_field",
+      "bbox_px": [
+        2245,
+        228,
+        2355,
+        260
+      ]
+    },
+    {
+      "id": 8,
+      "type": "line_field",
+      "bbox_px": [
+        291,
+        279,
+        1122,
+        318
+      ]
+    },
+    {
+      "id": 9,
+      "type": "line_field",
+      "bbox_px": [
+        1183,
+        281,
+        1454,
+        319
+      ]
+    },
+    {
+      "id": 10,
+      "type": "line_field",
+      "bbox_px": [
+        1569,
+        281,
+        1801,
+        319
+      ]
+    },
+    {
+      "id": 11,
+      "type": "line_field",
+      "bbox_px": [
+        2105,
+        290,
+        2355,
+        316
+      ]
+    },
+    {
+      "id": 12,
+      "type": "line_field",
+      "bbox_px": [
+        274,
+        331,
+        1123,
+        370
+      ]
+    },
+    {
+      "id": 13,
+      "type": "line_field",
+      "bbox_px": [
+        1306,
+        331,
+        1578,
+        370
+      ]
+    },
+    {
+      "id": 14,
+      "type": "line_field",
+      "bbox_px": [
+        1749,
+        331,
+        2359,
+        370
+      ]
+    },
+    {
+      "id": 15,
+      "type": "rowcell_number",
+      "bbox_px": [
+        85,
+        682,
+        220,
+        753
+      ]
+    },
+    {
+      "id": 16,
+      "type": "rowcell_description",
+      "bbox_px": [
+        208,
+        682,
+        1702,
+        753
+      ]
+    },
+    {
+      "id": 17,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1690,
+        682,
+        1794,
+        753
+      ]
+    },
+    {
+      "id": 18,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1782,
+        682,
+        1884,
+        753
+      ]
+    },
+    {
+      "id": 19,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1872,
+        682,
+        1974,
+        753
+      ]
+    },
+    {
+      "id": 20,
+      "type": "rowcell_text",
+      "bbox_px": [
+        1962,
+        682,
+        2155,
+        753
+      ]
+    },
+    {
+      "id": 21,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2143,
+        682,
+        2257,
+        753
+      ]
+    },
+    {
+      "id": 22,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2245,
+        682,
+        2356,
+        753
+      ]
+    },
+    {
+      "id": 23,
+      "type": "rowcell_number",
+      "bbox_px": [
+        85,
+        741,
+        220,
+        812
+      ]
+    },
+    {
+      "id": 24,
+      "type": "rowcell_description",
+      "bbox_px": [
+        208,
+        741,
+        1702,
+        812
+      ]
+    },
+    {
+      "id": 25,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1690,
+        741,
+        1794,
+        812
+      ]
+    },
+    {
+      "id": 26,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1782,
+        741,
+        1884,
+        812
+      ]
+    },
+    {
+      "id": 27,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1872,
+        741,
+        1974,
+        812
+      ]
+    },
+    {
+      "id": 28,
+      "type": "rowcell_text",
+      "bbox_px": [
+        1962,
+        741,
+        2155,
+        812
+      ]
+    },
+    {
+      "id": 29,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2143,
+        741,
+        2257,
+        812
+      ]
+    },
+    {
+      "id": 30,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2245,
+        741,
+        2356,
+        812
+      ]
+    },
+    {
+      "id": 31,
+      "type": "rowcell_number",
+      "bbox_px": [
+        85,
+        800,
+        220,
+        871
+      ]
+    },
+    {
+      "id": 32,
+      "type": "rowcell_description",
+      "bbox_px": [
+        208,
+        800,
+        1702,
+        871
+      ]
+    },
+    {
+      "id": 33,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1690,
+        800,
+        1794,
+        871
+      ]
+    },
+    {
+      "id": 34,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1782,
+        800,
+        1884,
+        871
+      ]
+    },
+    {
+      "id": 35,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1872,
+        800,
+        1974,
+        871
+      ]
+    },
+    {
+      "id": 36,
+      "type": "rowcell_text",
+      "bbox_px": [
+        1962,
+        800,
+        2155,
+        871
+      ]
+    },
+    {
+      "id": 37,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2143,
+        800,
+        2257,
+        871
+      ]
+    },
+    {
+      "id": 38,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2245,
+        800,
+        2356,
+        871
+      ]
+    },
+    {
+      "id": 39,
+      "type": "rowcell_number",
+      "bbox_px": [
+        85,
+        859,
+        220,
+        929
+      ]
+    },
+    {
+      "id": 40,
+      "type": "rowcell_description",
+      "bbox_px": [
+        208,
+        859,
+        1702,
+        929
+      ]
+    },
+    {
+      "id": 41,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1690,
+        859,
+        1794,
+        929
+      ]
+    },
+    {
+      "id": 42,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1782,
+        859,
+        1884,
+        929
+      ]
+    },
+    {
+      "id": 43,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        1872,
+        859,
+        1974,
+        929
+      ]
+    },
+    {
+      "id": 44,
+      "type": "rowcell_text",
+      "bbox_px": [
+        1962,
+        859,
+        2155,
+        929
+      ]
+    },
+    {
+      "id": 45,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2143,
+        859,
+        2257,
+        929
+      ]
+    },
+    {
+      "id": 46,
+      "type": "checkbox_cell",
+      "bbox_px": [
+        2245,
+        859,
+        2356,
+        929
+      ]
+    },
+    {
+      "id": 47,
+      "type": "line_field",
+      "bbox_px": [
+        362,
+        997,
+        1506,
+        1035
+      ]
+    },
+    {
+      "id": 48,
+      "type": "checkbox",
+      "bbox_px": [
+        1758,
+        989,
+        1798,
+        1029
+      ]
+    },
+    {
+      "id": 49,
+      "type": "checkbox",
+      "bbox_px": [
+        1887,
+        989,
+        1927,
+        1029
+      ]
+    },
+    {
+      "id": 50,
+      "type": "line_field",
+      "bbox_px": [
+        1930,
+        998,
+        2108,
+        1032
+      ]
+    },
+    {
+      "id": 51,
+      "type": "line_field",
+      "bbox_px": [
+        2254,
+        998,
+        2357,
+        1032
+      ]
+    },
+    {
+      "id": 52,
+      "type": "checkbox",
+      "bbox_px": [
+        377,
+        1042,
+        417,
+        1082
+      ]
+    },
+    {
+      "id": 53,
+      "type": "checkbox",
+      "bbox_px": [
+        641,
+        1042,
+        681,
+        1082
+      ]
+    },
+    {
+      "id": 54,
+      "type": "checkbox",
+      "bbox_px": [
+        873,
+        1042,
+        913,
+        1082
+      ]
+    },
+    {
+      "id": 55,
+      "type": "checkbox",
+      "bbox_px": [
+        1278,
+        1042,
+        1318,
+        1082
+      ]
+    },
+    {
+      "id": 56,
+      "type": "checkbox",
+      "bbox_px": [
+        1474,
+        1042,
+        1514,
+        1082
+      ]
+    },
+    {
+      "id": 57,
+      "type": "line_field",
+      "bbox_px": [
+        1661,
+        1050,
+        2359,
+        1089
+      ]
+    },
+    {
+      "id": 58,
+      "type": "checkbox",
+      "bbox_px": [
+        567,
+        1097,
+        607,
+        1137
+      ]
+    },
+    {
+      "id": 59,
+      "type": "checkbox",
+      "bbox_px": [
+        762,
+        1097,
+        802,
+        1137
+      ]
+    },
+    {
+      "id": 60,
+      "type": "checkbox",
+      "bbox_px": [
+        935,
+        1097,
+        975,
+        1137
+      ]
+    },
+    {
+      "id": 61,
+      "type": "checkbox",
+      "bbox_px": [
+        1165,
+        1097,
+        1205,
+        1137
+      ]
+    },
+    {
+      "id": 62,
+      "type": "checkbox",
+      "bbox_px": [
+        1529,
+        1097,
+        1569,
+        1137
+      ]
+    },
+    {
+      "id": 63,
+      "type": "line_field",
+      "bbox_px": [
+        1568,
+        1108,
+        1692,
+        1148
+      ]
+    },
+    {
+      "id": 64,
+      "type": "line_field",
+      "bbox_px": [
+        1865,
+        1105,
+        2359,
+        1143
+      ]
+    },
+    {
+      "id": 65,
+      "type": "line_field",
+      "bbox_px": [
+        475,
+        1170,
+        695,
+        1196
+      ]
+    },
+    {
+      "id": 66,
+      "type": "checkbox",
+      "bbox_px": [
+        1125,
+        1150,
+        1165,
+        1190
+      ]
+    },
+    {
+      "id": 67,
+      "type": "checkbox",
+      "bbox_px": [
+        1219,
+        1150,
+        1259,
+        1190
+      ]
+    },
+    {
+      "id": 68,
+      "type": "checkbox",
+      "bbox_px": [
+        1365,
+        1150,
+        1405,
+        1190
+      ]
+    },
+    {
+      "id": 69,
+      "type": "checkbox",
+      "bbox_px": [
+        1579,
+        1150,
+        1619,
+        1190
+      ]
+    },
+    {
+      "id": 70,
+      "type": "line_field",
+      "bbox_px": [
+        1779,
+        1158,
+        2359,
+        1197
+      ]
+    },
+    {
+      "id": 71,
+      "type": "checkbox",
+      "bbox_px": [
+        261,
+        1262,
+        301,
+        1302
+      ]
+    },
+    {
+      "id": 72,
+      "type": "checkbox",
+      "bbox_px": [
+        450,
+        1262,
+        490,
+        1302
+      ]
+    },
+    {
+      "id": 73,
+      "type": "checkbox",
+      "bbox_px": [
+        595,
+        1262,
+        635,
+        1302
+      ]
+    },
+    {
+      "id": 74,
+      "type": "checkbox",
+      "bbox_px": [
+        1087,
+        1262,
+        1127,
+        1302
+      ]
+    },
+    {
+      "id": 75,
+      "type": "checkbox",
+      "bbox_px": [
+        1390,
+        1262,
+        1430,
+        1302
+      ]
+    },
+    {
+      "id": 76,
+      "type": "line_field",
+      "bbox_px": [
+        1584,
+        1270,
+        1688,
+        1304
+      ]
+    },
+    {
+      "id": 77,
+      "type": "line_field",
+      "bbox_px": [
+        1910,
+        1270,
+        2014,
+        1304
+      ]
+    },
+    {
+      "id": 78,
+      "type": "line_field",
+      "bbox_px": [
+        2226,
+        1270,
+        2330,
+        1304
+      ]
+    },
+    {
+      "id": 79,
+      "type": "line_field",
+      "bbox_px": [
+        169,
+        1315,
+        1165,
+        1354
+      ]
+    },
+    {
+      "id": 80,
+      "type": "line_field",
+      "bbox_px": [
+        1309,
+        1315,
+        2359,
+        1354
+      ]
+    },
+    {
+      "id": 81,
+      "type": "checkbox",
+      "bbox_px": [
+        585,
+        1358,
+        625,
+        1398
+      ]
+    },
+    {
+      "id": 82,
+      "type": "checkbox",
+      "bbox_px": [
+        725,
+        1358,
+        765,
+        1398
+      ]
+    },
+    {
+      "id": 83,
+      "type": "checkbox",
+      "bbox_px": [
+        866,
+        1358,
+        906,
+        1398
+      ]
+    },
+    {
+      "id": 84,
+      "type": "line_field",
+      "bbox_px": [
+        1059,
+        1362,
+        2359,
+        1401
+      ]
+    },
+    {
+      "id": 85,
+      "type": "checkbox",
+      "bbox_px": [
+        499,
+        1466,
+        539,
+        1506
+      ]
+    },
+    {
+      "id": 86,
+      "type": "checkbox",
+      "bbox_px": [
+        651,
+        1466,
+        691,
+        1506
+      ]
+    },
+    {
+      "id": 87,
+      "type": "checkbox",
+      "bbox_px": [
+        765,
+        1466,
+        805,
+        1506
+      ]
+    },
+    {
+      "id": 88,
+      "type": "checkbox",
+      "bbox_px": [
+        1061,
+        1466,
+        1101,
+        1506
+      ]
+    },
+    {
+      "id": 89,
+      "type": "line_field",
+      "bbox_px": [
+        1097,
+        1474,
+        1554,
+        1513
+      ]
+    },
+    {
+      "id": 90,
+      "type": "checkbox",
+      "bbox_px": [
+        1986,
+        1466,
+        2026,
+        1506
+      ]
+    },
+    {
+      "id": 91,
+      "type": "checkbox",
+      "bbox_px": [
+        2175,
+        1466,
+        2215,
+        1506
+      ]
+    },
+    {
+      "id": 92,
+      "type": "checkbox",
+      "bbox_px": [
+        2318,
+        1466,
+        2358,
+        1506
+      ]
+    },
+    {
+      "id": 93,
+      "type": "checkbox",
+      "bbox_px": [
+        434,
+        1519,
+        474,
+        1559
+      ]
+    },
+    {
+      "id": 94,
+      "type": "checkbox",
+      "bbox_px": [
+        605,
+        1519,
+        645,
+        1559
+      ]
+    },
+    {
+      "id": 95,
+      "type": "checkbox",
+      "bbox_px": [
+        761,
+        1519,
+        801,
+        1559
+      ]
+    },
+    {
+      "id": 96,
+      "type": "checkbox",
+      "bbox_px": [
+        1182,
+        1519,
+        1222,
+        1559
+      ]
+    },
+    {
+      "id": 97,
+      "type": "checkbox",
+      "bbox_px": [
+        1349,
+        1519,
+        1389,
+        1559
+      ]
+    },
+    {
+      "id": 98,
+      "type": "checkbox",
+      "bbox_px": [
+        1497,
+        1519,
+        1537,
+        1559
+      ]
+    },
+    {
+      "id": 99,
+      "type": "checkbox",
+      "bbox_px": [
+        1918,
+        1519,
+        1958,
+        1559
+      ]
+    },
+    {
+      "id": 100,
+      "type": "line_field",
+      "bbox_px": [
+        1962,
+        1527,
+        2361,
+        1566
+      ]
+    },
+    {
+      "id": 101,
+      "type": "line_field",
+      "bbox_px": [
+        714,
+        1584,
+        2355,
+        1610
+      ]
+    },
+    {
+      "id": 102,
+      "type": "checkbox",
+      "bbox_px": [
+        475,
+        1782,
+        502,
+        1809
+      ]
+    },
+    {
+      "id": 103,
+      "type": "line_field",
+      "bbox_px": [
+        679,
+        1793,
+        793,
+        1819
+      ]
+    },
+    {
+      "id": 104,
+      "type": "checkbox",
+      "bbox_px": [
+        1245,
+        1782,
+        1272,
+        1809
+      ]
+    },
+    {
+      "id": 105,
+      "type": "line_field",
+      "bbox_px": [
+        1288,
+        1793,
+        1918,
+        1819
+      ]
+    },
+    {
+      "id": 106,
+      "type": "checkbox",
+      "bbox_px": [
+        2238,
+        1782,
+        2265,
+        1809
+      ]
+    },
+    {
+      "id": 107,
+      "type": "checkbox",
+      "bbox_px": [
+        506,
+        1828,
+        533,
+        1855
+      ]
+    },
+    {
+      "id": 108,
+      "type": "line_field",
+      "bbox_px": [
+        591,
+        1839,
+        631,
+        1865
+      ]
+    },
+    {
+      "id": 109,
+      "type": "line_field",
+      "bbox_px": [
+        947,
+        1839,
+        1061,
+        1865
+      ]
+    },
+    {
+      "id": 110,
+      "type": "checkbox",
+      "bbox_px": [
+        1332,
+        1840,
+        1359,
+        1867
+      ]
+    },
+    {
+      "id": 111,
+      "type": "line_field",
+      "bbox_px": [
+        1378,
+        1851,
+        1990,
+        1877
+      ]
+    },
+    {
+      "id": 112,
+      "type": "checkbox",
+      "bbox_px": [
+        2239,
+        1840,
+        2266,
+        1867
+      ]
+    },
+    {
+      "id": 113,
+      "type": "line_field",
+      "bbox_px": [
+        584,
+        1885,
+        773,
+        1911
+      ]
+    },
+    {
+      "id": 114,
+      "type": "line_field",
+      "bbox_px": [
+        947,
+        1885,
+        1061,
+        1911
+      ]
+    },
+    {
+      "id": 115,
+      "type": "checkbox",
+      "bbox_px": [
+        1424,
+        1898,
+        1451,
+        1925
+      ]
+    },
+    {
+      "id": 116,
+      "type": "line_field",
+      "bbox_px": [
+        1474,
+        1909,
+        1820,
+        1935
+      ]
+    },
+    {
+      "id": 117,
+      "type": "line_field",
+      "bbox_px": [
+        2108,
+        1909,
+        2148,
+        1935
+      ]
+    },
+    {
+      "id": 118,
+      "type": "checkbox",
+      "bbox_px": [
+        559,
+        1928,
+        586,
+        1955
+      ]
+    },
+    {
+      "id": 119,
+      "type": "checkbox",
+      "bbox_px": [
+        1504,
+        1956,
+        1531,
+        1983
+      ]
+    },
+    {
+      "id": 120,
+      "type": "line_field",
+      "bbox_px": [
+        1546,
+        1967,
+        1820,
+        1993
+      ]
+    },
+    {
+      "id": 121,
+      "type": "checkbox",
+      "bbox_px": [
+        2240,
+        1956,
+        2267,
+        1983
+      ]
+    },
+    {
+      "id": 122,
+      "type": "checkbox",
+      "bbox_px": [
+        1424,
+        2014,
+        1451,
+        2041
+      ]
+    },
+    {
+      "id": 123,
+      "type": "checkbox",
+      "bbox_px": [
+        1791,
+        2014,
+        1818,
+        2041
+      ]
+    },
+    {
+      "id": 124,
+      "type": "checkbox",
+      "bbox_px": [
+        2239,
+        2014,
+        2266,
+        2041
+      ]
+    },
+    {
+      "id": 125,
+      "type": "checkbox",
+      "bbox_px": [
+        430,
+        2034,
+        457,
+        2061
+      ]
+    },
+    {
+      "id": 126,
+      "type": "checkbox",
+      "bbox_px": [
+        705,
+        2034,
+        732,
+        2061
+      ]
+    },
+    {
+      "id": 127,
+      "type": "checkbox",
+      "bbox_px": [
+        1031,
+        2034,
+        1058,
+        2061
+      ]
+    },
+    {
+      "id": 128,
+      "type": "checkbox",
+      "bbox_px": [
+        429,
+        2078,
+        456,
+        2105
+      ]
+    },
+    {
+      "id": 129,
+      "type": "checkbox",
+      "bbox_px": [
+        706,
+        2078,
+        733,
+        2105
+      ]
+    },
+    {
+      "id": 130,
+      "type": "checkbox",
+      "bbox_px": [
+        1031,
+        2078,
+        1058,
+        2105
+      ]
+    },
+    {
+      "id": 131,
+      "type": "checkbox",
+      "bbox_px": [
+        1244,
+        2072,
+        1271,
+        2099
+      ]
+    },
+    {
+      "id": 132,
+      "type": "checkbox",
+      "bbox_px": [
+        1791,
+        2072,
+        1818,
+        2099
+      ]
+    },
+    {
+      "id": 133,
+      "type": "line_field",
+      "bbox_px": [
+        1832,
+        2083,
+        2267,
+        2109
+      ]
+    },
+    {
+      "id": 134,
+      "type": "checkbox",
+      "bbox_px": [
+        429,
+        2122,
+        456,
+        2149
+      ]
+    },
+    {
+      "id": 135,
+      "type": "line_field",
+      "bbox_px": [
+        632,
+        2131,
+        1064,
+        2157
+      ]
+    },
+    {
+      "id": 136,
+      "type": "line_field",
+      "bbox_px": [
+        1398,
+        2128,
+        2267,
+        2154
+      ]
+    },
+    {
+      "id": 137,
+      "type": "line_field",
+      "bbox_px": [
+        437,
+        2198,
+        2269,
+        2224
+      ]
+    },
+    {
+      "id": 138,
+      "type": "line_field",
+      "bbox_px": [
+        188,
+        2240,
+        2267,
+        2266
+      ]
+    },
+    {
+      "id": 139,
+      "type": "checkbox_filled_partial",
+      "bbox_px": [
+        604,
+        2287,
+        631,
+        2314
+      ]
+    },
+    {
+      "id": 140,
+      "type": "checkbox",
+      "bbox_px": [
+        910,
+        2287,
+        937,
+        2314
+      ]
+    },
+    {
+      "id": 141,
+      "type": "checkbox",
+      "bbox_px": [
+        1138,
+        2287,
+        1165,
+        2314
+      ]
+    },
+    {
+      "id": 142,
+      "type": "checkbox",
+      "bbox_px": [
+        1367,
+        2287,
+        1394,
+        2314
+      ]
+    },
+    {
+      "id": 143,
+      "type": "line_field",
+      "bbox_px": [
+        1410,
+        2290,
+        2267,
+        2316
+      ]
+    },
+    {
+      "id": 144,
+      "type": "checkbox_filled_partial",
+      "bbox_px": [
+        710,
+        2333,
+        737,
+        2360
+      ]
+    },
+    {
+      "id": 145,
+      "type": "checkbox",
+      "bbox_px": [
+        910,
+        2333,
+        937,
+        2360
+      ]
+    },
+    {
+      "id": 146,
+      "type": "checkbox",
+      "bbox_px": [
+        1137,
+        2333,
+        1164,
+        2360
+      ]
+    },
+    {
+      "id": 147,
+      "type": "checkbox",
+      "bbox_px": [
+        1367,
+        2333,
+        1394,
+        2360
+      ]
+    },
+    {
+      "id": 148,
+      "type": "line_field",
+      "bbox_px": [
+        1410,
+        2335,
+        2267,
+        2361
+      ]
+    },
+    {
+      "id": 149,
+      "type": "checkbox",
+      "bbox_px": [
+        479,
+        2463,
+        506,
+        2490
+      ]
+    },
+    {
+      "id": 150,
+      "type": "checkbox",
+      "bbox_px": [
+        1102,
+        2463,
+        1129,
+        2490
+      ]
+    },
+    {
+      "id": 151,
+      "type": "checkbox",
+      "bbox_px": [
+        1682,
+        2463,
+        1709,
+        2490
+      ]
+    },
+    {
+      "id": 152,
+      "type": "line_field",
+      "bbox_px": [
+        1836,
+        2474,
+        1989,
+        2500
+      ]
+    },
+    {
+      "id": 153,
+      "type": "checkbox",
+      "bbox_px": [
+        2236,
+        2463,
+        2263,
+        2490
+      ]
+    },
+    {
+      "id": 154,
+      "type": "checkbox",
+      "bbox_px": [
+        479,
+        2517,
+        506,
+        2544
+      ]
+    },
+    {
+      "id": 155,
+      "type": "checkbox",
+      "bbox_px": [
+        851,
+        2517,
+        878,
+        2544
+      ]
+    },
+    {
+      "id": 156,
+      "type": "checkbox",
+      "bbox_px": [
+        1102,
+        2517,
+        1129,
+        2544
+      ]
+    },
+    {
+      "id": 157,
+      "type": "checkbox",
+      "bbox_px": [
+        1418,
+        2521,
+        1445,
+        2548
+      ]
+    },
+    {
+      "id": 158,
+      "type": "checkbox",
+      "bbox_px": [
+        1682,
+        2521,
+        1709,
+        2548
+      ]
+    },
+    {
+      "id": 159,
+      "type": "checkbox",
+      "bbox_px": [
+        2156,
+        2521,
+        2183,
+        2548
+      ]
+    },
+    {
+      "id": 160,
+      "type": "checkbox",
+      "bbox_px": [
+        558,
+        2571,
+        585,
+        2598
+      ]
+    },
+    {
+      "id": 161,
+      "type": "checkbox",
+      "bbox_px": [
+        903,
+        2571,
+        930,
+        2598
+      ]
+    },
+    {
+      "id": 162,
+      "type": "checkbox",
+      "bbox_px": [
+        1101,
+        2571,
+        1128,
+        2598
+      ]
+    },
+    {
+      "id": 163,
+      "type": "checkbox",
+      "bbox_px": [
+        1418,
+        2579,
+        1445,
+        2606
+      ]
+    },
+    {
+      "id": 164,
+      "type": "checkbox",
+      "bbox_px": [
+        1682,
+        2579,
+        1709,
+        2606
+      ]
+    },
+    {
+      "id": 165,
+      "type": "line_field",
+      "bbox_px": [
+        1716,
+        2590,
+        1815,
+        2616
+      ]
+    },
+    {
+      "id": 166,
+      "type": "checkbox",
+      "bbox_px": [
+        452,
+        2625,
+        479,
+        2652
+      ]
+    },
+    {
+      "id": 167,
+      "type": "checkbox",
+      "bbox_px": [
+        761,
+        2625,
+        788,
+        2652
+      ]
+    },
+    {
+      "id": 168,
+      "type": "checkbox",
+      "bbox_px": [
+        1101,
+        2625,
+        1128,
+        2652
+      ]
+    },
+    {
+      "id": 169,
+      "type": "checkbox",
+      "bbox_px": [
+        1419,
+        2637,
+        1446,
+        2664
+      ]
+    },
+    {
+      "id": 170,
+      "type": "checkbox",
+      "bbox_px": [
+        1791,
+        2637,
+        1818,
+        2664
+      ]
+    },
+    {
+      "id": 171,
+      "type": "line_field",
+      "bbox_px": [
+        2136,
+        2648,
+        2270,
+        2674
+      ]
+    },
+    {
+      "id": 172,
+      "type": "line_field",
+      "bbox_px": [
+        430,
+        2690,
+        528,
+        2716
+      ]
+    },
+    {
+      "id": 173,
+      "type": "line_field",
+      "bbox_px": [
+        745,
+        2690,
+        879,
+        2716
+      ]
+    },
+    {
+      "id": 174,
+      "type": "checkbox",
+      "bbox_px": [
+        1101,
+        2679,
+        1128,
+        2706
+      ]
+    },
+    {
+      "id": 175,
+      "type": "checkbox_filled_partial",
+      "bbox_px": [
+        1560,
+        2695,
+        1587,
+        2722
+      ]
+    },
+    {
+      "id": 176,
+      "type": "checkbox",
+      "bbox_px": [
+        1960,
+        2695,
+        1987,
+        2722
+      ]
+    },
+    {
+      "id": 177,
+      "type": "line_field",
+      "bbox_px": [
+        257,
+        2740,
+        356,
+        2766
+      ]
+    },
+    {
+      "id": 178,
+      "type": "line_field",
+      "bbox_px": [
+        550,
+        2740,
+        1138,
+        2766
+      ]
+    },
+    {
+      "id": 179,
+      "type": "line_field",
+      "bbox_px": [
+        446,
+        2799,
+        1142,
+        2825
+      ]
+    },
+    {
+      "id": 180,
+      "type": "line_field",
+      "bbox_px": [
+        1580,
+        2797,
+        2273,
+        2823
+      ]
+    },
+    {
+      "id": 181,
+      "type": "line_field",
+      "bbox_px": [
+        430,
+        2851,
+        1142,
+        2877
+      ]
+    },
+    {
+      "id": 182,
+      "type": "line_field",
+      "bbox_px": [
+        1558,
+        2851,
+        2273,
+        2877
+      ]
+    },
+    {
+      "id": 183,
+      "type": "line_field",
+      "bbox_px": [
+        181,
+        2905,
+        1142,
+        2931
+      ]
+    },
+    {
+      "id": 184,
+      "type": "line_field",
+      "bbox_px": [
+        1311,
+        2905,
+        2273,
+        2931
+      ]
+    },
+    {
+      "id": 185,
+      "type": "checkbox",
+      "bbox_px": [
+        519,
+        2957,
+        548,
+        2983
+      ]
+    },
+    {
+      "id": 186,
+      "type": "checkbox",
+      "bbox_px": [
+        683,
+        2953,
+        710,
+        2980
+      ]
+    },
+    {
+      "id": 187,
+      "type": "checkbox",
+      "bbox_px": [
+        897,
+        2953,
+        924,
+        2980
+      ]
+    },
+    {
+      "id": 188,
+      "type": "checkbox",
+      "bbox_px": [
+        1116,
+        2953,
+        1143,
+        2980
+      ]
+    },
+    {
+      "id": 189,
+      "type": "checkbox",
+      "bbox_px": [
+        1653,
+        2953,
+        1680,
+        2980
+      ]
+    },
+    {
+      "id": 190,
+      "type": "checkbox",
+      "bbox_px": [
+        1813,
+        2953,
+        1840,
+        2980
+      ]
+    },
+    {
+      "id": 191,
+      "type": "checkbox_filled_partial",
+      "bbox_px": [
+        2030,
+        2953,
+        2057,
+        2980
+      ]
+    },
+    {
+      "id": 192,
+      "type": "checkbox",
+      "bbox_px": [
+        2246,
+        2953,
+        2273,
+        2980
+      ]
+    },
+    {
+      "id": 193,
+      "type": "checkbox",
+      "bbox_px": [
+        356,
+        3052,
+        385,
+        3078
+      ]
+    },
+    {
+      "id": 194,
+      "type": "checkbox",
+      "bbox_px": [
+        568,
+        3048,
+        595,
+        3075
+      ]
+    },
+    {
+      "id": 195,
+      "type": "checkbox",
+      "bbox_px": [
+        829,
+        3048,
+        856,
+        3075
+      ]
+    },
+    {
+      "id": 196,
+      "type": "checkbox",
+      "bbox_px": [
+        1088,
+        3048,
+        1115,
+        3075
+      ]
+    },
+    {
+      "id": 197,
+      "type": "checkbox",
+      "bbox_px": [
+        1489,
+        3048,
+        1516,
+        3075
+      ]
+    },
+    {
+      "id": 198,
+      "type": "checkbox_filled_partial",
+      "bbox_px": [
+        1699,
+        3048,
+        1726,
+        3075
+      ]
+    },
+    {
+      "id": 199,
+      "type": "checkbox",
+      "bbox_px": [
+        1958,
+        3048,
+        1985,
+        3075
+      ]
+    },
+    {
+      "id": 200,
+      "type": "checkbox",
+      "bbox_px": [
+        2218,
+        3048,
+        2245,
+        3075
+      ]
+    }
+  ],
+  "removed_id": 101,
+  "renumbering_note": "IDs >101 decremented by 1; IDs <101 unchanged"
+}

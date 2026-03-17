@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+
+# Local runtime storage and generated artifacts
+local_data/
+var/
+storage/
+server_data/
+
+# Local logs and build outputs
+*.log
+docs/_build/

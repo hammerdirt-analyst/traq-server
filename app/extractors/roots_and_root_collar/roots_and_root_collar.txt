@@ -1,0 +1,33 @@
+Section: Roots and Root Collar
+
+Capture:
+- Collar buried/not visible (boolean)
+- Collar depth (verbatim)
+- Stem girdling (boolean)
+- Dead (boolean)
+- Decay (boolean)
+- Conks/Mushrooms (boolean)
+- Ooze (boolean)
+- Cavity percent circumference
+- Cracks (boolean)
+- Cut/Damaged roots (boolean)
+- Distance from trunk (feet, digits only)
+- Root plate lifting (boolean)
+- Soil weakness (boolean)
+- Response growth (concise note)
+- Main concern(s) (verbatim)
+- Main concerns continuation line if stated
+- Load on defect (n/a / minor / moderate / significant)
+- Likelihood of failure (improbable / possible / probable / imminent)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Keep phrases verbatim for all free-text fields.
+- Do not infer missing values; use null when not stated.
+- If a statement implies a boolean, set it true.
+- If a boolean is explicitly negated, set it to false.
+- Percent values should be numbers from 0-100 without the percent sign.
+- collar_depth should be inches as digits only (no units).
+- distance_from_trunk should be feet as digits only (no units).
+- response_growth should be concise and <=40 characters.
+- main_concerns should be <=88 characters total.

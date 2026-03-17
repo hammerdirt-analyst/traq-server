@@ -1,0 +1,22 @@
+Section: Tree Health and Species Profile
+
+This section captures health indicators and species-related risk context.
+
+Capture:
+- Vigor (low / normal / high)
+- Foliage status (none seasonal, none dead, normal %, chlorotic %, necrotic %)
+- Pests note
+- Abiotic stressors note
+- Species failure profile (branches, trunk, roots, describe)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Keep phrases verbatim for all free-text fields.
+- Do not infer missing values; use null when not stated.
+- If a boolean is explicitly negated, set it to false.
+- If a percent value is given, extract only the number (0-100) without the percent sign.
+- If multiple phrases are mentioned for a notes field, combine them into a single comma-separated string as spoken.
+- Keep pests and abiotic notes concise and <= 70 characters.
+- If transcript explicitly states none, keep note as "No pests observed" / "No abiotic stress observed".
+- species_failure_profile.describe should summarize potential weak points/defects in general terms
+  and be <= 100 characters.

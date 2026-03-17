@@ -1,0 +1,30 @@
+Section: Load Factors
+
+This section captures wind exposure and canopy-related load factors.
+
+Capture:
+- Wind exposure (protected / partial / full)
+- Wind funneling (boolean) and notes
+- Relative crown size (small / medium / large)
+- Crown density (sparse / normal / dense)
+- Interior branches density (few / normal / dense)
+- Vines/Mistletoe/Moss present (boolean) and notes
+- Recent or planned change in load factors (verbatim)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Keep phrases verbatim for all free-text fields.
+- Do not infer missing values; use null when not stated.
+- If a statement implies a boolean (e.g., "wind funneling between buildings"), set the boolean true and include the phrase in the related notes field.
+- If a boolean is explicitly negated, set it to false.
+- If multiple phrases are mentioned for a notes field, combine them into a single comma-separated string as spoken.
+- wind_funneling_notes should describe cause/source of funneling (where/from what), <=40 characters.
+- For vines/mistletoe/moss:
+  - if explicitly none observed, set vines_mistletoe_moss_present=false and
+    set vines_mistletoe_moss_notes to a concise none-noted phrase.
+  - keep vines_mistletoe_moss_notes concise and <=50 characters.
+- recent_change_in_load_factors:
+  - capture interventions/changes that may increase branch loading (e.g., topping, end-weight growth,
+    nearby construction/exposure changes, load shifts).
+  - if explicitly none or no planned changes, write a concise none-noted phrase.
+  - keep recent_change_in_load_factors <=70 characters.

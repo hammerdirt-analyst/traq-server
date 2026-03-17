@@ -1,0 +1,55 @@
+Section: Crown and Branches
+
+Capture:
+- Unbalanced crown (boolean)
+- Live crown ratio (LCR) percent
+- Dead twigs/branches present (boolean)
+- Dead twigs/branches percent overall
+- Dead twigs/branches max diameter (inches, digits only)
+- Broken/hangers count
+- Broken/hangers max diameter (inches, digits only)
+- Over-extended branches (boolean)
+- Pruning history flags: crown cleaned, reduced, topped, flush cuts, thinned, raised, lion-tailed
+- Pruning history other details (text)
+- Cracks (boolean)
+- Crack details (length/position/depth) if stated
+- Lightning damage (boolean)
+- Codominant (boolean)
+- Codominant details (text) if stated
+- Included bark (boolean)
+- Weak attachments (boolean) and notes
+- Cavity/nest hole percent circumference
+- Previous branch failures (boolean)
+- Previous branch failures notes (verbatim)
+- Similar branches present (boolean)
+- Dead/missing bark (boolean)
+- Cankers/galls/burls (boolean)
+- Sapwood damage/decay (boolean)
+- Conks (boolean)
+- Heartwood decay (boolean) and notes
+- Response growth notes (text)
+- Main concern(s) (verbatim)
+- Main concerns continuation line if stated
+- Load on defect (n/a / minor / moderate / significant)
+- Load on defect notes (text)
+- Likelihood of failure (improbable / possible / probable / imminent)
+- Likelihood of failure notes (text)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Keep phrases verbatim for all free-text fields.
+- Do not infer missing values; use null when not stated.
+- If a statement implies a boolean, set it true and capture any supporting phrase in the relevant notes field.
+- If a boolean is explicitly negated, set it to false.
+- Percent values should be numbers from 0-100 without the percent sign.
+- dead_twigs_max_dia and broken_hangers_max_dia should be inches as digits only (no units).
+- cracks_notes should capture the nature of observed cracks (length/position/depth/progression) and be <=50 characters.
+- codominant_notes should be concise and <=50 characters.
+- weak_attachments_notes should be concise and <=40 characters.
+- pruning_history.other should be concise and <=30 characters.
+- previous_branch_failures_notes should be concise and <=30 characters.
+- heartwood_decay_notes should describe extent/type of decay and be <=40 characters.
+- response_growth should describe location/extent and be <=70 characters.
+- main_concerns should be <=215 characters total.
+- load_on_defect_notes should be concise and <=70 characters.
+- likelihood_of_failure_notes should be concise and <=70 characters.

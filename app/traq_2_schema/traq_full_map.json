@@ -1,0 +1,7171 @@
+{
+  "pages": {
+    "1": {
+      "render_size_px": [
+        2448,
+        3168
+      ],
+      "source": "/home/roger/projects/codex_trial/agent_client/server/app/traq_2_schema/overlay_page1.json"
+    },
+    "2": {
+      "render_size_px": [
+        2448,
+        3168
+      ],
+      "source": "/home/roger/projects/codex_trial/agent_client/server/app/traq_2_schema/overlay_page2.json"
+    }
+  },
+  "fields": [
+    {
+      "page": 1,
+      "box_id": 1,
+      "bbox_px": [
+        189,
+        175,
+        1455,
+        214
+      ],
+      "json_path": "client_tree_details.client",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 2,
+      "bbox_px": [
+        1534,
+        175,
+        1926,
+        214
+      ],
+      "json_path": "client_tree_details.date",
+      "type": "mm/dd/yyyy",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 3,
+      "bbox_px": [
+        2007,
+        175,
+        2358,
+        214
+      ],
+      "json_path": "client_tree_details.time",
+      "type": "hh:mm",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 4,
+      "bbox_px": [
+        457,
+        227,
+        1605,
+        266
+      ],
+      "json_path": "client_tree_details.address_tree_location",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 5,
+      "bbox_px": [
+        1739,
+        229,
+        1990,
+        267
+      ],
+      "json_path": "client_tree_details.tree_number",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 6,
+      "bbox_px": [
+        2092,
+        228,
+        2203,
+        260
+      ],
+      "json_path": "client_tree_details.sheet",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 7,
+      "bbox_px": [
+        2245,
+        228,
+        2355,
+        260
+      ],
+      "json_path": "client_tree_details.of",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 8,
+      "bbox_px": [
+        291,
+        279,
+        1122,
+        318
+      ],
+      "json_path": "client_tree_details.tree_species",
+      "type": "\"unknown\"",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 9,
+      "bbox_px": [
+        1183,
+        281,
+        1454,
+        319
+      ],
+      "json_path": "client_tree_details.dbh",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 10,
+      "bbox_px": [
+        1569,
+        281,
+        1801,
+        319
+      ],
+      "json_path": "client_tree_details.height",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 11,
+      "bbox_px": [
+        2105,
+        290,
+        2355,
+        316
+      ],
+      "json_path": "client_tree_details.crown_spread_dia",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 12,
+      "bbox_px": [
+        274,
+        331,
+        1123,
+        370
+      ],
+      "json_path": "client_tree_details.assessors",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 13,
+      "bbox_px": [
+        1306,
+        331,
+        1578,
+        370
+      ],
+      "json_path": "client_tree_details.time_frame",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 14,
+      "bbox_px": [
+        1749,
+        331,
+        2359,
+        370
+      ],
+      "json_path": "client_tree_details.tools_used",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 15,
+      "bbox_px": [
+        85,
+        682,
+        220,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].target_number",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 16,
+      "bbox_px": [
+        208,
+        682,
+        1702,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].label",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 17,
+      "bbox_px": [
+        1690,
+        682,
+        1794,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].zone_within_drip_line",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 18,
+      "bbox_px": [
+        1782,
+        682,
+        1884,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].zone_within_1x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 19,
+      "bbox_px": [
+        1872,
+        682,
+        1974,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].zone_within_1_5x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 20,
+      "bbox_px": [
+        1962,
+        682,
+        2155,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].occupancy_rate",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 21,
+      "bbox_px": [
+        2143,
+        682,
+        2257,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].practical_to_move",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 22,
+      "bbox_px": [
+        2245,
+        682,
+        2356,
+        753
+      ],
+      "json_path": "target_assessment.targets[0].restriction_practical",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 23,
+      "bbox_px": [
+        85,
+        741,
+        220,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].target_number",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 24,
+      "bbox_px": [
+        208,
+        741,
+        1702,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].label",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 25,
+      "bbox_px": [
+        1690,
+        741,
+        1794,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].zone_within_drip_line",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 26,
+      "bbox_px": [
+        1782,
+        741,
+        1884,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].zone_within_1x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 27,
+      "bbox_px": [
+        1872,
+        741,
+        1974,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].zone_within_1_5x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 28,
+      "bbox_px": [
+        1962,
+        741,
+        2155,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].occupancy_rate",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 29,
+      "bbox_px": [
+        2143,
+        741,
+        2257,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].practical_to_move",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 30,
+      "bbox_px": [
+        2245,
+        741,
+        2356,
+        812
+      ],
+      "json_path": "target_assessment.targets[1].restriction_practical",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 31,
+      "bbox_px": [
+        85,
+        800,
+        220,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].target_number",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 32,
+      "bbox_px": [
+        208,
+        800,
+        1702,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].label",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 33,
+      "bbox_px": [
+        1690,
+        800,
+        1794,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].zone_within_drip_line",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 34,
+      "bbox_px": [
+        1782,
+        800,
+        1884,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].zone_within_1x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 35,
+      "bbox_px": [
+        1872,
+        800,
+        1974,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].zone_within_1_5x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 36,
+      "bbox_px": [
+        1962,
+        800,
+        2155,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].occupancy_rate",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 37,
+      "bbox_px": [
+        2143,
+        800,
+        2257,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].practical_to_move",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 38,
+      "bbox_px": [
+        2245,
+        800,
+        2356,
+        871
+      ],
+      "json_path": "target_assessment.targets[2].restriction_practical",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 39,
+      "bbox_px": [
+        85,
+        859,
+        220,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].target_number",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 40,
+      "bbox_px": [
+        208,
+        859,
+        1702,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].label",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 41,
+      "bbox_px": [
+        1690,
+        859,
+        1794,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].zone_within_drip_line",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 42,
+      "bbox_px": [
+        1782,
+        859,
+        1884,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].zone_within_1x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 43,
+      "bbox_px": [
+        1872,
+        859,
+        1974,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].zone_within_1_5x_height",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 44,
+      "bbox_px": [
+        1962,
+        859,
+        2155,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].occupancy_rate",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 45,
+      "bbox_px": [
+        2143,
+        859,
+        2257,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].practical_to_move",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 46,
+      "bbox_px": [
+        2245,
+        859,
+        2356,
+        929
+      ],
+      "json_path": "target_assessment.targets[3].restriction_practical",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 47,
+      "bbox_px": [
+        362,
+        997,
+        1506,
+        1035
+      ],
+      "json_path": "site_factors.history_of_failures",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 48,
+      "bbox_px": [
+        1758,
+        989,
+        1798,
+        1029
+      ],
+      "json_path": "site_factors.topography.flat",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 49,
+      "bbox_px": [
+        1887,
+        989,
+        1927,
+        1029
+      ],
+      "json_path": "site_factors.topography.slope",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 50,
+      "bbox_px": [
+        1930,
+        998,
+        2108,
+        1032
+      ],
+      "json_path": "site_factors.topography.slope_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 51,
+      "bbox_px": [
+        2254,
+        998,
+        2357,
+        1032
+      ],
+      "json_path": "site_factors.topography.aspect",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 52,
+      "bbox_px": [
+        377,
+        1042,
+        417,
+        1082
+      ],
+      "json_path": "site_factors.site_changes.none",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 53,
+      "bbox_px": [
+        641,
+        1042,
+        681,
+        1082
+      ],
+      "json_path": "site_factors.site_changes.grade_change",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 54,
+      "bbox_px": [
+        873,
+        1042,
+        913,
+        1082
+      ],
+      "json_path": "site_factors.site_changes.site_clearing",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 55,
+      "bbox_px": [
+        1278,
+        1042,
+        1318,
+        1082
+      ],
+      "json_path": "site_factors.site_changes.changed_soil_hydrology",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 56,
+      "bbox_px": [
+        1474,
+        1042,
+        1514,
+        1082
+      ],
+      "json_path": "site_factors.site_changes.root_cuts",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 57,
+      "bbox_px": [
+        1661,
+        1050,
+        2359,
+        1089
+      ],
+      "json_path": "site_factors.site_changes.landscape_environment",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 58,
+      "bbox_px": [
+        567,
+        1097,
+        607,
+        1137
+      ],
+      "json_path": "site_factors.soil_conditions.limited_volume",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 59,
+      "bbox_px": [
+        762,
+        1097,
+        802,
+        1137
+      ],
+      "json_path": "site_factors.soil_conditions.saturated",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 60,
+      "bbox_px": [
+        935,
+        1097,
+        975,
+        1137
+      ],
+      "json_path": "site_factors.soil_conditions.shallow",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 61,
+      "bbox_px": [
+        1165,
+        1097,
+        1205,
+        1137
+      ],
+      "json_path": "site_factors.soil_conditions.compacted",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 62,
+      "bbox_px": [
+        1529,
+        1097,
+        1569,
+        1137
+      ],
+      "json_path": "site_factors.soil_conditions.pavement_over_roots",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 63,
+      "bbox_px": [
+        1568,
+        1108,
+        1692,
+        1148
+      ],
+      "json_path": "site_factors.soil_conditions.percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 64,
+      "bbox_px": [
+        1865,
+        1105,
+        2359,
+        1143
+      ],
+      "json_path": "site_factors.soil_conditions.describe",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 65,
+      "bbox_px": [
+        475,
+        1170,
+        695,
+        1196
+      ],
+      "json_path": "site_factors.prevailing_wind_direction",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 66,
+      "bbox_px": [
+        1125,
+        1150,
+        1165,
+        1190
+      ],
+      "json_path": "site_factors.common_weather.strong_winds",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 67,
+      "bbox_px": [
+        1219,
+        1150,
+        1259,
+        1190
+      ],
+      "json_path": "site_factors.common_weather.ice",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 68,
+      "bbox_px": [
+        1365,
+        1150,
+        1405,
+        1190
+      ],
+      "json_path": "site_factors.common_weather.snow",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 69,
+      "bbox_px": [
+        1579,
+        1150,
+        1619,
+        1190
+      ],
+      "json_path": "site_factors.common_weather.heavy_rain",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 70,
+      "bbox_px": [
+        1779,
+        1158,
+        2359,
+        1197
+      ],
+      "json_path": "site_factors.common_weather.describe",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 71,
+      "bbox_px": [
+        261,
+        1262,
+        301,
+        1302
+      ],
+      "json_path": "tree_health_and_species.vigor",
+      "type": "checkbox",
+      "compare_value": "low"
+    },
+    {
+      "page": 1,
+      "box_id": 72,
+      "bbox_px": [
+        450,
+        1262,
+        490,
+        1302
+      ],
+      "json_path": "tree_health_and_species.vigor",
+      "type": "checkbox",
+      "compare_value": "normal"
+    },
+    {
+      "page": 1,
+      "box_id": 73,
+      "bbox_px": [
+        595,
+        1262,
+        635,
+        1302
+      ],
+      "json_path": "tree_health_and_species.vigor",
+      "type": "checkbox",
+      "compare_value": "high"
+    },
+    {
+      "page": 1,
+      "box_id": 74,
+      "bbox_px": [
+        1087,
+        1262,
+        1127,
+        1302
+      ],
+      "json_path": "tree_health_and_species.foliage.none_seasonal",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 75,
+      "bbox_px": [
+        1390,
+        1262,
+        1430,
+        1302
+      ],
+      "json_path": "tree_health_and_species.foliage.none_dead",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 76,
+      "bbox_px": [
+        1584,
+        1270,
+        1688,
+        1304
+      ],
+      "json_path": "tree_health_and_species.foliage.normal_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 77,
+      "bbox_px": [
+        1910,
+        1270,
+        2014,
+        1304
+      ],
+      "json_path": "tree_health_and_species.foliage.chlorotic_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 78,
+      "bbox_px": [
+        2226,
+        1270,
+        2330,
+        1304
+      ],
+      "json_path": "tree_health_and_species.foliage.necrotic_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 79,
+      "bbox_px": [
+        169,
+        1315,
+        1165,
+        1354
+      ],
+      "json_path": "tree_health_and_species.pests",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 80,
+      "bbox_px": [
+        1309,
+        1315,
+        2359,
+        1354
+      ],
+      "json_path": "tree_health_and_species.abiotic",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 81,
+      "bbox_px": [
+        585,
+        1358,
+        625,
+        1398
+      ],
+      "json_path": "tree_health_and_species.species_failure_profile.branches",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 82,
+      "bbox_px": [
+        725,
+        1358,
+        765,
+        1398
+      ],
+      "json_path": "tree_health_and_species.species_failure_profile.trunk",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 83,
+      "bbox_px": [
+        866,
+        1358,
+        906,
+        1398
+      ],
+      "json_path": "tree_health_and_species.species_failure_profile.roots",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 84,
+      "bbox_px": [
+        1059,
+        1362,
+        2359,
+        1401
+      ],
+      "json_path": "tree_health_and_species.species_failure_profile.describe",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 85,
+      "bbox_px": [
+        499,
+        1466,
+        539,
+        1506
+      ],
+      "json_path": "load_factors.wind_exposure",
+      "type": "checkbox",
+      "compare_value": "protected"
+    },
+    {
+      "page": 1,
+      "box_id": 86,
+      "bbox_px": [
+        651,
+        1466,
+        691,
+        1506
+      ],
+      "json_path": "load_factors.wind_exposure",
+      "type": "checkbox",
+      "compare_value": "partial"
+    },
+    {
+      "page": 1,
+      "box_id": 87,
+      "bbox_px": [
+        765,
+        1466,
+        805,
+        1506
+      ],
+      "json_path": "load_factors.wind_exposure",
+      "type": "checkbox",
+      "compare_value": "full"
+    },
+    {
+      "page": 1,
+      "box_id": 88,
+      "bbox_px": [
+        1061,
+        1466,
+        1101,
+        1506
+      ],
+      "json_path": "load_factors.wind_funneling",
+      "type": "checkbox",
+      "compare_value": "load_factors.wind_funneling"
+    },
+    {
+      "page": 1,
+      "box_id": 89,
+      "bbox_px": [
+        1097,
+        1474,
+        1554,
+        1513
+      ],
+      "json_path": "load_factors.wind_funneling_notes",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 90,
+      "bbox_px": [
+        1986,
+        1466,
+        2026,
+        1506
+      ],
+      "json_path": "load_factors.relative_crown_size",
+      "type": "checkbox",
+      "compare_value": "small"
+    },
+    {
+      "page": 1,
+      "box_id": 91,
+      "bbox_px": [
+        2175,
+        1466,
+        2215,
+        1506
+      ],
+      "json_path": "load_factors.relative_crown_size",
+      "type": "checkbox",
+      "compare_value": "medium"
+    },
+    {
+      "page": 1,
+      "box_id": 92,
+      "bbox_px": [
+        2318,
+        1466,
+        2358,
+        1506
+      ],
+      "json_path": "load_factors.relative_crown_size",
+      "type": "checkbox",
+      "compare_value": "large"
+    },
+    {
+      "page": 1,
+      "box_id": 93,
+      "bbox_px": [
+        434,
+        1519,
+        474,
+        1559
+      ],
+      "json_path": "load_factors.crown_density",
+      "type": "checkbox",
+      "compare_value": "sparse"
+    },
+    {
+      "page": 1,
+      "box_id": 94,
+      "bbox_px": [
+        605,
+        1519,
+        645,
+        1559
+      ],
+      "json_path": "load_factors.crown_density",
+      "type": "checkbox",
+      "compare_value": "normal"
+    },
+    {
+      "page": 1,
+      "box_id": 95,
+      "bbox_px": [
+        761,
+        1519,
+        801,
+        1559
+      ],
+      "json_path": "load_factors.crown_density",
+      "type": "checkbox",
+      "compare_value": "dense"
+    },
+    {
+      "page": 1,
+      "box_id": 96,
+      "bbox_px": [
+        1182,
+        1519,
+        1222,
+        1559
+      ],
+      "json_path": "load_factors.interior_branches_density",
+      "type": "checkbox",
+      "compare_value": "few"
+    },
+    {
+      "page": 1,
+      "box_id": 97,
+      "bbox_px": [
+        1349,
+        1519,
+        1389,
+        1559
+      ],
+      "json_path": "load_factors.interior_branches_density",
+      "type": "checkbox",
+      "compare_value": "normal"
+    },
+    {
+      "page": 1,
+      "box_id": 98,
+      "bbox_px": [
+        1497,
+        1519,
+        1537,
+        1559
+      ],
+      "json_path": "load_factors.interior_branches_density",
+      "type": "checkbox",
+      "compare_value": "dense"
+    },
+    {
+      "page": 1,
+      "box_id": 99,
+      "bbox_px": [
+        1918,
+        1519,
+        1958,
+        1559
+      ],
+      "json_path": "load_factors.vines_mistletoe_moss_present",
+      "type": "checkbox",
+      "compare_value": "load_factors.vines_mistletoe_moss_present"
+    },
+    {
+      "page": 1,
+      "box_id": 100,
+      "bbox_px": [
+        1962,
+        1527,
+        2361,
+        1566
+      ],
+      "json_path": "load_factors.vines_mistletoe_moss_notes",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 101,
+      "bbox_px": [
+        714,
+        1584,
+        2355,
+        1610
+      ],
+      "json_path": "load_factors.recent_change_in_load_factors",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 102,
+      "bbox_px": [
+        475,
+        1782,
+        502,
+        1809
+      ],
+      "json_path": "crown_and_branches.unbalanced_crown",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 103,
+      "bbox_px": [
+        679,
+        1793,
+        793,
+        1819
+      ],
+      "json_path": "crown_and_branches.lcr_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 104,
+      "bbox_px": [
+        1245,
+        1782,
+        1272,
+        1809
+      ],
+      "json_path": "crown_and_branches.cracks",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 105,
+      "bbox_px": [
+        1288,
+        1793,
+        1918,
+        1819
+      ],
+      "json_path": "crown_and_branches.cracks_notes",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 106,
+      "bbox_px": [
+        2238,
+        1782,
+        2265,
+        1809
+      ],
+      "json_path": "crown_and_branches.lightning_damage",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 107,
+      "bbox_px": [
+        506,
+        1828,
+        533,
+        1855
+      ],
+      "json_path": "crown_and_branches.dead_twigs",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 108,
+      "bbox_px": [
+        591,
+        1839,
+        631,
+        1865
+      ],
+      "json_path": "crown_and_branches.dead_twigs_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 109,
+      "bbox_px": [
+        947,
+        1839,
+        1061,
+        1865
+      ],
+      "json_path": "crown_and_branches.dead_twigs_max_dia",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 110,
+      "bbox_px": [
+        1332,
+        1840,
+        1359,
+        1867
+      ],
+      "json_path": "crown_and_branches.codominant",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 111,
+      "bbox_px": [
+        1378,
+        1851,
+        1990,
+        1877
+      ],
+      "json_path": "crown_and_branches.codominant_notes",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 112,
+      "bbox_px": [
+        2239,
+        1840,
+        2266,
+        1867
+      ],
+      "json_path": "crown_and_branches.included_bark",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 113,
+      "bbox_px": [
+        584,
+        1885,
+        773,
+        1911
+      ],
+      "json_path": "crown_and_branches.broken_hangers_number",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 114,
+      "bbox_px": [
+        947,
+        1885,
+        1061,
+        1911
+      ],
+      "json_path": "crown_and_branches.broken_hangers_max_dia",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 115,
+      "bbox_px": [
+        1424,
+        1898,
+        1451,
+        1925
+      ],
+      "json_path": "crown_and_branches.weak_attachments",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 116,
+      "bbox_px": [
+        1474,
+        1909,
+        1820,
+        1935
+      ],
+      "json_path": "crown_and_branches.weak_attachments_notes",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 117,
+      "bbox_px": [
+        2108,
+        1909,
+        2148,
+        1935
+      ],
+      "json_path": "crown_and_branches.cavity_nest_hole_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 118,
+      "bbox_px": [
+        559,
+        1928,
+        586,
+        1955
+      ],
+      "json_path": "crown_and_branches.over_extended_branches",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 119,
+      "bbox_px": [
+        1504,
+        1956,
+        1531,
+        1983
+      ],
+      "json_path": "crown_and_branches.previous_branch_failures",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 120,
+      "bbox_px": [
+        1546,
+        1967,
+        1820,
+        1993
+      ],
+      "json_path": "crown_and_branches.previous_branch_failures_notes",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 121,
+      "bbox_px": [
+        2240,
+        1956,
+        2267,
+        1983
+      ],
+      "json_path": "crown_and_branches.similar_branches_present",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 122,
+      "bbox_px": [
+        1424,
+        2014,
+        1451,
+        2041
+      ],
+      "json_path": "crown_and_branches.dead_missing_bark",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 123,
+      "bbox_px": [
+        1791,
+        2014,
+        1818,
+        2041
+      ],
+      "json_path": "crown_and_branches.cankers_galls_burls",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 124,
+      "bbox_px": [
+        2239,
+        2014,
+        2266,
+        2041
+      ],
+      "json_path": "crown_and_branches.sapwood_damage_decay",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 125,
+      "bbox_px": [
+        430,
+        2034,
+        457,
+        2061
+      ],
+      "json_path": "crown_and_branches.pruning_history.crown_cleaned",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 126,
+      "bbox_px": [
+        705,
+        2034,
+        732,
+        2061
+      ],
+      "json_path": "crown_and_branches.pruning_history.thinned",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 127,
+      "bbox_px": [
+        1031,
+        2034,
+        1058,
+        2061
+      ],
+      "json_path": "crown_and_branches.pruning_history.raised",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 128,
+      "bbox_px": [
+        429,
+        2078,
+        456,
+        2105
+      ],
+      "json_path": "crown_and_branches.pruning_history.reduced",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 129,
+      "bbox_px": [
+        706,
+        2078,
+        733,
+        2105
+      ],
+      "json_path": "crown_and_branches.pruning_history.topped",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 130,
+      "bbox_px": [
+        1031,
+        2078,
+        1058,
+        2105
+      ],
+      "json_path": "crown_and_branches.pruning_history.lion_tailed",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 134,
+      "bbox_px": [
+        429,
+        2122,
+        456,
+        2149
+      ],
+      "json_path": "crown_and_branches.pruning_history.flush_cuts",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 135,
+      "bbox_px": [
+        632,
+        2131,
+        1064,
+        2157
+      ],
+      "json_path": "crown_and_branches.pruning_history.other",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 131,
+      "bbox_px": [
+        1244,
+        2072,
+        1271,
+        2099
+      ],
+      "json_path": "crown_and_branches.conks",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 132,
+      "bbox_px": [
+        1791,
+        2072,
+        1818,
+        2099
+      ],
+      "json_path": "crown_and_branches.heartwood_decay",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 133,
+      "bbox_px": [
+        1832,
+        2083,
+        2267,
+        2109
+      ],
+      "json_path": "crown_and_branches.heartwood_decay_notes",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 136,
+      "bbox_px": [
+        1398,
+        2128,
+        2267,
+        2154
+      ],
+      "json_path": "crown_and_branches.response_growth",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 137,
+      "bbox_px": [
+        437,
+        2198,
+        2269,
+        2224
+      ],
+      "json_path": "crown_and_branches.main_concerns",
+      "type": "line:1",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 138,
+      "bbox_px": [
+        188,
+        2240,
+        2267,
+        2266
+      ],
+      "json_path": "crown_and_branches.main_concerns",
+      "type": "line:2",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 139,
+      "bbox_px": [
+        604,
+        2287,
+        631,
+        2314
+      ],
+      "json_path": "crown_and_branches.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "N/A"
+    },
+    {
+      "page": 1,
+      "box_id": 140,
+      "bbox_px": [
+        910,
+        2287,
+        937,
+        2314
+      ],
+      "json_path": "crown_and_branches.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "minor"
+    },
+    {
+      "page": 1,
+      "box_id": 141,
+      "bbox_px": [
+        1138,
+        2287,
+        1165,
+        2314
+      ],
+      "json_path": "crown_and_branches.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "moderate"
+    },
+    {
+      "page": 1,
+      "box_id": 142,
+      "bbox_px": [
+        1367,
+        2287,
+        1394,
+        2314
+      ],
+      "json_path": "crown_and_branches.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "significant"
+    },
+    {
+      "page": 1,
+      "box_id": 143,
+      "bbox_px": [
+        1410,
+        2290,
+        2267,
+        2316
+      ],
+      "json_path": "crown_and_branches.load_on_defect",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 144,
+      "bbox_px": [
+        710,
+        2333,
+        737,
+        2360
+      ],
+      "json_path": "crown_and_branches.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 1,
+      "box_id": 145,
+      "bbox_px": [
+        910,
+        2333,
+        937,
+        2360
+      ],
+      "json_path": "crown_and_branches.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "possible"
+    },
+    {
+      "page": 1,
+      "box_id": 146,
+      "bbox_px": [
+        1137,
+        2333,
+        1164,
+        2360
+      ],
+      "json_path": "crown_and_branches.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "probable"
+    },
+    {
+      "page": 1,
+      "box_id": 147,
+      "bbox_px": [
+        1367,
+        2333,
+        1394,
+        2360
+      ],
+      "json_path": "crown_and_branches.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 1,
+      "box_id": 148,
+      "bbox_px": [
+        1410,
+        2335,
+        2267,
+        2361
+      ],
+      "json_path": "crown_and_branches.likelihood_of_failure",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 149,
+      "bbox_px": [
+        479,
+        2463,
+        506,
+        2490
+      ],
+      "json_path": "trunk.dead_missing_bark",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 150,
+      "bbox_px": [
+        1102,
+        2463,
+        1129,
+        2490
+      ],
+      "json_path": "trunk.abnormal_bark_texture_color",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 154,
+      "bbox_px": [
+        479,
+        2517,
+        506,
+        2544
+      ],
+      "json_path": "trunk.codominant_stems",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 155,
+      "bbox_px": [
+        851,
+        2517,
+        878,
+        2544
+      ],
+      "json_path": "trunk.included_bark",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 156,
+      "bbox_px": [
+        1102,
+        2517,
+        1129,
+        2544
+      ],
+      "json_path": "trunk.cracks",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 160,
+      "bbox_px": [
+        558,
+        2571,
+        585,
+        2598
+      ],
+      "json_path": "trunk.sapwood_damage_decay",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 161,
+      "bbox_px": [
+        903,
+        2571,
+        930,
+        2598
+      ],
+      "json_path": "trunk.cankers_galls_burls",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 162,
+      "bbox_px": [
+        1101,
+        2571,
+        1128,
+        2598
+      ],
+      "json_path": "trunk.sap_ooze",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 166,
+      "bbox_px": [
+        452,
+        2625,
+        479,
+        2652
+      ],
+      "json_path": "trunk.lightning_damage",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 167,
+      "bbox_px": [
+        761,
+        2625,
+        788,
+        2652
+      ],
+      "json_path": "trunk.heartwood_decay",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 168,
+      "bbox_px": [
+        1101,
+        2625,
+        1128,
+        2652
+      ],
+      "json_path": "trunk.conks_mushrooms",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 172,
+      "bbox_px": [
+        430,
+        2690,
+        528,
+        2716
+      ],
+      "json_path": "trunk.cavity_nest_hole_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 173,
+      "bbox_px": [
+        745,
+        2690,
+        879,
+        2716
+      ],
+      "json_path": "trunk.cavity_nest_hole_depth",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 174,
+      "bbox_px": [
+        1101,
+        2679,
+        1128,
+        2706
+      ],
+      "json_path": "trunk.poor_taper",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 177,
+      "bbox_px": [
+        257,
+        2740,
+        356,
+        2766
+      ],
+      "json_path": "trunk.lean_degrees",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 178,
+      "bbox_px": [
+        550,
+        2740,
+        1138,
+        2766
+      ],
+      "json_path": "trunk.lean_corrected",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 179,
+      "bbox_px": [
+        446,
+        2799,
+        1142,
+        2825
+      ],
+      "json_path": "trunk.response_growth",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 181,
+      "bbox_px": [
+        430,
+        2851,
+        1142,
+        2877
+      ],
+      "json_path": "trunk.main_concerns",
+      "type": "line:1",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 183,
+      "bbox_px": [
+        181,
+        2905,
+        1142,
+        2931
+      ],
+      "json_path": "trunk.main_concerns",
+      "type": "line:2",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 185,
+      "bbox_px": [
+        519,
+        2957,
+        548,
+        2983
+      ],
+      "json_path": "trunk.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "N/A"
+    },
+    {
+      "page": 1,
+      "box_id": 186,
+      "bbox_px": [
+        683,
+        2953,
+        710,
+        2980
+      ],
+      "json_path": "trunk.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "minor"
+    },
+    {
+      "page": 1,
+      "box_id": 187,
+      "bbox_px": [
+        897,
+        2953,
+        924,
+        2980
+      ],
+      "json_path": "trunk.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "moderate"
+    },
+    {
+      "page": 1,
+      "box_id": 188,
+      "bbox_px": [
+        1116,
+        2953,
+        1143,
+        2980
+      ],
+      "json_path": "trunk.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "significant"
+    },
+    {
+      "page": 1,
+      "box_id": 193,
+      "bbox_px": [
+        356,
+        3052,
+        385,
+        3078
+      ],
+      "json_path": "trunk.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 1,
+      "box_id": 194,
+      "bbox_px": [
+        568,
+        3048,
+        595,
+        3075
+      ],
+      "json_path": "trunk.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "possible"
+    },
+    {
+      "page": 1,
+      "box_id": 195,
+      "bbox_px": [
+        829,
+        3048,
+        856,
+        3075
+      ],
+      "json_path": "trunk.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "probable"
+    },
+    {
+      "page": 1,
+      "box_id": 196,
+      "bbox_px": [
+        1088,
+        3048,
+        1115,
+        3075
+      ],
+      "json_path": "trunk.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 1,
+      "box_id": 151,
+      "bbox_px": [
+        1682,
+        2463,
+        1709,
+        2490
+      ],
+      "json_path": "roots_and_root_collar.collar_buried_not_visible",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 152,
+      "bbox_px": [
+        1836,
+        2474,
+        1989,
+        2500
+      ],
+      "json_path": "roots_and_root_collar.collar_depth",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 153,
+      "bbox_px": [
+        2236,
+        2463,
+        2263,
+        2490
+      ],
+      "json_path": "roots_and_root_collar.stem_girdling",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 157,
+      "bbox_px": [
+        1418,
+        2521,
+        1445,
+        2548
+      ],
+      "json_path": "roots_and_root_collar.dead",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 158,
+      "bbox_px": [
+        1682,
+        2521,
+        1709,
+        2548
+      ],
+      "json_path": "roots_and_root_collar.decay",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 159,
+      "bbox_px": [
+        2156,
+        2521,
+        2183,
+        2548
+      ],
+      "json_path": "roots_and_root_collar.conks_mushrooms",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 163,
+      "bbox_px": [
+        1418,
+        2579,
+        1445,
+        2606
+      ],
+      "json_path": "roots_and_root_collar.ooze",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 164,
+      "bbox_px": [
+        1682,
+        2579,
+        1709,
+        2606
+      ],
+      "json_path": "roots_and_root_collar.cavity",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 165,
+      "bbox_px": [
+        1716,
+        2590,
+        1815,
+        2616
+      ],
+      "json_path": "roots_and_root_collar.cavity_percent",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 169,
+      "bbox_px": [
+        1419,
+        2637,
+        1446,
+        2664
+      ],
+      "json_path": "roots_and_root_collar.cracks",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 170,
+      "bbox_px": [
+        1791,
+        2637,
+        1818,
+        2664
+      ],
+      "json_path": "roots_and_root_collar.cut_damaged_roots",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 171,
+      "bbox_px": [
+        2136,
+        2648,
+        2270,
+        2674
+      ],
+      "json_path": "roots_and_root_collar.distance_from_trunk",
+      "type": "int",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 175,
+      "bbox_px": [
+        1560,
+        2695,
+        1587,
+        2722
+      ],
+      "json_path": "roots_and_root_collar.root_plate_lifting",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 176,
+      "bbox_px": [
+        1960,
+        2695,
+        1987,
+        2722
+      ],
+      "json_path": "roots_and_root_collar.soil_weakness",
+      "type": "checkbox",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 180,
+      "bbox_px": [
+        1580,
+        2797,
+        2273,
+        2823
+      ],
+      "json_path": "roots_and_root_collar.response_growth",
+      "type": "text",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 182,
+      "bbox_px": [
+        1558,
+        2851,
+        2273,
+        2877
+      ],
+      "json_path": "roots_and_root_collar.main_concerns",
+      "type": "line:1",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 184,
+      "bbox_px": [
+        1311,
+        2905,
+        2273,
+        2931
+      ],
+      "json_path": "roots_and_root_collar.main_concerns",
+      "type": "line:2",
+      "compare_value": null
+    },
+    {
+      "page": 1,
+      "box_id": 189,
+      "bbox_px": [
+        1653,
+        2953,
+        1680,
+        2980
+      ],
+      "json_path": "roots_and_root_collar.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "N/A"
+    },
+    {
+      "page": 1,
+      "box_id": 190,
+      "bbox_px": [
+        1813,
+        2953,
+        1840,
+        2980
+      ],
+      "json_path": "roots_and_root_collar.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "minor"
+    },
+    {
+      "page": 1,
+      "box_id": 191,
+      "bbox_px": [
+        2030,
+        2953,
+        2057,
+        2980
+      ],
+      "json_path": "roots_and_root_collar.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "moderate"
+    },
+    {
+      "page": 1,
+      "box_id": 192,
+      "bbox_px": [
+        2246,
+        2953,
+        2273,
+        2980
+      ],
+      "json_path": "roots_and_root_collar.load_on_defect",
+      "type": "checkbox",
+      "compare_value": "significant"
+    },
+    {
+      "page": 1,
+      "box_id": 197,
+      "bbox_px": [
+        1489,
+        3048,
+        1516,
+        3075
+      ],
+      "json_path": "roots_and_root_collar.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 1,
+      "box_id": 198,
+      "bbox_px": [
+        1699,
+        3048,
+        1726,
+        3075
+      ],
+      "json_path": "roots_and_root_collar.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "possible"
+    },
+    {
+      "page": 1,
+      "box_id": 199,
+      "bbox_px": [
+        1958,
+        3048,
+        1985,
+        3075
+      ],
+      "json_path": "roots_and_root_collar.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "probable"
+    },
+    {
+      "page": 1,
+      "box_id": 200,
+      "bbox_px": [
+        2218,
+        3048,
+        2245,
+        3075
+      ],
+      "json_path": "roots_and_root_collar.likelihood_of_failure",
+      "type": "checkbox",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 1,
+      "bbox_px": [
+        93,
+        522,
+        163,
+        589
+      ],
+      "json_path": "risk_categorization[0].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 2,
+      "bbox_px": [
+        163,
+        522,
+        355,
+        589
+      ],
+      "json_path": "risk_categorization[0].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 3,
+      "bbox_px": [
+        355,
+        522,
+        703,
+        589
+      ],
+      "json_path": "risk_categorization[0].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 4,
+      "bbox_px": [
+        703,
+        522,
+        803,
+        589
+      ],
+      "json_path": "risk_categorization[0].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 5,
+      "bbox_px": [
+        803,
+        522,
+        905,
+        589
+      ],
+      "json_path": "risk_categorization[0].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 6,
+      "bbox_px": [
+        905,
+        522,
+        1006,
+        589
+      ],
+      "json_path": "risk_categorization[0].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 7,
+      "bbox_px": [
+        1006,
+        522,
+        1209,
+        589
+      ],
+      "json_path": "risk_categorization[0].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 8,
+      "bbox_px": [
+        1209,
+        522,
+        1273,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 9,
+      "bbox_px": [
+        1273,
+        522,
+        1334,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 10,
+      "bbox_px": [
+        1334,
+        522,
+        1395,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 11,
+      "bbox_px": [
+        1395,
+        522,
+        1457,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 12,
+      "bbox_px": [
+        1457,
+        522,
+        1520,
+        589
+      ],
+      "json_path": "risk_categorization[0].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 13,
+      "bbox_px": [
+        1520,
+        522,
+        1581,
+        589
+      ],
+      "json_path": "risk_categorization[0].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 14,
+      "bbox_px": [
+        1581,
+        522,
+        1642,
+        589
+      ],
+      "json_path": "risk_categorization[0].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 15,
+      "bbox_px": [
+        1642,
+        522,
+        1705,
+        589
+      ],
+      "json_path": "risk_categorization[0].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 16,
+      "bbox_px": [
+        1705,
+        522,
+        1770,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 17,
+      "bbox_px": [
+        1770,
+        522,
+        1833,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 18,
+      "bbox_px": [
+        1833,
+        522,
+        1894,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 19,
+      "bbox_px": [
+        1894,
+        522,
+        1958,
+        589
+      ],
+      "json_path": "risk_categorization[0].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 20,
+      "bbox_px": [
+        1958,
+        522,
+        2023,
+        589
+      ],
+      "json_path": "risk_categorization[0].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 21,
+      "bbox_px": [
+        2023,
+        522,
+        2084,
+        589
+      ],
+      "json_path": "risk_categorization[0].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 22,
+      "bbox_px": [
+        2084,
+        522,
+        2145,
+        589
+      ],
+      "json_path": "risk_categorization[0].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 23,
+      "bbox_px": [
+        2145,
+        522,
+        2206,
+        589
+      ],
+      "json_path": "risk_categorization[0].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 24,
+      "bbox_px": [
+        2206,
+        522,
+        2357,
+        589
+      ],
+      "json_path": "risk_categorization[0].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 25,
+      "bbox_px": [
+        93,
+        589,
+        163,
+        659
+      ],
+      "json_path": "risk_categorization[1].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 26,
+      "bbox_px": [
+        163,
+        589,
+        355,
+        659
+      ],
+      "json_path": "risk_categorization[1].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 27,
+      "bbox_px": [
+        355,
+        589,
+        703,
+        659
+      ],
+      "json_path": "risk_categorization[1].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 28,
+      "bbox_px": [
+        703,
+        589,
+        803,
+        659
+      ],
+      "json_path": "risk_categorization[1].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 29,
+      "bbox_px": [
+        803,
+        589,
+        905,
+        659
+      ],
+      "json_path": "risk_categorization[1].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 30,
+      "bbox_px": [
+        905,
+        589,
+        1006,
+        659
+      ],
+      "json_path": "risk_categorization[1].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 31,
+      "bbox_px": [
+        1006,
+        589,
+        1209,
+        659
+      ],
+      "json_path": "risk_categorization[1].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 32,
+      "bbox_px": [
+        1209,
+        589,
+        1273,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 33,
+      "bbox_px": [
+        1273,
+        589,
+        1334,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 34,
+      "bbox_px": [
+        1334,
+        589,
+        1395,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 35,
+      "bbox_px": [
+        1395,
+        589,
+        1457,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 36,
+      "bbox_px": [
+        1457,
+        589,
+        1520,
+        659
+      ],
+      "json_path": "risk_categorization[1].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 37,
+      "bbox_px": [
+        1520,
+        589,
+        1581,
+        659
+      ],
+      "json_path": "risk_categorization[1].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 38,
+      "bbox_px": [
+        1581,
+        589,
+        1642,
+        659
+      ],
+      "json_path": "risk_categorization[1].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 39,
+      "bbox_px": [
+        1642,
+        589,
+        1705,
+        659
+      ],
+      "json_path": "risk_categorization[1].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 40,
+      "bbox_px": [
+        1705,
+        589,
+        1770,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 41,
+      "bbox_px": [
+        1770,
+        589,
+        1833,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 42,
+      "bbox_px": [
+        1833,
+        589,
+        1894,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 43,
+      "bbox_px": [
+        1894,
+        589,
+        1958,
+        659
+      ],
+      "json_path": "risk_categorization[1].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 44,
+      "bbox_px": [
+        1958,
+        589,
+        2023,
+        659
+      ],
+      "json_path": "risk_categorization[1].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 45,
+      "bbox_px": [
+        2023,
+        589,
+        2084,
+        659
+      ],
+      "json_path": "risk_categorization[1].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 46,
+      "bbox_px": [
+        2084,
+        589,
+        2145,
+        659
+      ],
+      "json_path": "risk_categorization[1].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 47,
+      "bbox_px": [
+        2145,
+        589,
+        2206,
+        659
+      ],
+      "json_path": "risk_categorization[1].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 48,
+      "bbox_px": [
+        2206,
+        589,
+        2357,
+        659
+      ],
+      "json_path": "risk_categorization[1].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 49,
+      "bbox_px": [
+        93,
+        659,
+        163,
+        726
+      ],
+      "json_path": "risk_categorization[2].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 50,
+      "bbox_px": [
+        163,
+        659,
+        355,
+        726
+      ],
+      "json_path": "risk_categorization[2].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 51,
+      "bbox_px": [
+        355,
+        659,
+        703,
+        726
+      ],
+      "json_path": "risk_categorization[2].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 52,
+      "bbox_px": [
+        703,
+        659,
+        803,
+        726
+      ],
+      "json_path": "risk_categorization[2].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 53,
+      "bbox_px": [
+        803,
+        659,
+        905,
+        726
+      ],
+      "json_path": "risk_categorization[2].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 54,
+      "bbox_px": [
+        905,
+        659,
+        1006,
+        726
+      ],
+      "json_path": "risk_categorization[2].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 55,
+      "bbox_px": [
+        1006,
+        659,
+        1209,
+        726
+      ],
+      "json_path": "risk_categorization[2].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 56,
+      "bbox_px": [
+        1209,
+        659,
+        1273,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 57,
+      "bbox_px": [
+        1273,
+        659,
+        1334,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 58,
+      "bbox_px": [
+        1334,
+        659,
+        1395,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 59,
+      "bbox_px": [
+        1395,
+        659,
+        1457,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 60,
+      "bbox_px": [
+        1457,
+        659,
+        1520,
+        726
+      ],
+      "json_path": "risk_categorization[2].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 61,
+      "bbox_px": [
+        1520,
+        659,
+        1581,
+        726
+      ],
+      "json_path": "risk_categorization[2].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 62,
+      "bbox_px": [
+        1581,
+        659,
+        1642,
+        726
+      ],
+      "json_path": "risk_categorization[2].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 63,
+      "bbox_px": [
+        1642,
+        659,
+        1705,
+        726
+      ],
+      "json_path": "risk_categorization[2].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 64,
+      "bbox_px": [
+        1705,
+        659,
+        1770,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 65,
+      "bbox_px": [
+        1770,
+        659,
+        1833,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 66,
+      "bbox_px": [
+        1833,
+        659,
+        1894,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 67,
+      "bbox_px": [
+        1894,
+        659,
+        1958,
+        726
+      ],
+      "json_path": "risk_categorization[2].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 68,
+      "bbox_px": [
+        1958,
+        659,
+        2023,
+        726
+      ],
+      "json_path": "risk_categorization[2].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 69,
+      "bbox_px": [
+        2023,
+        659,
+        2084,
+        726
+      ],
+      "json_path": "risk_categorization[2].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 70,
+      "bbox_px": [
+        2084,
+        659,
+        2145,
+        726
+      ],
+      "json_path": "risk_categorization[2].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 71,
+      "bbox_px": [
+        2145,
+        659,
+        2206,
+        726
+      ],
+      "json_path": "risk_categorization[2].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 72,
+      "bbox_px": [
+        2206,
+        659,
+        2357,
+        726
+      ],
+      "json_path": "risk_categorization[2].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 73,
+      "bbox_px": [
+        93,
+        726,
+        163,
+        793
+      ],
+      "json_path": "risk_categorization[3].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 74,
+      "bbox_px": [
+        163,
+        726,
+        355,
+        793
+      ],
+      "json_path": "risk_categorization[3].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 75,
+      "bbox_px": [
+        355,
+        726,
+        703,
+        793
+      ],
+      "json_path": "risk_categorization[3].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 76,
+      "bbox_px": [
+        703,
+        726,
+        803,
+        793
+      ],
+      "json_path": "risk_categorization[3].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 77,
+      "bbox_px": [
+        803,
+        726,
+        905,
+        793
+      ],
+      "json_path": "risk_categorization[3].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 78,
+      "bbox_px": [
+        905,
+        726,
+        1006,
+        793
+      ],
+      "json_path": "risk_categorization[3].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 79,
+      "bbox_px": [
+        1006,
+        726,
+        1209,
+        793
+      ],
+      "json_path": "risk_categorization[3].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 80,
+      "bbox_px": [
+        1209,
+        726,
+        1273,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 81,
+      "bbox_px": [
+        1273,
+        726,
+        1334,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 82,
+      "bbox_px": [
+        1334,
+        726,
+        1395,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 83,
+      "bbox_px": [
+        1395,
+        726,
+        1457,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 84,
+      "bbox_px": [
+        1457,
+        726,
+        1520,
+        793
+      ],
+      "json_path": "risk_categorization[3].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 85,
+      "bbox_px": [
+        1520,
+        726,
+        1581,
+        793
+      ],
+      "json_path": "risk_categorization[3].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 86,
+      "bbox_px": [
+        1581,
+        726,
+        1642,
+        793
+      ],
+      "json_path": "risk_categorization[3].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 87,
+      "bbox_px": [
+        1642,
+        726,
+        1705,
+        793
+      ],
+      "json_path": "risk_categorization[3].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 88,
+      "bbox_px": [
+        1705,
+        726,
+        1770,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 89,
+      "bbox_px": [
+        1770,
+        726,
+        1833,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 90,
+      "bbox_px": [
+        1833,
+        726,
+        1894,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 91,
+      "bbox_px": [
+        1894,
+        726,
+        1958,
+        793
+      ],
+      "json_path": "risk_categorization[3].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 92,
+      "bbox_px": [
+        1958,
+        726,
+        2023,
+        793
+      ],
+      "json_path": "risk_categorization[3].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 93,
+      "bbox_px": [
+        2023,
+        726,
+        2084,
+        793
+      ],
+      "json_path": "risk_categorization[3].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 94,
+      "bbox_px": [
+        2084,
+        726,
+        2145,
+        793
+      ],
+      "json_path": "risk_categorization[3].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 95,
+      "bbox_px": [
+        2145,
+        726,
+        2206,
+        793
+      ],
+      "json_path": "risk_categorization[3].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 96,
+      "bbox_px": [
+        2206,
+        726,
+        2357,
+        793
+      ],
+      "json_path": "risk_categorization[3].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 97,
+      "bbox_px": [
+        93,
+        793,
+        163,
+        860
+      ],
+      "json_path": "risk_categorization[4].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 98,
+      "bbox_px": [
+        163,
+        793,
+        355,
+        860
+      ],
+      "json_path": "risk_categorization[4].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 99,
+      "bbox_px": [
+        355,
+        793,
+        703,
+        860
+      ],
+      "json_path": "risk_categorization[4].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 100,
+      "bbox_px": [
+        703,
+        793,
+        803,
+        860
+      ],
+      "json_path": "risk_categorization[4].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 101,
+      "bbox_px": [
+        803,
+        793,
+        905,
+        860
+      ],
+      "json_path": "risk_categorization[4].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 102,
+      "bbox_px": [
+        905,
+        793,
+        1006,
+        860
+      ],
+      "json_path": "risk_categorization[4].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 103,
+      "bbox_px": [
+        1006,
+        793,
+        1209,
+        860
+      ],
+      "json_path": "risk_categorization[4].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 104,
+      "bbox_px": [
+        1209,
+        793,
+        1273,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 105,
+      "bbox_px": [
+        1273,
+        793,
+        1334,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 106,
+      "bbox_px": [
+        1334,
+        793,
+        1395,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 107,
+      "bbox_px": [
+        1395,
+        793,
+        1457,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 108,
+      "bbox_px": [
+        1457,
+        793,
+        1520,
+        860
+      ],
+      "json_path": "risk_categorization[4].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 109,
+      "bbox_px": [
+        1520,
+        793,
+        1581,
+        860
+      ],
+      "json_path": "risk_categorization[4].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 110,
+      "bbox_px": [
+        1581,
+        793,
+        1642,
+        860
+      ],
+      "json_path": "risk_categorization[4].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 111,
+      "bbox_px": [
+        1642,
+        793,
+        1705,
+        860
+      ],
+      "json_path": "risk_categorization[4].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 112,
+      "bbox_px": [
+        1705,
+        793,
+        1770,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 113,
+      "bbox_px": [
+        1770,
+        793,
+        1833,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 114,
+      "bbox_px": [
+        1833,
+        793,
+        1894,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 115,
+      "bbox_px": [
+        1894,
+        793,
+        1958,
+        860
+      ],
+      "json_path": "risk_categorization[4].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 116,
+      "bbox_px": [
+        1958,
+        793,
+        2023,
+        860
+      ],
+      "json_path": "risk_categorization[4].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 117,
+      "bbox_px": [
+        2023,
+        793,
+        2084,
+        860
+      ],
+      "json_path": "risk_categorization[4].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 118,
+      "bbox_px": [
+        2084,
+        793,
+        2145,
+        860
+      ],
+      "json_path": "risk_categorization[4].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 119,
+      "bbox_px": [
+        2145,
+        793,
+        2206,
+        860
+      ],
+      "json_path": "risk_categorization[4].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 120,
+      "bbox_px": [
+        2206,
+        793,
+        2357,
+        860
+      ],
+      "json_path": "risk_categorization[4].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 121,
+      "bbox_px": [
+        93,
+        860,
+        163,
+        927
+      ],
+      "json_path": "risk_categorization[5].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 122,
+      "bbox_px": [
+        163,
+        860,
+        355,
+        927
+      ],
+      "json_path": "risk_categorization[5].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 123,
+      "bbox_px": [
+        355,
+        860,
+        703,
+        927
+      ],
+      "json_path": "risk_categorization[5].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 124,
+      "bbox_px": [
+        703,
+        860,
+        803,
+        927
+      ],
+      "json_path": "risk_categorization[5].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 125,
+      "bbox_px": [
+        803,
+        860,
+        905,
+        927
+      ],
+      "json_path": "risk_categorization[5].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 126,
+      "bbox_px": [
+        905,
+        860,
+        1006,
+        927
+      ],
+      "json_path": "risk_categorization[5].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 127,
+      "bbox_px": [
+        1006,
+        860,
+        1209,
+        927
+      ],
+      "json_path": "risk_categorization[5].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 128,
+      "bbox_px": [
+        1209,
+        860,
+        1273,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 129,
+      "bbox_px": [
+        1273,
+        860,
+        1334,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 130,
+      "bbox_px": [
+        1334,
+        860,
+        1395,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 131,
+      "bbox_px": [
+        1395,
+        860,
+        1457,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 132,
+      "bbox_px": [
+        1457,
+        860,
+        1520,
+        927
+      ],
+      "json_path": "risk_categorization[5].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 133,
+      "bbox_px": [
+        1520,
+        860,
+        1581,
+        927
+      ],
+      "json_path": "risk_categorization[5].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 134,
+      "bbox_px": [
+        1581,
+        860,
+        1642,
+        927
+      ],
+      "json_path": "risk_categorization[5].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 135,
+      "bbox_px": [
+        1642,
+        860,
+        1705,
+        927
+      ],
+      "json_path": "risk_categorization[5].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 136,
+      "bbox_px": [
+        1705,
+        860,
+        1770,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 137,
+      "bbox_px": [
+        1770,
+        860,
+        1833,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 138,
+      "bbox_px": [
+        1833,
+        860,
+        1894,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 139,
+      "bbox_px": [
+        1894,
+        860,
+        1958,
+        927
+      ],
+      "json_path": "risk_categorization[5].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 140,
+      "bbox_px": [
+        1958,
+        860,
+        2023,
+        927
+      ],
+      "json_path": "risk_categorization[5].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 141,
+      "bbox_px": [
+        2023,
+        860,
+        2084,
+        927
+      ],
+      "json_path": "risk_categorization[5].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 142,
+      "bbox_px": [
+        2084,
+        860,
+        2145,
+        927
+      ],
+      "json_path": "risk_categorization[5].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 143,
+      "bbox_px": [
+        2145,
+        860,
+        2206,
+        927
+      ],
+      "json_path": "risk_categorization[5].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 144,
+      "bbox_px": [
+        2206,
+        860,
+        2357,
+        927
+      ],
+      "json_path": "risk_categorization[5].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 145,
+      "bbox_px": [
+        93,
+        927,
+        163,
+        1001
+      ],
+      "json_path": "risk_categorization[6].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 146,
+      "bbox_px": [
+        163,
+        927,
+        355,
+        1001
+      ],
+      "json_path": "risk_categorization[6].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 147,
+      "bbox_px": [
+        355,
+        927,
+        703,
+        1001
+      ],
+      "json_path": "risk_categorization[6].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 148,
+      "bbox_px": [
+        703,
+        927,
+        803,
+        1001
+      ],
+      "json_path": "risk_categorization[6].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 149,
+      "bbox_px": [
+        803,
+        927,
+        905,
+        1001
+      ],
+      "json_path": "risk_categorization[6].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 150,
+      "bbox_px": [
+        905,
+        927,
+        1006,
+        1001
+      ],
+      "json_path": "risk_categorization[6].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 151,
+      "bbox_px": [
+        1006,
+        927,
+        1209,
+        1001
+      ],
+      "json_path": "risk_categorization[6].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 152,
+      "bbox_px": [
+        1209,
+        927,
+        1273,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 153,
+      "bbox_px": [
+        1273,
+        927,
+        1334,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 154,
+      "bbox_px": [
+        1334,
+        927,
+        1395,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 155,
+      "bbox_px": [
+        1395,
+        927,
+        1457,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 156,
+      "bbox_px": [
+        1457,
+        927,
+        1520,
+        1001
+      ],
+      "json_path": "risk_categorization[6].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 157,
+      "bbox_px": [
+        1520,
+        927,
+        1581,
+        1001
+      ],
+      "json_path": "risk_categorization[6].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 158,
+      "bbox_px": [
+        1581,
+        927,
+        1642,
+        1001
+      ],
+      "json_path": "risk_categorization[6].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 159,
+      "bbox_px": [
+        1642,
+        927,
+        1705,
+        1001
+      ],
+      "json_path": "risk_categorization[6].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 160,
+      "bbox_px": [
+        1705,
+        927,
+        1770,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 161,
+      "bbox_px": [
+        1770,
+        927,
+        1833,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 162,
+      "bbox_px": [
+        1833,
+        927,
+        1894,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 163,
+      "bbox_px": [
+        1894,
+        927,
+        1958,
+        1001
+      ],
+      "json_path": "risk_categorization[6].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 164,
+      "bbox_px": [
+        1958,
+        927,
+        2023,
+        1001
+      ],
+      "json_path": "risk_categorization[6].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 165,
+      "bbox_px": [
+        2023,
+        927,
+        2084,
+        1001
+      ],
+      "json_path": "risk_categorization[6].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 166,
+      "bbox_px": [
+        2084,
+        927,
+        2145,
+        1001
+      ],
+      "json_path": "risk_categorization[6].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 167,
+      "bbox_px": [
+        2145,
+        927,
+        2206,
+        1001
+      ],
+      "json_path": "risk_categorization[6].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 168,
+      "bbox_px": [
+        2206,
+        927,
+        2357,
+        1001
+      ],
+      "json_path": "risk_categorization[6].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 169,
+      "bbox_px": [
+        93,
+        1001,
+        163,
+        1068
+      ],
+      "json_path": "risk_categorization[7].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 170,
+      "bbox_px": [
+        163,
+        1001,
+        355,
+        1068
+      ],
+      "json_path": "risk_categorization[7].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 171,
+      "bbox_px": [
+        355,
+        1001,
+        703,
+        1068
+      ],
+      "json_path": "risk_categorization[7].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 172,
+      "bbox_px": [
+        703,
+        1001,
+        803,
+        1068
+      ],
+      "json_path": "risk_categorization[7].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 173,
+      "bbox_px": [
+        803,
+        1001,
+        905,
+        1068
+      ],
+      "json_path": "risk_categorization[7].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 174,
+      "bbox_px": [
+        905,
+        1001,
+        1006,
+        1068
+      ],
+      "json_path": "risk_categorization[7].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 175,
+      "bbox_px": [
+        1006,
+        1001,
+        1209,
+        1068
+      ],
+      "json_path": "risk_categorization[7].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 176,
+      "bbox_px": [
+        1209,
+        1001,
+        1273,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 177,
+      "bbox_px": [
+        1273,
+        1001,
+        1334,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 178,
+      "bbox_px": [
+        1334,
+        1001,
+        1395,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 179,
+      "bbox_px": [
+        1395,
+        1001,
+        1457,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 180,
+      "bbox_px": [
+        1457,
+        1001,
+        1520,
+        1068
+      ],
+      "json_path": "risk_categorization[7].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 181,
+      "bbox_px": [
+        1520,
+        1001,
+        1581,
+        1068
+      ],
+      "json_path": "risk_categorization[7].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 182,
+      "bbox_px": [
+        1581,
+        1001,
+        1642,
+        1068
+      ],
+      "json_path": "risk_categorization[7].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 183,
+      "bbox_px": [
+        1642,
+        1001,
+        1705,
+        1068
+      ],
+      "json_path": "risk_categorization[7].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 184,
+      "bbox_px": [
+        1705,
+        1001,
+        1770,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 185,
+      "bbox_px": [
+        1770,
+        1001,
+        1833,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 186,
+      "bbox_px": [
+        1833,
+        1001,
+        1894,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 187,
+      "bbox_px": [
+        1894,
+        1001,
+        1958,
+        1068
+      ],
+      "json_path": "risk_categorization[7].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 188,
+      "bbox_px": [
+        1958,
+        1001,
+        2023,
+        1068
+      ],
+      "json_path": "risk_categorization[7].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 189,
+      "bbox_px": [
+        2023,
+        1001,
+        2084,
+        1068
+      ],
+      "json_path": "risk_categorization[7].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 190,
+      "bbox_px": [
+        2084,
+        1001,
+        2145,
+        1068
+      ],
+      "json_path": "risk_categorization[7].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 191,
+      "bbox_px": [
+        2145,
+        1001,
+        2206,
+        1068
+      ],
+      "json_path": "risk_categorization[7].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 192,
+      "bbox_px": [
+        2206,
+        1001,
+        2357,
+        1068
+      ],
+      "json_path": "risk_categorization[7].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 193,
+      "bbox_px": [
+        93,
+        1068,
+        163,
+        1134
+      ],
+      "json_path": "risk_categorization[8].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 194,
+      "bbox_px": [
+        163,
+        1068,
+        355,
+        1134
+      ],
+      "json_path": "risk_categorization[8].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 195,
+      "bbox_px": [
+        355,
+        1068,
+        703,
+        1134
+      ],
+      "json_path": "risk_categorization[8].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 196,
+      "bbox_px": [
+        703,
+        1068,
+        803,
+        1134
+      ],
+      "json_path": "risk_categorization[8].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 197,
+      "bbox_px": [
+        803,
+        1068,
+        905,
+        1134
+      ],
+      "json_path": "risk_categorization[8].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 198,
+      "bbox_px": [
+        905,
+        1068,
+        1006,
+        1134
+      ],
+      "json_path": "risk_categorization[8].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 199,
+      "bbox_px": [
+        1006,
+        1068,
+        1209,
+        1134
+      ],
+      "json_path": "risk_categorization[8].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 200,
+      "bbox_px": [
+        1209,
+        1068,
+        1273,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 201,
+      "bbox_px": [
+        1273,
+        1068,
+        1334,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 202,
+      "bbox_px": [
+        1334,
+        1068,
+        1395,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 203,
+      "bbox_px": [
+        1395,
+        1068,
+        1457,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 204,
+      "bbox_px": [
+        1457,
+        1068,
+        1520,
+        1134
+      ],
+      "json_path": "risk_categorization[8].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 205,
+      "bbox_px": [
+        1520,
+        1068,
+        1581,
+        1134
+      ],
+      "json_path": "risk_categorization[8].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 206,
+      "bbox_px": [
+        1581,
+        1068,
+        1642,
+        1134
+      ],
+      "json_path": "risk_categorization[8].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 207,
+      "bbox_px": [
+        1642,
+        1068,
+        1705,
+        1134
+      ],
+      "json_path": "risk_categorization[8].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 208,
+      "bbox_px": [
+        1705,
+        1068,
+        1770,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 209,
+      "bbox_px": [
+        1770,
+        1068,
+        1833,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 210,
+      "bbox_px": [
+        1833,
+        1068,
+        1894,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 211,
+      "bbox_px": [
+        1894,
+        1068,
+        1958,
+        1134
+      ],
+      "json_path": "risk_categorization[8].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 212,
+      "bbox_px": [
+        1958,
+        1068,
+        2023,
+        1134
+      ],
+      "json_path": "risk_categorization[8].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 213,
+      "bbox_px": [
+        2023,
+        1068,
+        2084,
+        1134
+      ],
+      "json_path": "risk_categorization[8].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 214,
+      "bbox_px": [
+        2084,
+        1068,
+        2145,
+        1134
+      ],
+      "json_path": "risk_categorization[8].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 215,
+      "bbox_px": [
+        2145,
+        1068,
+        2206,
+        1134
+      ],
+      "json_path": "risk_categorization[8].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 216,
+      "bbox_px": [
+        2206,
+        1068,
+        2357,
+        1134
+      ],
+      "json_path": "risk_categorization[8].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 217,
+      "bbox_px": [
+        93,
+        1134,
+        163,
+        1201
+      ],
+      "json_path": "risk_categorization[9].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 218,
+      "bbox_px": [
+        163,
+        1134,
+        355,
+        1201
+      ],
+      "json_path": "risk_categorization[9].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 219,
+      "bbox_px": [
+        355,
+        1134,
+        703,
+        1201
+      ],
+      "json_path": "risk_categorization[9].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 220,
+      "bbox_px": [
+        703,
+        1134,
+        803,
+        1201
+      ],
+      "json_path": "risk_categorization[9].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 221,
+      "bbox_px": [
+        803,
+        1134,
+        905,
+        1201
+      ],
+      "json_path": "risk_categorization[9].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 222,
+      "bbox_px": [
+        905,
+        1134,
+        1006,
+        1201
+      ],
+      "json_path": "risk_categorization[9].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 223,
+      "bbox_px": [
+        1006,
+        1134,
+        1209,
+        1201
+      ],
+      "json_path": "risk_categorization[9].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 224,
+      "bbox_px": [
+        1209,
+        1134,
+        1273,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 225,
+      "bbox_px": [
+        1273,
+        1134,
+        1334,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 226,
+      "bbox_px": [
+        1334,
+        1134,
+        1395,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 227,
+      "bbox_px": [
+        1395,
+        1134,
+        1457,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 228,
+      "bbox_px": [
+        1457,
+        1134,
+        1520,
+        1201
+      ],
+      "json_path": "risk_categorization[9].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 229,
+      "bbox_px": [
+        1520,
+        1134,
+        1581,
+        1201
+      ],
+      "json_path": "risk_categorization[9].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 230,
+      "bbox_px": [
+        1581,
+        1134,
+        1642,
+        1201
+      ],
+      "json_path": "risk_categorization[9].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 231,
+      "bbox_px": [
+        1642,
+        1134,
+        1705,
+        1201
+      ],
+      "json_path": "risk_categorization[9].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 232,
+      "bbox_px": [
+        1705,
+        1134,
+        1770,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 233,
+      "bbox_px": [
+        1770,
+        1134,
+        1833,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 234,
+      "bbox_px": [
+        1833,
+        1134,
+        1894,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 235,
+      "bbox_px": [
+        1894,
+        1134,
+        1958,
+        1201
+      ],
+      "json_path": "risk_categorization[9].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 236,
+      "bbox_px": [
+        1958,
+        1134,
+        2023,
+        1201
+      ],
+      "json_path": "risk_categorization[9].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 237,
+      "bbox_px": [
+        2023,
+        1134,
+        2084,
+        1201
+      ],
+      "json_path": "risk_categorization[9].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 238,
+      "bbox_px": [
+        2084,
+        1134,
+        2145,
+        1201
+      ],
+      "json_path": "risk_categorization[9].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 239,
+      "bbox_px": [
+        2145,
+        1134,
+        2206,
+        1201
+      ],
+      "json_path": "risk_categorization[9].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 240,
+      "bbox_px": [
+        2206,
+        1134,
+        2357,
+        1201
+      ],
+      "json_path": "risk_categorization[9].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 241,
+      "bbox_px": [
+        93,
+        1201,
+        163,
+        1268
+      ],
+      "json_path": "risk_categorization[10].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 242,
+      "bbox_px": [
+        163,
+        1201,
+        355,
+        1268
+      ],
+      "json_path": "risk_categorization[10].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 243,
+      "bbox_px": [
+        355,
+        1201,
+        703,
+        1268
+      ],
+      "json_path": "risk_categorization[10].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 244,
+      "bbox_px": [
+        703,
+        1201,
+        803,
+        1268
+      ],
+      "json_path": "risk_categorization[10].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 245,
+      "bbox_px": [
+        803,
+        1201,
+        905,
+        1268
+      ],
+      "json_path": "risk_categorization[10].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 246,
+      "bbox_px": [
+        905,
+        1201,
+        1006,
+        1268
+      ],
+      "json_path": "risk_categorization[10].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 247,
+      "bbox_px": [
+        1006,
+        1201,
+        1209,
+        1268
+      ],
+      "json_path": "risk_categorization[10].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 248,
+      "bbox_px": [
+        1209,
+        1201,
+        1273,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 249,
+      "bbox_px": [
+        1273,
+        1201,
+        1334,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 250,
+      "bbox_px": [
+        1334,
+        1201,
+        1395,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 251,
+      "bbox_px": [
+        1395,
+        1201,
+        1457,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 252,
+      "bbox_px": [
+        1457,
+        1201,
+        1520,
+        1268
+      ],
+      "json_path": "risk_categorization[10].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 253,
+      "bbox_px": [
+        1520,
+        1201,
+        1581,
+        1268
+      ],
+      "json_path": "risk_categorization[10].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 254,
+      "bbox_px": [
+        1581,
+        1201,
+        1642,
+        1268
+      ],
+      "json_path": "risk_categorization[10].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 255,
+      "bbox_px": [
+        1642,
+        1201,
+        1705,
+        1268
+      ],
+      "json_path": "risk_categorization[10].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 256,
+      "bbox_px": [
+        1705,
+        1201,
+        1770,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 257,
+      "bbox_px": [
+        1770,
+        1201,
+        1833,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 258,
+      "bbox_px": [
+        1833,
+        1201,
+        1894,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 259,
+      "bbox_px": [
+        1894,
+        1201,
+        1958,
+        1268
+      ],
+      "json_path": "risk_categorization[10].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 260,
+      "bbox_px": [
+        1958,
+        1201,
+        2023,
+        1268
+      ],
+      "json_path": "risk_categorization[10].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 261,
+      "bbox_px": [
+        2023,
+        1201,
+        2084,
+        1268
+      ],
+      "json_path": "risk_categorization[10].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 262,
+      "bbox_px": [
+        2084,
+        1201,
+        2145,
+        1268
+      ],
+      "json_path": "risk_categorization[10].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 263,
+      "bbox_px": [
+        2145,
+        1201,
+        2206,
+        1268
+      ],
+      "json_path": "risk_categorization[10].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 264,
+      "bbox_px": [
+        2206,
+        1201,
+        2357,
+        1268
+      ],
+      "json_path": "risk_categorization[10].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 265,
+      "bbox_px": [
+        93,
+        1268,
+        163,
+        1335
+      ],
+      "json_path": "risk_categorization[11].condition_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 266,
+      "bbox_px": [
+        163,
+        1268,
+        355,
+        1335
+      ],
+      "json_path": "risk_categorization[11].tree_part",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 267,
+      "bbox_px": [
+        355,
+        1268,
+        703,
+        1335
+      ],
+      "json_path": "risk_categorization[11].condition",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 268,
+      "bbox_px": [
+        703,
+        1268,
+        803,
+        1335
+      ],
+      "json_path": "risk_categorization[11].part_size",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 269,
+      "bbox_px": [
+        803,
+        1268,
+        905,
+        1335
+      ],
+      "json_path": "risk_categorization[11].fall_distance",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 270,
+      "bbox_px": [
+        905,
+        1268,
+        1006,
+        1335
+      ],
+      "json_path": "risk_categorization[11].target_number",
+      "type": "int",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 271,
+      "bbox_px": [
+        1006,
+        1268,
+        1209,
+        1335
+      ],
+      "json_path": "risk_categorization[11].target_protection",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 272,
+      "bbox_px": [
+        1209,
+        1268,
+        1273,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "improbable"
+    },
+    {
+      "page": 2,
+      "box_id": 273,
+      "bbox_px": [
+        1273,
+        1268,
+        1334,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "possible"
+    },
+    {
+      "page": 2,
+      "box_id": 274,
+      "bbox_px": [
+        1334,
+        1268,
+        1395,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "probable"
+    },
+    {
+      "page": 2,
+      "box_id": 275,
+      "bbox_px": [
+        1395,
+        1268,
+        1457,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "imminent"
+    },
+    {
+      "page": 2,
+      "box_id": 276,
+      "bbox_px": [
+        1457,
+        1268,
+        1520,
+        1335
+      ],
+      "json_path": "risk_categorization[11].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_low"
+    },
+    {
+      "page": 2,
+      "box_id": 277,
+      "bbox_px": [
+        1520,
+        1268,
+        1581,
+        1335
+      ],
+      "json_path": "risk_categorization[11].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 278,
+      "bbox_px": [
+        1581,
+        1268,
+        1642,
+        1335
+      ],
+      "json_path": "risk_categorization[11].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "medium"
+    },
+    {
+      "page": 2,
+      "box_id": 279,
+      "bbox_px": [
+        1642,
+        1268,
+        1705,
+        1335
+      ],
+      "json_path": "risk_categorization[11].impact_likelihood",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 280,
+      "bbox_px": [
+        1705,
+        1268,
+        1770,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "unlikely"
+    },
+    {
+      "page": 2,
+      "box_id": 281,
+      "bbox_px": [
+        1770,
+        1268,
+        1833,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "somewhat"
+    },
+    {
+      "page": 2,
+      "box_id": 282,
+      "bbox_px": [
+        1833,
+        1268,
+        1894,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "likely"
+    },
+    {
+      "page": 2,
+      "box_id": 283,
+      "bbox_px": [
+        1894,
+        1268,
+        1958,
+        1335
+      ],
+      "json_path": "risk_categorization[11].failure_and_impact",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "very_likely"
+    },
+    {
+      "page": 2,
+      "box_id": 284,
+      "bbox_px": [
+        1958,
+        1268,
+        2023,
+        1335
+      ],
+      "json_path": "risk_categorization[11].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "negligible"
+    },
+    {
+      "page": 2,
+      "box_id": 285,
+      "bbox_px": [
+        2023,
+        1268,
+        2084,
+        1335
+      ],
+      "json_path": "risk_categorization[11].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "minor"
+    },
+    {
+      "page": 2,
+      "box_id": 286,
+      "bbox_px": [
+        2084,
+        1268,
+        2145,
+        1335
+      ],
+      "json_path": "risk_categorization[11].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "significant"
+    },
+    {
+      "page": 2,
+      "box_id": 287,
+      "bbox_px": [
+        2145,
+        1268,
+        2206,
+        1335
+      ],
+      "json_path": "risk_categorization[11].consequences",
+      "type": "checkbox",
+      "section_id": "risk_categorization",
+      "compare_value": "severe"
+    },
+    {
+      "page": 2,
+      "box_id": 288,
+      "bbox_px": [
+        2206,
+        1268,
+        2357,
+        1335
+      ],
+      "json_path": "risk_categorization[11].risk_rating",
+      "type": "text",
+      "section_id": "risk_categorization",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 289,
+      "bbox_px": [
+        704,
+        2238,
+        1254,
+        2266
+      ],
+      "json_path": "notes_explanations_descriptions.notes",
+      "type": "line:1/5",
+      "section_id": "notes_explanations_descriptions",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 290,
+      "bbox_px": [
+        89,
+        2288,
+        1254,
+        2316
+      ],
+      "json_path": "notes_explanations_descriptions.notes",
+      "type": "line:2/5",
+      "section_id": "notes_explanations_descriptions",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 291,
+      "bbox_px": [
+        89,
+        2341,
+        1254,
+        2369
+      ],
+      "json_path": "notes_explanations_descriptions.notes",
+      "type": "line:3/5",
+      "section_id": "notes_explanations_descriptions",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 292,
+      "bbox_px": [
+        89,
+        2395,
+        1254,
+        2423
+      ],
+      "json_path": "notes_explanations_descriptions.notes",
+      "type": "line:4/5",
+      "section_id": "notes_explanations_descriptions",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 293,
+      "bbox_px": [
+        89,
+        2445,
+        1254,
+        2473
+      ],
+      "json_path": "notes_explanations_descriptions.notes",
+      "type": "line:5/5",
+      "section_id": "notes_explanations_descriptions",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 294,
+      "bbox_px": [
+        413,
+        2536,
+        1934,
+        2564
+      ],
+      "json_path": "mitigation_options.options[0].option",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 295,
+      "bbox_px": [
+        2174,
+        2536,
+        2334,
+        2564
+      ],
+      "json_path": "mitigation_options.options[0].residual_risk",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 296,
+      "bbox_px": [
+        86,
+        2596,
+        1936,
+        2624
+      ],
+      "json_path": "mitigation_options.options[1].option",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 297,
+      "bbox_px": [
+        2176,
+        2596,
+        2336,
+        2624
+      ],
+      "json_path": "mitigation_options.options[1].residual_risk",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 298,
+      "bbox_px": [
+        86,
+        2656,
+        1936,
+        2684
+      ],
+      "json_path": "mitigation_options.options[2].option",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 299,
+      "bbox_px": [
+        2176,
+        2656,
+        2336,
+        2684
+      ],
+      "json_path": "mitigation_options.options[2].residual_risk",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 300,
+      "bbox_px": [
+        86,
+        2716,
+        1936,
+        2744
+      ],
+      "json_path": "mitigation_options.options[3].option",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 301,
+      "bbox_px": [
+        2176,
+        2716,
+        2336,
+        2744
+      ],
+      "json_path": "mitigation_options.options[3].residual_risk",
+      "type": "text",
+      "section_id": "mitigation_options",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 302,
+      "bbox_px": [
+        593,
+        2782,
+        623,
+        2812
+      ],
+      "json_path": "overall_tree_risk_rating.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 303,
+      "bbox_px": [
+        812,
+        2782,
+        842,
+        2812
+      ],
+      "json_path": "overall_tree_risk_rating.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "moderate"
+    },
+    {
+      "page": 2,
+      "box_id": 304,
+      "bbox_px": [
+        961,
+        2782,
+        991,
+        2812
+      ],
+      "json_path": "overall_tree_risk_rating.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 305,
+      "bbox_px": [
+        1166,
+        2782,
+        1196,
+        2812
+      ],
+      "json_path": "overall_tree_risk_rating.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "extreme"
+    },
+    {
+      "page": 2,
+      "box_id": 306,
+      "bbox_px": [
+        1679,
+        2782,
+        1709,
+        2812
+      ],
+      "json_path": "work_priority.priority",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "1"
+    },
+    {
+      "page": 2,
+      "box_id": 307,
+      "bbox_px": [
+        1772,
+        2782,
+        1802,
+        2812
+      ],
+      "json_path": "work_priority.priority",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "2"
+    },
+    {
+      "page": 2,
+      "box_id": 308,
+      "bbox_px": [
+        1873,
+        2782,
+        1903,
+        2812
+      ],
+      "json_path": "work_priority.priority",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "3"
+    },
+    {
+      "page": 2,
+      "box_id": 309,
+      "bbox_px": [
+        1974,
+        2782,
+        2004,
+        2812
+      ],
+      "json_path": "work_priority.priority",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "4"
+    },
+    {
+      "page": 2,
+      "box_id": 310,
+      "bbox_px": [
+        593,
+        2846,
+        623,
+        2876
+      ],
+      "json_path": "overall_residual_risk.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "low"
+    },
+    {
+      "page": 2,
+      "box_id": 311,
+      "bbox_px": [
+        812,
+        2846,
+        842,
+        2876
+      ],
+      "json_path": "overall_residual_risk.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "moderate"
+    },
+    {
+      "page": 2,
+      "box_id": 312,
+      "bbox_px": [
+        961,
+        2846,
+        991,
+        2876
+      ],
+      "json_path": "overall_residual_risk.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "high"
+    },
+    {
+      "page": 2,
+      "box_id": 313,
+      "bbox_px": [
+        1166,
+        2846,
+        1196,
+        2876
+      ],
+      "json_path": "overall_residual_risk.rating",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "extreme"
+    },
+    {
+      "page": 2,
+      "box_id": 314,
+      "bbox_px": [
+        1996,
+        2846,
+        2296,
+        2876
+      ],
+      "json_path": "recommended_inspection_interval.text",
+      "type": "text",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 315,
+      "bbox_px": [
+        179,
+        2915,
+        209,
+        2945
+      ],
+      "json_path": "data_status.status",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "final"
+    },
+    {
+      "page": 2,
+      "box_id": 316,
+      "bbox_px": [
+        306,
+        2915,
+        336,
+        2945
+      ],
+      "json_path": "data_status.status",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "preliminary"
+    },
+    {
+      "page": 2,
+      "box_id": 317,
+      "bbox_px": [
+        1029,
+        2915,
+        1059,
+        2945
+      ],
+      "json_path": "advanced_assessment_needed.needed",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "no"
+    },
+    {
+      "page": 2,
+      "box_id": 318,
+      "bbox_px": [
+        1116,
+        2915,
+        1146,
+        2945
+      ],
+      "json_path": "advanced_assessment_needed.needed",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": "yes"
+    },
+    {
+      "page": 2,
+      "box_id": 319,
+      "bbox_px": [
+        1446,
+        2915,
+        1946,
+        2945
+      ],
+      "json_path": "advanced_assessment_type_reason.text",
+      "type": "text",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 320,
+      "bbox_px": [
+        447,
+        2977,
+        477,
+        3007
+      ],
+      "json_path": "inspection_limitations.none",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 321,
+      "bbox_px": [
+        581,
+        2977,
+        611,
+        3007
+      ],
+      "json_path": "inspection_limitations.visibility",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 322,
+      "bbox_px": [
+        756,
+        2977,
+        786,
+        3007
+      ],
+      "json_path": "inspection_limitations.access",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 323,
+      "bbox_px": [
+        911,
+        2977,
+        941,
+        3007
+      ],
+      "json_path": "inspection_limitations.vines",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 324,
+      "bbox_px": [
+        1045,
+        2977,
+        1075,
+        3007
+      ],
+      "json_path": "inspection_limitations.root_collar_buried",
+      "type": "checkbox",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    },
+    {
+      "page": 2,
+      "box_id": 325,
+      "bbox_px": [
+        1525,
+        2977,
+        1925,
+        3007
+      ],
+      "json_path": "inspection_limitations_describe.text",
+      "type": "text",
+      "section_id": "summary_risk_and_priority",
+      "compare_value": null
+    }
+  ],
+  "missing": []
+}

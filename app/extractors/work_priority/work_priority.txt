@@ -1,0 +1,8 @@
+Section: Work Priority
+
+Capture:
+- Work priority (1 / 2 / 3 / 4)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- If not stated, return null.

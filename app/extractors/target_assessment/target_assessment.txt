@@ -1,0 +1,24 @@
+Section: Target Assessment
+
+Targets are the people/structures/areas that could be struck if the tree or part fails. Each target is a separate entry.
+
+Capture:
+- Target number/identifier (if stated)
+- Target label (single word derived from description/context)
+- Target zone: within drip line / within 1x height / within 1.5x height
+- Occupancy rate (1-4: 1 rare, 2 occasional, 3 frequent, 4 constant)
+- Practical to move target?
+- Restriction practical?
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Preserve the order of targets as mentioned in the transcript (first mentioned target is target 1).
+- Create a new target entry whenever a new distinct target is described (e.g., "There is a telephone pole...", "There is a driveway...", "The home...").
+- If the transcript says there are multiple targets (e.g., "There are two targets"), ensure you return multiple entries when subsequent target descriptions appear.
+- Derive the label from the target description/context. The label must be a single word with no spaces (e.g., "Children", "House", "Driveway", "Car"). If you cannot infer a clear single-word label, set it to null.
+- Only set zone booleans when the transcript explicitly mentions the zone (within drip line / within 1x height / within 1.5x height). Otherwise set those fields to null.
+- If the transcript says a target is NOT within a zone, set that zone field to false.
+- If a target is described without explicit zone/occupancy/practicality values, set those fields to null.
+Formatting:
+- target_number: digits only (e.g., "1", "2"). Do not include the word "target".
+- occupancy_rate: integer 1-4 only.

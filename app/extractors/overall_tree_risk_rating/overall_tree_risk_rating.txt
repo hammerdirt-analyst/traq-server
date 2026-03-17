@@ -1,0 +1,8 @@
+Section: Overall Tree Risk Rating
+
+Capture:
+- Overall tree risk rating (low / moderate / high / extreme)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- If not stated, return null.

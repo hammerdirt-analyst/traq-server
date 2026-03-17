@@ -1,0 +1,9 @@
+Section: Inspection Limitations Description
+
+Capture:
+- Inspection limitations description (verbatim)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- Keep `text` coherent (not fragments) and <= 40 characters.
+- If not stated, return null.

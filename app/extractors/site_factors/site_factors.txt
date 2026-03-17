@@ -1,0 +1,36 @@
+Section: Site Factors
+
+Memory aides / prompts:
+- History of failures
+- Topography (flat/slope, slope %, aspect)
+- Landscape environment
+- Site changes (none, grade change, site clearing, changed soil hydrology, root cuts, describe)
+- Soil conditions (limited volume, saturated, shallow, compacted, pavement over roots, %, describe)
+- Prevailing wind direction
+- Common weather (strong winds, ice, snow, heavy rain, describe)
+
+Instructions:
+- Extract only what is stated in the transcript for this section.
+- When a detail supports a boolean or a categorical field, copy the supporting phrase into the relevant describe/notes field (verbatim).
+- Booleans should be true only if supported by transcript evidence or clear implication (e.g., 'driveway over roots' => pavement_over_roots=true).
+- If a value is explicitly negated, set the boolean false (e.g., "no site clearing" => site_clearing=false).
+- If a value is not mentioned, set booleans to null and text fields to null.
+- If the transcript explicitly says no history of failures, set history_of_failures to "No history of failures".
+- Describe fields should capture the relevant context for their section:
+  - soil_conditions.describe: include physical soil details (compaction, saturation, shallow depth, limited volume, pavement over roots, %).
+  - common_weather.describe: include the relevant weather pattern details (winds, ice, snow, heavy rain).
+- If any site_changes subfield is true, set site_changes.none to false.
+- Mentions of irrigation installs/lines/sprinklers are site changes: set changed_soil_hydrology=true.
+- Keep these text fields concise and capped at 30 characters (including spaces):
+  - site_changes.landscape_environment (compressed environment phrase; can combine cues like "rural + school")
+  - soil_conditions.describe
+  - common_weather.describe
+- For site_changes.landscape_environment specifically: condense the setting into a short phrase
+  that preserves key context (e.g., "Rural elementary school"), not a full sentence.
+- For soil_conditions.describe: condense to a short soil/rooting phrase preserving the key
+  factors (e.g., compaction, % pavement, shallow depth, limited volume), <=30 chars.
+- For common_weather.describe: condense to a short weather-exposure phrase preserving key
+  factors (e.g., strong winds, heavy rain, direction/season), <=30 chars.
+Formatting:
+- slope_percent and soil_conditions.percent: numbers only (0-100). Do not include the percent sign.
+- prevailing_wind_direction: abbreviation only (N, S, E, W, NE, NW, SE, SW; allow 16-point forms like NNE/WNW if stated).
