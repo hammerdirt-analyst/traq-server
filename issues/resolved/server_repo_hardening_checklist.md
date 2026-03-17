@@ -155,6 +155,13 @@ Acceptance:
 
 - local runtime usage does not pollute the repo
 
+Status:
+
+- complete
+- `.venv/` and `*.egg-info/` ignored
+- generated `traq_server.egg-info/` removed from version control
+- `uv.lock` retained as the repo-managed dependency lockfile
+
 ### 9. Validation
 
 - run tests from the standalone repo context
@@ -165,6 +172,14 @@ Acceptance:
 Acceptance:
 
 - the standalone repo behaves correctly without relying on parent-repo behavior
+
+Status:
+
+- complete
+- `uv run traq-server --help` works
+- `uv run traq-admin --help` works
+- standalone test run from inside `server/` passes:
+  - `uv run python -m unittest tests.test_admin_cli tests.test_tree_identity_api tests.test_db_store`
 
 ## Recommended Order
 
