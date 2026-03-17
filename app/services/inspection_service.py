@@ -2,10 +2,10 @@
 
 This service exposes read-only inspection methods for the same workflow surfaces
 the client relies on: jobs, rounds, review payloads, and final/correction
-outputs. It intentionally reflects the current hybrid runtime model:
+outputs.
 
-- PostgreSQL for operational metadata where available
-- filesystem artifacts under ``server_data/jobs`` for round/review/final files
+Runtime state is DB-backed. Local storage is inspected only for artifact files
+and exported debug copies under the configured storage root.
 """
 
 from __future__ import annotations

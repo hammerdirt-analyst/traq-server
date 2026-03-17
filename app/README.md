@@ -435,16 +435,16 @@ python admin_cli.py review inspect --job J0004 --round-id round_2
 python admin_cli.py final inspect --job J0004
 ```
 
-This verifies the current hybrid operational model:
+This verifies the current operational model:
 
-- PostgreSQL-backed job metadata and assignment state
-- filesystem-backed round manifest and review payload inspection
-- filesystem-backed final/correction artifact inspection
+- PostgreSQL-backed runtime state
+- local artifact storage for uploaded media and generated outputs
+- exported JSON files available for debugging/inspection only
 
 ## Storage
-- Job artifacts and round payloads: `local_data/jobs/...`
+- Job artifacts and exported debug copies: `local_data/jobs/...`
 - Logs: `local_data/logs/...`
-- Cached review payload: `review.json` per round
+- Exported review payload: `review.json` per round
 - Final outputs: job-level final PDFs, `final.json`, and `final.geojson`
 
 ## Public Map Export
@@ -482,16 +482,16 @@ Example (current common local run):
 
 ```bash
 TRAQ_LOG_RAW_TRANSCRIPTS=1 \
-TRAQ_FFPROBE_BIN=/home/roger/anaconda3/envs/traq-demo-server/bin/ffprobe \
-/home/roger/anaconda3/envs/traq-demo-server/bin/python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --log-level debug
+TRAQ_FFPROBE_BIN="$(command -v ffprobe)" \
+uv run traq-server --reload --host 0.0.0.0 --port 8000 --log-level debug
 ```
 
 IPv6 variant:
 
 ```bash
 TRAQ_LOG_RAW_TRANSCRIPTS=1 \
-TRAQ_FFPROBE_BIN=/home/roger/anaconda3/envs/traq-demo-server/bin/ffprobe \
-/home/roger/anaconda3/envs/traq-demo-server/bin/python -m uvicorn app.main:app --reload --host :: --port 8000 --log-level debug
+TRAQ_FFPROBE_BIN="$(command -v ffprobe)" \
+uv run traq-server --reload --host :: --port 8000 --log-level debug
 ```
 
 ## Notes for Developers

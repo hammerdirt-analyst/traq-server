@@ -169,14 +169,14 @@ Current command-to-boundary map
     ``InspectionService.inspect_round()``
 
   Persistence touched:
-    filesystem round manifest/review artifacts plus DB-backed job resolution
+    DB-backed round state plus local artifact/debug file inspection
 
 ``review inspect``
   Service boundary:
     ``InspectionService.inspect_review()``
 
   Persistence touched:
-    filesystem ``review.json`` plus DB-backed job resolution
+    DB-backed review payload plus exported debug file inspection
 
 ``final inspect``
   Service boundary:

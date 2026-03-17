@@ -120,5 +120,9 @@ Migration order should be:
 5. final/correction metadata
 6. audit trail
 
-The existing filesystem-backed logic should remain in place until each area is
-adopted by a database-backed service layer.
+The runtime storage migration is complete for operational state. The
+filesystem remains for artifact bytes and exported debug/compatibility copies.
+
+See also:
+
+- ``docs/runtime_export_boundary.rst``

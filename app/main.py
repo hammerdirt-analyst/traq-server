@@ -13,12 +13,13 @@ Architecture highlights:
     - Overlay-based PDF fill (`pdf_fill.py`) using canonical mapping
       (`app/traq_2_schema/traq_full_map.json`)
     - Registry-driven section extraction (`extractors/registry.py`)
-    - File-backed security and assignment control (`security_store.py`)
-    - JSON artifacts persisted per job/round under `server_data/jobs/`
+    - DB-backed device auth, assignment, and runtime state
+    - Local artifact storage under the configured storage root for uploaded
+      media and generated outputs
 
 Operational notes:
     - Logging is configured here (console + rotating file under
-      `server_data/logs/server.log`).
+      `<storage_root>/logs/server.log`).
     - This module uses nested helper functions inside `create_app()` to keep
       closure access to settings/log/security state explicit and centralized.
 """

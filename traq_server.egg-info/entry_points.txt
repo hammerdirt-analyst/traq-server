@@ -1,0 +1,3 @@
+[console_scripts]
+traq-admin = admin_cli:main
+traq-server = app.server_cli:main

@@ -5,14 +5,14 @@
         2448,
         3168
       ],
-      "source": "/home/roger/projects/codex_trial/agent_client/server/app/traq_2_schema/overlay_page1.json"
+      "source": "app/traq_2_schema/overlay_page1.json"
     },
     "2": {
       "render_size_px": [
         2448,
         3168
       ],
-      "source": "/home/roger/projects/codex_trial/agent_client/server/app/traq_2_schema/overlay_page2.json"
+      "source": "app/traq_2_schema/overlay_page2.json"
     }
   },
   "fields": [

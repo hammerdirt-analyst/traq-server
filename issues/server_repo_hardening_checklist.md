@@ -20,7 +20,7 @@ Goals:
 
 - standalone repo usability
 - internal documentation only
-- conda-first developer workflow
+- uv-first developer workflow
 - repo-local storage defaults
 - removal of monorepo assumptions
 
@@ -63,17 +63,23 @@ Status:
 - tests and repo-local docs now import from `app...` and `tools...`
 - standalone test execution verified from inside `server/`
 
-### 3. Conda-First Bootstrap
+### 3. UV-First Bootstrap
 
-- document conda environment creation
-- document environment activation
+- document `uv` environment bootstrap
+- document `uv sync` / `uv run` workflow
 - document PostgreSQL requirement
 - document required env vars
-- remove any remaining workflow assumptions centered on `uv`
+- keep conda optional only where local system tooling requires it
 
 Acceptance:
 
-- a developer can stand up the repo with conda-only instructions
+- a developer can stand up the repo with `uv` as the primary workflow
+
+Status:
+
+- complete
+- `uv sync` works in the standalone repo
+- `uv run traq-server --help` and `uv run traq-admin --help` both work
 
 ### 4. Storage Defaults
 
@@ -116,6 +122,12 @@ Acceptance:
 
 - no committed generated file contains local machine path leakage
 
+Status:
+
+- complete
+- `app/traq_2_schema/traq_full_map.json` now stores repo-relative source paths
+- machine-specific path leakage removed from committed docs and generated files
+
 ### 7. Runtime vs Export Boundary
 
 - document clearly:
@@ -126,6 +138,12 @@ Acceptance:
 Acceptance:
 
 - the storage boundary is explicit and easy to verify
+
+Status:
+
+- complete
+- runtime/export boundary documented in `docs/runtime_export_boundary.rst`
+- top-level and app docs now state that exported JSON files are non-authoritative
 
 ### 8. Git Hygiene
 

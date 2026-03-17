@@ -1,3 +1,23 @@
+Metadata-Version: 2.4
+Name: traq-server
+Version: 0.1.0
+Summary: Standalone TRAQ server API and admin CLI.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi==0.115.8
+Requires-Dist: uvicorn[standard]==0.30.6
+Requires-Dist: pydantic==2.9.2
+Requires-Dist: sqlalchemy==2.0.36
+Requires-Dist: alembic==1.14.0
+Requires-Dist: psycopg[binary]==3.2.9
+Requires-Dist: python-multipart==0.0.12
+Requires-Dist: openai==1.59.3
+Requires-Dist: outlines
+Requires-Dist: PyPDF2==3.0.1
+Requires-Dist: reportlab==4.2.0
+Requires-Dist: zeroconf==0.146.3
+Requires-Dist: python-docx==1.1.2
+
 # Demo Server
 Authors: Roger Erismann (https://hammerdirt.solutions), OpenAI Codex
 
@@ -189,9 +209,6 @@ All endpoints require `X-API-Key: <key>`.
 - `local_data/jobs/<job_id>/final.json`
 - `local_data/jobs/<job_id>/final_correction.json`
 
-These JSON files are exported debug/compatibility copies. Runtime authority is
-in PostgreSQL. Artifact bytes and generated outputs remain on disk.
-
 ## Config
 
 Environment variables:
@@ -213,7 +230,6 @@ Environment variables:
 - DB schema: `docs/database_schema.rst`
 - DB workflow: `docs/database_workflow.rst`
 - tree identity contract: `docs/tree_identity_contract.rst`
-- runtime/export boundary: `docs/runtime_export_boundary.rst`
 
 ## API docs (Sphinx)
 

@@ -39,8 +39,18 @@ import json
 import re
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_DIR = Path(__file__).resolve().parent
+
+
+def _display_path(path: Path) -> str:
+    """Return a repo-relative display path when possible."""
+
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(PROJECT_ROOT))
+    except ValueError:
+        return str(resolved)
 
 
 def _read_json(path: Path) -> dict:
@@ -394,8 +404,8 @@ def main() -> None:
 
     payload = {
         "pages": {
-            "1": {"render_size_px": page1.get("render_size_px"), "source": str(args.page1_overlay)},
-            "2": {"render_size_px": page2.get("render_size_px"), "source": str(args.page2_overlay)},
+            "1": {"render_size_px": page1.get("render_size_px"), "source": _display_path(args.page1_overlay)},
+            "2": {"render_size_px": page2.get("render_size_px"), "source": _display_path(args.page2_overlay)},
         },
         "fields": combined_fields,
         "missing": missing,

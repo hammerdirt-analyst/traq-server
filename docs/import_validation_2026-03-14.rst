@@ -22,7 +22,7 @@ Import command used
 ::
 
    TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:change-this-password@127.0.0.1:5432/traq_demo' \
-   /home/roger/anaconda3/envs/traq-demo-server/bin/python tools/import_legacy_jobs.py --init-schema
+   uv run python tools/import_legacy_jobs.py --init-schema
 
 Importer result
 ---------------
