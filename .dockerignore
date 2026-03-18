@@ -1,0 +1,17 @@
+.git
+.gitignore
+.venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.tmp
+.env
+local_data/
+docs/_build/
+tests/
+tools/
+issues/
+test.db
+traq_server.egg-info/

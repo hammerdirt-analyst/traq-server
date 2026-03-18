@@ -8,6 +8,8 @@ This documentation is generated from in-code docstrings using Sphinx.
    :caption: Contents
 
    architecture
+   local_development
+   deployment_operations
    postgresql_bootstrap
    database_schema
    database_workflow

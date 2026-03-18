@@ -61,6 +61,32 @@ Cloud/production:
 - direct module form also works:
   - `uv run python -m app.server_cli --reload --port 8000`
 
+## Container
+
+Build the image:
+
+- `docker build -t traq-server:local .`
+
+Run the image locally:
+
+- `docker run --rm -p 8000:8000 \`
+  `-e TRAQ_DATABASE_URL=postgresql+psycopg://traq_app:<password>@host.docker.internal:5432/traq_demo \`
+  `-e TRAQ_API_KEY=demo-key \`
+  `-e OPENAI_API_KEY=<key> \`
+  `traq-server:local`
+
+Cloud-oriented defaults baked into the image:
+
+- `TRAQ_ENABLE_DISCOVERY=false`
+- `TRAQ_AUTO_CREATE_SCHEMA=false`
+- `TRAQ_ENABLE_FILE_LOGGING=false`
+
+For Cloud Run, also set:
+
+- `TRAQ_ARTIFACT_BACKEND=gcs`
+- `TRAQ_GCS_BUCKET=<bucket>`
+- optional `TRAQ_GCS_PREFIX=<prefix>`
+
 Default API key: `demo-key` (set `TRAQ_API_KEY` to change).
 
 Default local artifact storage:
