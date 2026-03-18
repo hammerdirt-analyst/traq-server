@@ -30,6 +30,31 @@ Example runtime database URL:
 
 - `postgresql+psycopg://traq_app:change-this-password@127.0.0.1:5432/traq_demo`
 
+### Alembic workflow
+
+Use Alembic for explicit schema changes.
+
+Local/dev:
+
+- keep `TRAQ_AUTO_CREATE_SCHEMA=true` if you want automatic bootstrap for ad hoc work
+- generate a migration:
+  - `uv run alembic revision --autogenerate -m "describe change"`
+- inspect the migration before applying it
+- apply migrations:
+  - `uv run alembic upgrade head`
+
+Existing database adopting Alembic for the first time:
+
+- after reviewing the baseline migration, record the current schema state:
+  - `uv run alembic stamp head`
+
+Cloud/production:
+
+- set `TRAQ_AUTO_CREATE_SCHEMA=false`
+- run:
+  - `uv run alembic upgrade head`
+- deploy the app only after migrations succeed
+
 ## Run
 
 - `uv run traq-server --reload --port 8000`
@@ -232,6 +257,6 @@ Environment variables:
 Doc source is in `docs/` and uses autodoc + napoleon.
 
 - Build:
-  - `sphinx-build -b html docs docs/_build/html`
+  - `uv run sphinx-build -E -b html docs docs/_build/html`
 - Open:
   - `docs/_build/html/index.html`
