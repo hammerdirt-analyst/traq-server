@@ -10,6 +10,7 @@ This documentation is generated from in-code docstrings using Sphinx.
    architecture
    local_development
    deployment_operations
+   gcp_deployment_runbook
    postgresql_bootstrap
    database_schema
    database_workflow
