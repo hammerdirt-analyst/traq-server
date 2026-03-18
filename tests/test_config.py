@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import os
+import importlib
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
+from sqlalchemy import text
+
+from app import db as db_module
 from app.config import load_settings
 
 
@@ -18,6 +22,7 @@ class ConfigTests(unittest.TestCase):
         os.environ["TRAQ_STORAGE_ROOT"] = str(Path(self.tempdir.name) / "storage")
         os.environ["TRAQ_ARTIFACT_BACKEND"] = "local"
         os.environ["TRAQ_ENABLE_DISCOVERY"] = "true"
+        os.environ["TRAQ_AUTO_CREATE_SCHEMA"] = "true"
         os.environ.pop("TRAQ_GCS_BUCKET", None)
         os.environ.pop("TRAQ_GCS_PREFIX", None)
 
@@ -30,6 +35,8 @@ class ConfigTests(unittest.TestCase):
             "TRAQ_GCS_BUCKET",
             "TRAQ_GCS_PREFIX",
             "TRAQ_ENABLE_DISCOVERY",
+            "TRAQ_AUTO_CREATE_SCHEMA",
+            "TRAQ_API_KEY",
         )
 
     def _restore_env(self) -> None:
@@ -38,6 +45,8 @@ class ConfigTests(unittest.TestCase):
                 os.environ.pop(key, None)
             else:
                 os.environ[key] = value
+        db_module._engine = None
+        db_module._SessionLocal = None
 
     def test_local_artifact_backend_is_default(self) -> None:
         settings = load_settings()
@@ -62,6 +71,22 @@ class ConfigTests(unittest.TestCase):
         os.environ["TRAQ_ENABLE_DISCOVERY"] = "false"
         settings = load_settings()
         self.assertFalse(settings.enable_discovery)
+
+    def test_app_startup_can_skip_schema_creation(self) -> None:
+        os.environ["TRAQ_API_KEY"] = "test-key"
+        os.environ["TRAQ_ENABLE_DISCOVERY"] = "false"
+        os.environ["TRAQ_AUTO_CREATE_SCHEMA"] = "false"
+        db_module._engine = None
+        db_module._SessionLocal = None
+
+        main_module = importlib.import_module("app.main")
+        importlib.reload(main_module)
+
+        with db_module.get_engine().connect() as connection:
+            tables = connection.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table'")
+            ).fetchall()
+        self.assertEqual(tables, [])
 
 
 if __name__ == "__main__":

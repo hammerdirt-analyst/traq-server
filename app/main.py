@@ -324,9 +324,11 @@ def create_app() -> FastAPI:
     """
     settings = load_settings()
     init_database(settings)
-    # Local/dev deployments still rely on additive schema bootstrap until
-    # Alembic-managed migrations are the only deployment path.
-    create_schema()
+    # Local/dev deployments can still opt into additive schema bootstrap.
+    # Production/cloud deployments should turn this off and run migrations
+    # explicitly before the app starts.
+    if settings.auto_create_schema:
+        create_schema()
     logs_dir = settings.storage_root / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     log_path = logs_dir / "server.log"

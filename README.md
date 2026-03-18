@@ -48,6 +48,7 @@ Default local artifact storage:
   - `TRAQ_GCS_BUCKET`
   - optional `TRAQ_GCS_PREFIX`
 - set `TRAQ_ENABLE_DISCOVERY=false` in cloud deployments
+- set `TRAQ_AUTO_CREATE_SCHEMA=false` in cloud deployments
 - current cloud download strategy is app-streamed artifact responses, not signed URLs
 
 ## Admin CLI
@@ -208,6 +209,7 @@ Environment variables:
 - `TRAQ_GCS_BUCKET` (required when `TRAQ_ARTIFACT_BACKEND=gcs`)
 - `TRAQ_GCS_PREFIX` (optional object prefix when `TRAQ_ARTIFACT_BACKEND=gcs`)
 - `TRAQ_ENABLE_DISCOVERY` (default: `true`; set to `false` in cloud)
+- `TRAQ_AUTO_CREATE_SCHEMA` (default: `true`; set to `false` in cloud and run migrations explicitly)
 - `TRAQ_DATABASE_URL` (required: `postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo`)
 - `TRAQ_ADMIN_BASE_URL` (default: `http://127.0.0.1:<TRAQ_DISCOVERY_PORT>`)
 - `TRAQ_DISCOVERY_PORT` (default: 8000)

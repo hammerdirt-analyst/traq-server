@@ -54,6 +54,7 @@ class Settings:
     artifact_gcs_bucket: str | None
     artifact_gcs_prefix: str | None
     enable_discovery: bool
+    auto_create_schema: bool
     database_url: str
     admin_base_url: str
     discovery_port: int
@@ -71,6 +72,7 @@ def load_settings() -> Settings:
     - `TRAQ_GCS_BUCKET`: required when `TRAQ_ARTIFACT_BACKEND=gcs`
     - `TRAQ_GCS_PREFIX`: optional object prefix inside the bucket
     - `TRAQ_ENABLE_DISCOVERY`: enable local mDNS discovery; defaults to `true`
+    - `TRAQ_AUTO_CREATE_SCHEMA`: local/dev schema bootstrap; defaults to `true`
     - `TRAQ_DATABASE_URL`: required SQLAlchemy connection string; PostgreSQL is
       the required deployment target
     - `TRAQ_ADMIN_BASE_URL`: default server base URL for admin CLI HTTP
@@ -94,6 +96,7 @@ def load_settings() -> Settings:
     if artifact_backend == "gcs" and not artifact_gcs_bucket:
         raise RuntimeError("TRAQ_GCS_BUCKET is required when TRAQ_ARTIFACT_BACKEND=gcs.")
     enable_discovery = _parse_bool_env(os.environ.get("TRAQ_ENABLE_DISCOVERY"), default=True)
+    auto_create_schema = _parse_bool_env(os.environ.get("TRAQ_AUTO_CREATE_SCHEMA"), default=True)
     database_url = (os.environ.get("TRAQ_DATABASE_URL") or "").strip()
     if not database_url:
         raise RuntimeError(
@@ -115,6 +118,7 @@ def load_settings() -> Settings:
         artifact_gcs_bucket=artifact_gcs_bucket,
         artifact_gcs_prefix=artifact_gcs_prefix,
         enable_discovery=enable_discovery,
+        auto_create_schema=auto_create_schema,
         database_url=database_url,
         admin_base_url=admin_base_url,
         discovery_port=discovery_port,

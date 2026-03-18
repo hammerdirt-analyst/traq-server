@@ -78,7 +78,8 @@ Severity:
 
 Current behavior:
 
-- server startup now calls `create_schema()` after `init_database()`
+- server startup can still call `create_schema()` after `init_database()`
+- that is now gated by `TRAQ_AUTO_CREATE_SCHEMA`
 
 Representative locations:
 
@@ -88,12 +89,12 @@ Representative locations:
 Impact:
 
 - acceptable for local/dev
-- not the final production posture for Cloud Run + Cloud SQL
-- deployed environments should move to explicit migrations rather than startup schema creation
+- cloud deployments should set `TRAQ_AUTO_CREATE_SCHEMA=false`
+- deployed environments still need explicit migrations rather than startup schema creation
 
 Severity:
 
-- **high for production discipline**, but not a blocker for local/dev
+- **high for production discipline**, but the runtime is now configurable for cloud
 
 ### 4. Service discovery is now environment-gated
 
@@ -217,6 +218,7 @@ Do next:
 
 - define production migration policy
 - move toward Alembic-managed schema changes
+- keep `TRAQ_AUTO_CREATE_SCHEMA=false` in cloud
 - stop treating startup `create_schema()` as the production contract
 
 ### Phase 2 — Wire and validate the Cloud Storage backend
