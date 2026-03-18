@@ -55,14 +55,17 @@ The first phase is successful when all of the following are true:
    - final/correction counts match the archived files on disk
 
 4. Archived snapshots are queryable
+
    - ``final.json`` and ``final_correction.json`` land in the database as
      retained snapshots.
 
 5. Artifact indexing is usable
+
    - uploaded audio, transcript text, uploaded images, report images, PDFs,
      DOCX, and GeoJSON are represented as artifact path records.
 
 6. No runtime behavior changes
+
    - the live server runtime remains independent from the importer while the
      import path is being developed and validated.
 

@@ -1,5 +1,5 @@
 Legacy Import Validation 2026-03-14
-==================================
+===================================
 
 Purpose
 -------
@@ -146,6 +146,7 @@ final snapshot:
   - final snapshot ``round_id`` = ``round_15``
 
 Consequence:
+
 - final/correction snapshot data must be treated as authoritative for archived
   output provenance
 - ``job_record.json`` should not be assumed to be the final truth for archived
@@ -186,6 +187,7 @@ Partially met
 - imported counts match filesystem reality
 
 Reason:
+
 - the importer skipped one legacy archived-only job because it lacked
   ``job_record.json``
 - the importer still needs a fallback path for final-only job directories

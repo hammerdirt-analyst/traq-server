@@ -27,19 +27,17 @@ Design rules
 Model modules
 -------------
 
-- ``app/db.py``
-  - engine/session bootstrap
-  - declarative base
-  - schema creation helper for local bootstrap
+- ``app/db.py``: engine/session bootstrap, declarative base, and the local
+  schema creation helper.
 
-- ``app/db_models.py``
-  - ORM tables for devices, jobs, rounds, media metadata, finals, artifacts,
-    and events
+- ``app/db_models.py``: ORM tables for devices, jobs, rounds, media metadata,
+  finals, artifacts, and events.
 
 Core tables
 -----------
 
 Permanent records:
+
 - ``devices``
 - ``device_tokens``
 - ``customers``
@@ -54,6 +52,7 @@ Permanent records:
 - ``job_events``
 
 Working records:
+
 - ``job_rounds``
 - ``round_recordings``
 - ``round_images``

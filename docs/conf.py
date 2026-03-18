@@ -11,6 +11,12 @@ DOCS_DIR = Path(__file__).resolve().parent
 SERVER_DIR = DOCS_DIR.parent
 REPO_ROOT = SERVER_DIR.parent
 
+# Keep autodoc imports side-effect free during doc builds.
+os.environ.setdefault("TRAQ_DATABASE_URL", "sqlite+pysqlite:///:memory:")
+os.environ.setdefault("TRAQ_AUTO_CREATE_SCHEMA", "false")
+os.environ.setdefault("TRAQ_ENABLE_DISCOVERY", "false")
+os.environ.setdefault("TRAQ_ENABLE_FILE_LOGGING", "false")
+
 # Allow imports like `app.*` during autodoc.
 sys.path.insert(0, str(SERVER_DIR))
 sys.path.insert(0, str(REPO_ROOT))
@@ -35,4 +41,3 @@ exclude_patterns = ["_build"]
 
 html_theme = "alabaster"
 html_static_path = ["_static"]
-

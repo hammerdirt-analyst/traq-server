@@ -22,6 +22,7 @@ Authoritative source
 The server is authoritative for ``tree_number``.
 
 Rules:
+
 - for server-created or assigned jobs, the tree number may already be set
 - for phone-started jobs, the server resolves or allocates the tree number on
   the first accepted submit
@@ -31,6 +32,7 @@ Resolution rule
 ---------------
 
 For a given customer:
+
 - if a valid ``tree_number`` is supplied, reuse or create that tree identity
 - otherwise allocate the next available tree number
 
@@ -42,6 +44,7 @@ Database model
 - ``jobs``
 
 Key constraints:
+
 - ``trees`` are unique by ``(customer_id, tree_number)``
 - ``jobs`` reference ``tree_id`` and also store ``tree_number`` for operational
   convenience
@@ -52,6 +55,7 @@ Client contract impact
 The client should treat ``tree_number`` as server-authoritative.
 
 This means:
+
 - the client may begin without a final tree number for a phone-started job
 - after submit/review return, the client must accept and display the server
   value
@@ -102,6 +106,7 @@ Implementation status
 ---------------------
 
 Current status:
+
 - schema support added
 - tree allocation helper added
 - importer seeds tree identities from legacy final form data where available
