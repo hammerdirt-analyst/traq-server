@@ -47,7 +47,7 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 
 from .config import load_settings
-from .db import init_database, session_scope
+from .db import create_schema, init_database, session_scope
 from .db_store import DatabaseStore
 from .extractors.registry import run_extraction as _run_extraction_core
 from .security_store import AuthContext, SecurityStore
@@ -323,6 +323,9 @@ def create_app() -> FastAPI:
     """
     settings = load_settings()
     init_database(settings)
+    # Local/dev deployments still rely on additive schema bootstrap until
+    # Alembic-managed migrations are the only deployment path.
+    create_schema()
     logs_dir = settings.storage_root / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     log_path = logs_dir / "server.log"
