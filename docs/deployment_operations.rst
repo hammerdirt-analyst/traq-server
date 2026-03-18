@@ -142,6 +142,28 @@ Minimum expectations:
 - no automatic schema creation in cloud
 - secrets injected by environment or secret manager
 - least-privilege credentials for database and storage access
+- operator-only admin model for beta deployment
+
+Operator-only admin model for beta
+----------------------------------
+
+The current beta posture is intentionally **not** a public admin surface.
+
+Admin operations are expected to run only from a trusted operator environment:
+
+- ``traq-admin`` on an operator workstation, shell, or controlled runner
+- ``TRAQ_API_KEY`` treated as an operator credential, not a field-device secret
+- no admin key embedded in the client application
+- no admin key entered during device registration or field setup
+
+This means:
+
+- field devices use issued device tokens
+- device bootstrap remains limited to registration / status / token issuance
+- broad admin mutation workflows remain operator-only
+
+This is acceptable for controlled beta. It is not the final long-term admin
+identity model.
 
 Additional controls to define before broad production use:
 
@@ -149,6 +171,7 @@ Additional controls to define before broad production use:
 - artifact bucket access policy
 - service account scope for Cloud Storage
 - deployment rollback procedure
+- long-term named admin identity model beyond the shared operator key
 
 Known non-blocking issue
 ------------------------

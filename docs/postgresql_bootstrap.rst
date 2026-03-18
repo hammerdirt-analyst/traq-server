@@ -61,7 +61,7 @@ Example bootstrap commands::
 
 Then inside ``psql``::
 
-   CREATE ROLE traq_app WITH LOGIN PASSWORD 'change-this-password';
+   CREATE ROLE traq_app WITH LOGIN PASSWORD '<set-a-db-password>';
    CREATE DATABASE traq_demo OWNER traq_app;
    \du
    \l
@@ -77,7 +77,7 @@ Connection target for the server
 
 Initial connection string format::
 
-   postgresql+psycopg://traq_app:change-this-password@127.0.0.1:5432/traq_demo
+   postgresql+psycopg://traq_app:<set-a-db-password>@127.0.0.1:5432/traq_demo
 
 Why PostgreSQL is the chosen direction
 --------------------------------------

@@ -17,6 +17,18 @@ Optional:
 - direct editable install still works:
   - `pip install -e .`
 
+### Documentation publishing
+
+The repo is set up for GitHub Pages to build documentation from source in CI.
+
+- workflow: `.github/workflows/docs.yml`
+- source docs: `docs/`
+- generated HTML remains local-only and ignored:
+  - `docs/_build/`
+
+GitHub Pages should be configured to publish from the GitHub Actions workflow,
+not from committed generated HTML.
+
 ### PostgreSQL baseline
 
 The server is moving to PostgreSQL as the primary metadata/state store.
@@ -89,6 +101,13 @@ For Cloud Run, also set:
 
 Default API key: `demo-key` (set `TRAQ_API_KEY` to change).
 
+For beta, treat `TRAQ_API_KEY` as an operator-only credential:
+
+- use it for `traq-admin` and controlled operator scripts
+- do not put it on field devices
+- do not prompt for it during device registration
+- do not treat the mobile client as an admin surface
+
 Default local artifact storage:
 
 - `TRAQ_STORAGE_ROOT` defaults to `./local_data`
@@ -144,6 +163,7 @@ Full CLI reference:
 
 - `app/README.md`
 - `docs/cli_operations_model.rst`
+- `docs/deployment_operations.rst`
 
 ## Local Discovery
 
@@ -156,7 +176,17 @@ Full CLI reference:
 
 ## Endpoints
 
-All endpoints require `X-API-Key: <key>`.
+Most endpoints require `X-API-Key: <key>`.
+
+Bootstrap exceptions:
+
+- `POST /v1/auth/register-device`
+- `GET /v1/auth/device/{device_id}/status`
+- `POST /v1/auth/token`
+
+Those three endpoints are intentionally open for device bootstrap. Admin
+approval still happens through the admin CLI/workflow, and the issued device
+token is used for normal authenticated requests.
 
 ### Health
 

@@ -13,6 +13,7 @@ local_data/
 var/
 storage/
 server_data/
+exports/
 
 # Local logs and build outputs
 *.log
