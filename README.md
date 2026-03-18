@@ -43,6 +43,12 @@ Default local artifact storage:
 - `TRAQ_STORAGE_ROOT` defaults to `./local_data`
 - this directory is repo-local and git-ignored
 - artifact bytes and generated outputs live there; runtime authority is in PostgreSQL
+- set `TRAQ_ARTIFACT_BACKEND=gcs` to use Google Cloud Storage
+- when using GCS, set:
+  - `TRAQ_GCS_BUCKET`
+  - optional `TRAQ_GCS_PREFIX`
+- set `TRAQ_ENABLE_DISCOVERY=false` in cloud deployments
+- current cloud download strategy is app-streamed artifact responses, not signed URLs
 
 ## Admin CLI
 
@@ -198,6 +204,10 @@ Environment variables:
 
 - `TRAQ_API_KEY` (default: demo-key)
 - `TRAQ_STORAGE_ROOT` (default: ./local_data)
+- `TRAQ_ARTIFACT_BACKEND` (default: `local`; valid values: `local`, `gcs`)
+- `TRAQ_GCS_BUCKET` (required when `TRAQ_ARTIFACT_BACKEND=gcs`)
+- `TRAQ_GCS_PREFIX` (optional object prefix when `TRAQ_ARTIFACT_BACKEND=gcs`)
+- `TRAQ_ENABLE_DISCOVERY` (default: `true`; set to `false` in cloud)
 - `TRAQ_DATABASE_URL` (required: `postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo`)
 - `TRAQ_ADMIN_BASE_URL` (default: `http://127.0.0.1:<TRAQ_DISCOVERY_PORT>`)
 - `TRAQ_DISCOVERY_PORT` (default: 8000)

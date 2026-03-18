@@ -95,11 +95,12 @@ Severity:
 
 - **high for production discipline**, but not a blocker for local/dev
 
-### 4. Service discovery is still enabled by default
+### 4. Service discovery is now environment-gated
 
 Current behavior:
 
 - mDNS / zeroconf advertiser is wired into startup
+- `TRAQ_ENABLE_DISCOVERY` now gates it explicitly
 - discovery is useful on LAN, not in cloud deployment
 
 Representative locations:
@@ -109,12 +110,12 @@ Representative locations:
 
 Impact:
 
-- cloud deployment should disable discovery explicitly
-- this should be environment-gated
+- cloud deployment should set `TRAQ_ENABLE_DISCOVERY=false`
+- no additional runtime refactor is required
 
 Severity:
 
-- **medium**
+- **resolved with deployment config**
 
 ### 5. Profile / artifact metadata now depend on DB tables being present
 
@@ -132,11 +133,12 @@ Severity:
 
 - **medium**
 
-### 6. Final/report downloads assume local files are directly readable
+### 6. Final/report downloads still need an explicit cloud policy
 
 Current behavior:
 
-- endpoints return `FileResponse` from local paths
+- endpoints still return app-streamed responses
+- artifact materialization can now come from the selected backend
 
 Representative location:
 
@@ -144,14 +146,13 @@ Representative location:
 
 Impact:
 
-- this will need a storage abstraction for Cloud Storage
-- either:
-  - stream bytes from GCS
-  - or generate signed URLs
+- the storage abstraction now supports backend materialization
+- the remaining choice is the deployment policy for downloads
+- initial deployment can keep app-streamed responses and defer signed URLs
 
 Severity:
 
-- **high**
+- **resolved for initial deploy if app-streamed downloads are accepted**
 
 ### 7. ffprobe remains a runtime host dependency
 
@@ -218,33 +219,35 @@ Do next:
 - move toward Alembic-managed schema changes
 - stop treating startup `create_schema()` as the production contract
 
-### Phase 2 — Add Cloud Storage backend for artifact storage
+### Phase 2 — Wire and validate the Cloud Storage backend
 
 Do next:
 
 - keep the existing local backend
-- add a Cloud Storage backend for:
+- the runtime code now has a `GCSArtifactStore`
+- validate backend selection and dependency install in the deployed environment
+- verify runtime flows against GCS for:
   - audio writes/reads
   - image writes/reads
   - report image writes/reads
   - final artifact writes/reads
-- decide whether server-side materialization or signed URLs should be used for downloads
+- keep app-streamed downloads for the initial deployment
 
 ### Phase 3 — Cloud deployment controls
 
 Do next:
 
-- add explicit env flag to disable discovery in cloud
+- set `TRAQ_ENABLE_DISCOVERY=false` in cloud
 - document required secrets
 - prepare Dockerfile / `.dockerignore`
 
-### Phase 4 — Download/serve strategy for cloud artifacts
+### Phase 4 — Production migration and containerization
 
 Do next:
 
-- decide whether download endpoints should:
-  - stream from Cloud Storage through the app
-  - or issue signed URLs
+- define migration execution outside app startup
+- prepare Dockerfile / `.dockerignore`
+- define runtime secrets and service account requirements
 
 ## Practical Summary
 
@@ -257,8 +260,8 @@ If deployment started today:
 ## Immediate Highest-Value Fixes
 
 1. add storage abstraction for artifacts
-2. disable discovery in cloud environments
-3. formalize migration policy for production
+2. formalize migration policy for production
+3. containerize the server for Cloud Run
 
 ## Conclusion
 

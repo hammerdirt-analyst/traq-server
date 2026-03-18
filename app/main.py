@@ -46,7 +46,7 @@ from fastapi.responses import FileResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-from .artifact_storage import LocalArtifactStore
+from .artifact_storage import GCSArtifactStore, LocalArtifactStore
 from .config import load_settings
 from .db import create_schema, init_database, session_scope
 from .db_store import DatabaseStore
@@ -383,7 +383,14 @@ def create_app() -> FastAPI:
     jobs: dict[str, JobRecord] = {}
     security = SecurityStore(settings.storage_root / "security")
     db_store = DatabaseStore()
-    artifact_store = LocalArtifactStore(settings.storage_root)
+    if settings.artifact_backend == "gcs":
+        artifact_store = GCSArtifactStore(
+            bucket_name=settings.artifact_gcs_bucket or "",
+            prefix=settings.artifact_gcs_prefix,
+            cache_root=settings.storage_root / "artifact_cache",
+        )
+    else:
+        artifact_store = LocalArtifactStore(settings.storage_root)
     customer_service = CustomerService()
     job_mutation_service = JobMutationService()
     advertiser = ServiceDiscoveryAdvertiser(
@@ -3417,7 +3424,7 @@ def create_app() -> FastAPI:
         final_json_name = "final_correction.json" if correction_mode else "final.json"
         geojson_name = "final_correction.geojson" if correction_mode else "final.geojson"
         pdf_key = _job_artifact_key(job_id, pdf_name)
-        pdf_path = _materialize_artifact_path(pdf_key)
+        pdf_path = artifact_store.stage_output(pdf_key)
         requested_tree_number = requested_tree_number_from_form(payload.form)
         record.tree_number = _resolve_server_tree_number(
             record,
@@ -3460,8 +3467,8 @@ def create_app() -> FastAPI:
             )
             report_key = _job_artifact_key(job_id, report_name)
             report_docx_key = _job_artifact_key(job_id, report_docx_name)
-            report_path = _materialize_artifact_path(report_key)
-            report_docx_path = _materialize_artifact_path(report_docx_key)
+            report_path = artifact_store.stage_output(report_key)
+            report_docx_path = artifact_store.stage_output(report_docx_key)
             sender_name = ""
             if isinstance(profile_payload, dict):
                 sender_name = str(profile_payload.get("name") or "").strip()
@@ -3518,7 +3525,9 @@ def create_app() -> FastAPI:
             "user_name": user_name,
             "report_images": report_images,
         }
-        _write_json(_materialize_artifact_path(_job_artifact_key(job_id, final_json_name)), final_payload)
+        final_json_key = _job_artifact_key(job_id, final_json_name)
+        final_json_path = artifact_store.stage_output(final_json_key)
+        _write_json(final_json_path, final_payload)
         # Generate the TRAQ PDF from the persisted final payload to keep
         # server and offline tool output aligned to the same canonical source.
         _generate_traq_pdf(form_data=final_payload["form"], output_path=pdf_path)
@@ -3528,8 +3537,10 @@ def create_app() -> FastAPI:
             form_data = payload.form.get("data") if isinstance(payload.form.get("data"), dict) else payload.form
             if not isinstance(form_data, dict):
                 form_data = {}
+            geojson_key = _job_artifact_key(job_id, geojson_name)
+            geojson_path = artifact_store.stage_output(geojson_key)
             geojson_export.write_final_geojson(
-                output_path=_materialize_artifact_path(_job_artifact_key(job_id, geojson_name)),
+                output_path=geojson_path,
                 job_number=record.job_number,
                 user_name=user_name,
                 form_data=form_data,
@@ -3542,6 +3553,11 @@ def create_app() -> FastAPI:
                 detail="Final GeoJSON generation failed",
             ) from exc
         try:
+            pdf_path = artifact_store.commit_output(pdf_key, pdf_path)
+            artifact_store.commit_output(report_key, report_path)
+            artifact_store.commit_output(report_docx_key, report_docx_path)
+            artifact_store.commit_output(final_json_key, final_json_path)
+            artifact_store.commit_output(geojson_key, geojson_path)
             _unassign_job_record(job_id)
         except KeyError:
             logger.info("Finalized job %s had no assignment to remove", job_id)
@@ -3682,15 +3698,19 @@ def create_app() -> FastAPI:
         """Startup hook for explicit operational log marker."""
         print("Demo server startup event.")
         logger.info("Demo server startup event.")
-        advertiser.start_in_background()
+        if settings.enable_discovery:
+            advertiser.start_in_background()
+        else:
+            logger.info("[DISCOVERY] disabled by configuration")
 
     @app.on_event("shutdown")
     def _shutdown_log() -> None:
         """Shutdown hook for explicit operational log marker."""
-        try:
-            advertiser.stop()
-        except Exception:
-            logger.exception("[DISCOVERY] shutdown cleanup failed")
+        if settings.enable_discovery:
+            try:
+                advertiser.stop()
+            except Exception:
+                logger.exception("[DISCOVERY] shutdown cleanup failed")
 
     return app
 

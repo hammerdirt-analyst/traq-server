@@ -28,6 +28,17 @@ def _load_dotenv() -> None:
         os.environ[key] = value
 
 
+def _parse_bool_env(value: str | None, *, default: bool) -> bool:
+    raw = (value or "").strip().lower()
+    if not raw:
+        return default
+    if raw in {"1", "true", "yes", "on"}:
+        return True
+    if raw in {"0", "false", "no", "off"}:
+        return False
+    raise RuntimeError(f"Invalid boolean environment value: {value!r}")
+
+
 @dataclass(frozen=True)
 class Settings:
     """Runtime configuration for the server process.
@@ -39,6 +50,10 @@ class Settings:
 
     api_key: str
     storage_root: Path
+    artifact_backend: str
+    artifact_gcs_bucket: str | None
+    artifact_gcs_prefix: str | None
+    enable_discovery: bool
     database_url: str
     admin_base_url: str
     discovery_port: int
@@ -52,6 +67,10 @@ def load_settings() -> Settings:
     - `TRAQ_API_KEY`: admin API key for privileged endpoints
     - `TRAQ_STORAGE_ROOT`: on-disk artifact root for media and final exports;
       defaults to the repo-local `./local_data`
+    - `TRAQ_ARTIFACT_BACKEND`: `local` or `gcs`; defaults to `local`
+    - `TRAQ_GCS_BUCKET`: required when `TRAQ_ARTIFACT_BACKEND=gcs`
+    - `TRAQ_GCS_PREFIX`: optional object prefix inside the bucket
+    - `TRAQ_ENABLE_DISCOVERY`: enable local mDNS discovery; defaults to `true`
     - `TRAQ_DATABASE_URL`: required SQLAlchemy connection string; PostgreSQL is
       the required deployment target
     - `TRAQ_ADMIN_BASE_URL`: default server base URL for admin CLI HTTP
@@ -67,6 +86,14 @@ def load_settings() -> Settings:
             str(Path(__file__).resolve().parents[1] / "local_data"),
         )
     )
+    artifact_backend = (os.environ.get("TRAQ_ARTIFACT_BACKEND") or "local").strip().lower()
+    if artifact_backend not in {"local", "gcs"}:
+        raise RuntimeError("TRAQ_ARTIFACT_BACKEND must be 'local' or 'gcs'.")
+    artifact_gcs_bucket = (os.environ.get("TRAQ_GCS_BUCKET") or "").strip() or None
+    artifact_gcs_prefix = (os.environ.get("TRAQ_GCS_PREFIX") or "").strip() or None
+    if artifact_backend == "gcs" and not artifact_gcs_bucket:
+        raise RuntimeError("TRAQ_GCS_BUCKET is required when TRAQ_ARTIFACT_BACKEND=gcs.")
+    enable_discovery = _parse_bool_env(os.environ.get("TRAQ_ENABLE_DISCOVERY"), default=True)
     database_url = (os.environ.get("TRAQ_DATABASE_URL") or "").strip()
     if not database_url:
         raise RuntimeError(
@@ -84,6 +111,10 @@ def load_settings() -> Settings:
     return Settings(
         api_key=api_key,
         storage_root=storage_root,
+        artifact_backend=artifact_backend,
+        artifact_gcs_bucket=artifact_gcs_bucket,
+        artifact_gcs_prefix=artifact_gcs_prefix,
+        enable_discovery=enable_discovery,
         database_url=database_url,
         admin_base_url=admin_base_url,
         discovery_port=discovery_port,
