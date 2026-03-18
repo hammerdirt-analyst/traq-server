@@ -140,6 +140,10 @@ Artifacts are exported into a canonical local folder:
 If a correction artifact exists, the exported filename includes the correction
 variant.
 
+The ``final-json`` export is DB-backed. It works for jobs whose archived final or
+correction payload has been persisted to ``job_finals``. Older file-only finals
+may still support PDF retrieval but not ``final-json`` export.
+
 Automated tests
 ---------------
 

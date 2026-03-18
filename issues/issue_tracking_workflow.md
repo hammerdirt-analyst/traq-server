@@ -41,6 +41,7 @@ This avoids fragmented issue handling while keeping detailed notes available.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | S-001 | open | assignment/lifecycle | Archived jobs can still auto-claim after local restore if unassigned | `issues/archived_job_auto_claim_too_permissive.md` | — | — | Tighten `_assert_job_assignment()` for archived jobs |
 | S-002 | open | deployment | GCP deployment readiness baseline and remaining blockers | `issues/gcp_deployment_readiness_spec.md`, `issues/gcp_deployment_audit.md`, `issues/gcp_services_pricing_list.md` | — | — | Use this row until remote issue tracker is chosen |
+| S-003 | open | admin-cli/artifacts | `artifact fetch --kind final-json` requires archived final payloads in DB and does not support file-only historical finals | — | — | — | Keep current DB-first behavior; document that older file-only finals may still support PDF fetch but not `final-json` |
 
 ## Coordination Notes
 
