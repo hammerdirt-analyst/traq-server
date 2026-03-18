@@ -115,30 +115,30 @@ Credential transport:
 
 Admin CLI (host machine):
 - `export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'`
-- `python admin_cli.py device pending`
-- `python admin_cli.py device validate --index 1 --role arborist`
-- `python admin_cli.py device approve <device_id> --role arborist`
-- `python admin_cli.py device revoke <device_id>`
-- `python admin_cli.py device issue-token <device_id> --ttl 900`
-- `python admin_cli.py customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
-- `python admin_cli.py customer list --search Arboretum`
-- `python admin_cli.py customer update C0001 --phone "555-3434"`
-- `python admin_cli.py customer billing create --billing-name "Customer Name" --billing-address "123 Oak St"`
-- `python admin_cli.py customer billing list --search Customer`
-- `python admin_cli.py customer billing update B0001 --contact-preference email`
-- `python admin_cli.py job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"`
-- `python admin_cli.py job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED`
-- `python admin_cli.py final set-final --job J0001 --from-json ./final.json [--geojson-json ./final.geojson]`
-- `python admin_cli.py final set-correction --job J0001 --from-json ./final_correction.json [--geojson-json ./final_correction.geojson]`
-- `python admin_cli.py job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python admin_cli.py job unassign --job J0001 --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python admin_cli.py job list-assignments --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python admin_cli.py job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python admin_cli.py job inspect --job J0001`
-- `python admin_cli.py round reopen --job-id <job_id> --round-id <round_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `python admin_cli.py round inspect --job J0001 --round-id <round_id>`
-- `python admin_cli.py review inspect --job J0001 --round-id <round_id>`
-- `python admin_cli.py final inspect --job J0001`
+- `uv run traq-admin device pending`
+- `uv run traq-admin device validate --index 1 --role arborist`
+- `uv run traq-admin device approve <device_id> --role arborist`
+- `uv run traq-admin device revoke <device_id>`
+- `uv run traq-admin device issue-token <device_id> --ttl 900`
+- `uv run traq-admin customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
+- `uv run traq-admin customer list --search Arboretum`
+- `uv run traq-admin customer update C0001 --phone "555-3434"`
+- `uv run traq-admin customer billing create --billing-name "Customer Name" --billing-address "123 Oak St"`
+- `uv run traq-admin customer billing list --search Customer`
+- `uv run traq-admin customer billing update B0001 --contact-preference email`
+- `uv run traq-admin job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"`
+- `uv run traq-admin job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED`
+- `uv run traq-admin final set-final --job J0001 --from-json ./final.json [--geojson-json ./final.geojson]`
+- `uv run traq-admin final set-correction --job J0001 --from-json ./final_correction.json [--geojson-json ./final_correction.geojson]`
+- `uv run traq-admin job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `uv run traq-admin job unassign --job J0001 --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `uv run traq-admin job list-assignments --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `uv run traq-admin job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `uv run traq-admin job inspect --job J0001`
+- `uv run traq-admin round reopen --job-id <job_id> --round-id <round_id> --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `uv run traq-admin round inspect --job J0001 --round-id <round_id>`
+- `uv run traq-admin review inspect --job J0001 --round-id <round_id>`
+- `uv run traq-admin final inspect --job J0001`
 
 ### Admin CLI Usage
 
@@ -146,7 +146,7 @@ Start interactive CLI:
 
 ```bash
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
-python admin_cli.py
+uv run traq-admin
 ```
 
 Interactive meta-commands:
@@ -184,72 +184,72 @@ command.
 Device commands:
 
 ```bash
-python admin_cli.py device list [--status pending|approved|revoked] [--json]
-python admin_cli.py device pending [--json]
-python admin_cli.py device validate [--index N] [--role arborist|admin]
-python admin_cli.py device approve <device_id> [--role arborist|admin]
-python admin_cli.py device revoke <device_id>
-python admin_cli.py device issue-token <device_id> [--ttl 900]
+uv run traq-admin device list [--status pending|approved|revoked] [--json]
+uv run traq-admin device pending [--json]
+uv run traq-admin device validate [--index N] [--role arborist|admin]
+uv run traq-admin device approve <device_id> [--role arborist|admin]
+uv run traq-admin device revoke <device_id>
+uv run traq-admin device issue-token <device_id> [--ttl 900]
 ```
 
 Customer commands:
 
 ```bash
-python admin_cli.py customer list [--search <term>]
-python admin_cli.py customer duplicates
-python admin_cli.py customer create --name <customer_name> [--phone <phone>] [--address <address>]
-python admin_cli.py customer update <customer_id_or_code> [--name <customer_name>] [--phone <phone>] [--address <address>]
-python admin_cli.py customer usage <customer_id_or_code>
-python admin_cli.py customer merge <source_customer_id_or_code> --into <target_customer_id_or_code>
-python admin_cli.py customer delete <customer_id_or_code>
-python admin_cli.py customer billing list [--search <term>]
-python admin_cli.py customer billing duplicates
-python admin_cli.py customer billing create [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
-python admin_cli.py customer billing update <billing_profile_id_or_code> [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
-python admin_cli.py customer billing usage <billing_profile_id_or_code>
-python admin_cli.py customer billing merge <source_billing_profile_id_or_code> --into <target_billing_profile_id_or_code>
-python admin_cli.py customer billing delete <billing_profile_id_or_code>
+uv run traq-admin customer list [--search <term>]
+uv run traq-admin customer duplicates
+uv run traq-admin customer create --name <customer_name> [--phone <phone>] [--address <address>]
+uv run traq-admin customer update <customer_id_or_code> [--name <customer_name>] [--phone <phone>] [--address <address>]
+uv run traq-admin customer usage <customer_id_or_code>
+uv run traq-admin customer merge <source_customer_id_or_code> --into <target_customer_id_or_code>
+uv run traq-admin customer delete <customer_id_or_code>
+uv run traq-admin customer billing list [--search <term>]
+uv run traq-admin customer billing duplicates
+uv run traq-admin customer billing create [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
+uv run traq-admin customer billing update <billing_profile_id_or_code> [--billing-name <name>] [--billing-contact-name <name>] [--billing-address <address>] [--contact-preference <pref>]
+uv run traq-admin customer billing usage <billing_profile_id_or_code>
+uv run traq-admin customer billing merge <source_billing_profile_id_or_code> --into <target_billing_profile_id_or_code>
+uv run traq-admin customer billing delete <billing_profile_id_or_code>
 ```
 
 Job commands:
 
 ```bash
-python admin_cli.py job create --job-id <job_id> --job-number <job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
-python admin_cli.py job update --job <job_id_or_job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
-python admin_cli.py job list-assignments [--host <admin_base_url>] [--api-key <admin_key>] [--raw]
-python admin_cli.py job assign --job <job_id_or_job_number> --device-id <device_id> [--host <admin_base_url>] [--api-key <admin_key>]
-python admin_cli.py job unassign --job <job_id_or_job_number> [--host <admin_base_url>] [--api-key <admin_key>]
-python admin_cli.py job set-status --job <job_id_or_job_number> --status NOT_STARTED|DRAFT|SUBMITTED_FOR_PROCESSING|REVIEW_RETURNED|ARCHIVED|FAILED [--host <admin_base_url>] [--api-key <admin_key>]
-python admin_cli.py job set-status --job <job_id_or_job_number> --status REVIEW_RETURNED --round-id <round_id> --round-status REVIEW_RETURNED [--host <admin_base_url>] [--api-key <admin_key>]
-python admin_cli.py job inspect --job <job_id_or_job_number>
+uv run traq-admin job create --job-id <job_id> --job-number <job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
+uv run traq-admin job update --job <job_id_or_job_number> [--customer-id <customer_id_or_code>] [--billing-profile-id <billing_profile_id_or_code>] [--tree-number <tree_number>] [--job-name <job_name>] [--job-address <address>] [--reason <reason>] [--location-notes <notes>] [--tree-species <species>] [--status ...]
+uv run traq-admin job list-assignments [--host <admin_base_url>] [--api-key <admin_key>] [--raw]
+uv run traq-admin job assign --job <job_id_or_job_number> --device-id <device_id> [--host <admin_base_url>] [--api-key <admin_key>]
+uv run traq-admin job unassign --job <job_id_or_job_number> [--host <admin_base_url>] [--api-key <admin_key>]
+uv run traq-admin job set-status --job <job_id_or_job_number> --status NOT_STARTED|DRAFT|SUBMITTED_FOR_PROCESSING|REVIEW_RETURNED|ARCHIVED|FAILED [--host <admin_base_url>] [--api-key <admin_key>]
+uv run traq-admin job set-status --job <job_id_or_job_number> --status REVIEW_RETURNED --round-id <round_id> --round-status REVIEW_RETURNED [--host <admin_base_url>] [--api-key <admin_key>]
+uv run traq-admin job inspect --job <job_id_or_job_number>
 ```
 
 Round commands:
 
 ```bash
-python admin_cli.py round reopen --job-id <job_id> --round-id <round_id> [--host <admin_base_url>] [--api-key <admin_key>]
-python admin_cli.py round inspect --job <job_id_or_job_number> --round-id <round_id>
+uv run traq-admin round reopen --job-id <job_id> --round-id <round_id> [--host <admin_base_url>] [--api-key <admin_key>]
+uv run traq-admin round inspect --job <job_id_or_job_number> --round-id <round_id>
 ```
 
 Review commands:
 
 ```bash
-python admin_cli.py review inspect --job <job_id_or_job_number> --round-id <round_id>
+uv run traq-admin review inspect --job <job_id_or_job_number> --round-id <round_id>
 ```
 
 Final commands:
 
 ```bash
-python admin_cli.py final inspect --job <job_id_or_job_number>
-python admin_cli.py final set-final --job <job_id_or_job_number> --from-json <final_json_path> [--geojson-json <geojson_path>]
-python admin_cli.py final set-correction --job <job_id_or_job_number> --from-json <correction_json_path> [--geojson-json <geojson_path>]
+uv run traq-admin final inspect --job <job_id_or_job_number>
+uv run traq-admin final set-final --job <job_id_or_job_number> --from-json <final_json_path> [--geojson-json <geojson_path>]
+uv run traq-admin final set-correction --job <job_id_or_job_number> --from-json <correction_json_path> [--geojson-json <geojson_path>]
 ```
 
 Network command:
 
 ```bash
-python admin_cli.py net ipv4 [--json]
-python admin_cli.py net ipv6 [--json]
+uv run traq-admin net ipv4 [--json]
+uv run traq-admin net ipv6 [--json]
 ```
 
 ### Admin CLI Usage Examples
@@ -258,7 +258,7 @@ Interactive mode (recommended):
 
 ```bash
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
-python admin_cli.py
+uv run traq-admin
 ```
 
 Inside interactive mode:
@@ -299,47 +299,47 @@ One-shot mode:
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
 
 # Device
-python admin_cli.py device pending
-python admin_cli.py device validate --index 1 --role arborist
-python admin_cli.py device list --status approved --json
-python admin_cli.py device approve <device_id> --role arborist
-python admin_cli.py device revoke <device_id>
-python admin_cli.py device issue-token <device_id> --ttl 900
+uv run traq-admin device pending
+uv run traq-admin device validate --index 1 --role arborist
+uv run traq-admin device list --status approved --json
+uv run traq-admin device approve <device_id> --role arborist
+uv run traq-admin device revoke <device_id>
+uv run traq-admin device issue-token <device_id> --ttl 900
 
 # Customers
-python admin_cli.py customer create --name "Sacramento State Arboretum" --phone "555-1212" --address "6000 J St"
-python admin_cli.py customer list --search Arboretum
-python admin_cli.py customer update C0001 --phone "555-3434"
-python admin_cli.py customer usage C0001
-python admin_cli.py customer merge C0002 --into C0001
-python admin_cli.py customer billing create --billing-name "City of Trees" --billing-contact-name "A. Manager" --billing-address "123 Elm" --contact-preference email
-python admin_cli.py customer billing list --search Trees
-python admin_cli.py customer billing update B0001 --contact-preference phone
-python admin_cli.py customer billing usage B0001
-python admin_cli.py customer billing merge B0002 --into B0001
+uv run traq-admin customer create --name "Sacramento State Arboretum" --phone "555-1212" --address "6000 J St"
+uv run traq-admin customer list --search Arboretum
+uv run traq-admin customer update C0001 --phone "555-3434"
+uv run traq-admin customer usage C0001
+uv run traq-admin customer merge C0002 --into C0001
+uv run traq-admin customer billing create --billing-name "City of Trees" --billing-contact-name "A. Manager" --billing-address "123 Elm" --contact-preference email
+uv run traq-admin customer billing list --search Trees
+uv run traq-admin customer billing update B0001 --contact-preference phone
+uv run traq-admin customer billing usage B0001
+uv run traq-admin customer billing merge B0002 --into B0001
 
 # Jobs
-python admin_cli.py job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"
-python admin_cli.py job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED
-python admin_cli.py job list-assignments --host http://127.0.0.1:8000 --api-key demo-key
-python admin_cli.py job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key demo-key
-python admin_cli.py job unassign --job J0001 --host http://127.0.0.1:8000 --api-key demo-key
-python admin_cli.py job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key demo-key
-python admin_cli.py job inspect --job J0001
+uv run traq-admin job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"
+uv run traq-admin job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED
+uv run traq-admin job list-assignments --host http://127.0.0.1:8000 --api-key demo-key
+uv run traq-admin job assign --job J0001 --device-id <device_id> --host http://127.0.0.1:8000 --api-key demo-key
+uv run traq-admin job unassign --job J0001 --host http://127.0.0.1:8000 --api-key demo-key
+uv run traq-admin job set-status --job J0001 --status DRAFT --host http://127.0.0.1:8000 --api-key demo-key
+uv run traq-admin job inspect --job J0001
 
 # Rounds
-python admin_cli.py round reopen --job-id job_1 --round-id round_1 --host http://127.0.0.1:8000 --api-key demo-key
-python admin_cli.py round inspect --job J0001 --round-id round_1
+uv run traq-admin round reopen --job-id job_1 --round-id round_1 --host http://127.0.0.1:8000 --api-key demo-key
+uv run traq-admin round inspect --job J0001 --round-id round_1
 
 # Review / final inspection
-python admin_cli.py review inspect --job J0001 --round-id round_1
-python admin_cli.py final inspect --job J0001
-python admin_cli.py final set-final --job J0001 --from-json ./final.json --geojson-json ./final.geojson
-python admin_cli.py final set-correction --job J0001 --from-json ./final_correction.json --geojson-json ./final_correction.geojson
+uv run traq-admin review inspect --job J0001 --round-id round_1
+uv run traq-admin final inspect --job J0001
+uv run traq-admin final set-final --job J0001 --from-json ./final.json --geojson-json ./final.geojson
+uv run traq-admin final set-correction --job J0001 --from-json ./final_correction.json --geojson-json ./final_correction.geojson
 
 # Network
-python admin_cli.py net ipv4
-python admin_cli.py net ipv6
+uv run traq-admin net ipv4
+uv run traq-admin net ipv6
 ```
 
 ### Step-by-step: Correct billing or contact information
@@ -356,7 +356,7 @@ Use those codes in the CLI instead of UUIDs whenever possible.
 1. Start the CLI:
 
 ```bash
-python admin_cli.py
+uv run traq-admin
 ```
 
 2. Find likely duplicate records:
@@ -428,11 +428,11 @@ Example sequence:
 ```bash
 export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'
 
-python admin_cli.py device list --status pending
-python admin_cli.py job inspect --job J0004
-python admin_cli.py round inspect --job J0004 --round-id round_2
-python admin_cli.py review inspect --job J0004 --round-id round_2
-python admin_cli.py final inspect --job J0004
+uv run traq-admin device list --status pending
+uv run traq-admin job inspect --job J0004
+uv run traq-admin round inspect --job J0004 --round-id round_2
+uv run traq-admin review inspect --job J0004 --round-id round_2
+uv run traq-admin final inspect --job J0004
 ```
 
 This verifies the current operational model:

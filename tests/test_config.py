@@ -5,6 +5,7 @@ import importlib
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from sqlalchemy import text
 
@@ -23,6 +24,7 @@ class ConfigTests(unittest.TestCase):
         os.environ["TRAQ_ARTIFACT_BACKEND"] = "local"
         os.environ["TRAQ_ENABLE_DISCOVERY"] = "true"
         os.environ["TRAQ_AUTO_CREATE_SCHEMA"] = "true"
+        os.environ["TRAQ_ENABLE_FILE_LOGGING"] = "true"
         os.environ.pop("TRAQ_GCS_BUCKET", None)
         os.environ.pop("TRAQ_GCS_PREFIX", None)
 
@@ -36,6 +38,7 @@ class ConfigTests(unittest.TestCase):
             "TRAQ_GCS_PREFIX",
             "TRAQ_ENABLE_DISCOVERY",
             "TRAQ_AUTO_CREATE_SCHEMA",
+            "TRAQ_ENABLE_FILE_LOGGING",
             "TRAQ_API_KEY",
         )
 
@@ -72,6 +75,11 @@ class ConfigTests(unittest.TestCase):
         settings = load_settings()
         self.assertFalse(settings.enable_discovery)
 
+    def test_file_logging_flag_can_be_disabled(self) -> None:
+        os.environ["TRAQ_ENABLE_FILE_LOGGING"] = "false"
+        settings = load_settings()
+        self.assertFalse(settings.enable_file_logging)
+
     def test_app_startup_can_skip_schema_creation(self) -> None:
         os.environ["TRAQ_API_KEY"] = "test-key"
         os.environ["TRAQ_ENABLE_DISCOVERY"] = "false"
@@ -87,6 +95,38 @@ class ConfigTests(unittest.TestCase):
                 text("SELECT name FROM sqlite_master WHERE type='table'")
             ).fetchall()
         self.assertEqual(tables, [])
+
+    def test_app_startup_does_not_start_discovery_when_disabled(self) -> None:
+        os.environ["TRAQ_API_KEY"] = "test-key"
+        os.environ["TRAQ_ENABLE_DISCOVERY"] = "false"
+        os.environ["TRAQ_AUTO_CREATE_SCHEMA"] = "false"
+        db_module._engine = None
+        db_module._SessionLocal = None
+
+        main_module = importlib.import_module("app.main")
+        main_module = importlib.reload(main_module)
+
+        with patch("app.service_discovery.ServiceDiscoveryAdvertiser.start_in_background") as start_mock:
+            main_module.app.router.on_startup[0]()
+        start_mock.assert_not_called()
+
+    def test_app_initializes_gcs_artifact_backend_when_selected(self) -> None:
+        os.environ["TRAQ_API_KEY"] = "test-key"
+        os.environ["TRAQ_AUTO_CREATE_SCHEMA"] = "false"
+        os.environ["TRAQ_ARTIFACT_BACKEND"] = "gcs"
+        os.environ["TRAQ_GCS_BUCKET"] = "traq-artifacts"
+        os.environ["TRAQ_GCS_PREFIX"] = "prod"
+        db_module._engine = None
+        db_module._SessionLocal = None
+
+        with patch("app.artifact_storage.GCSArtifactStore.__init__", return_value=None) as init_mock:
+            main_module = importlib.import_module("app.main")
+            importlib.reload(main_module)
+
+        self.assertGreaterEqual(init_mock.call_count, 1)
+        _, kwargs = init_mock.call_args
+        self.assertEqual(kwargs["bucket_name"], "traq-artifacts")
+        self.assertEqual(kwargs["prefix"], "prod")
 
 
 if __name__ == "__main__":

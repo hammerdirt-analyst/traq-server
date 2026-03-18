@@ -16,4 +16,5 @@ server_data/
 
 # Local logs and build outputs
 *.log
+test.db
 docs/_build/

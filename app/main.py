@@ -330,8 +330,26 @@ def create_app() -> FastAPI:
     if settings.auto_create_schema:
         create_schema()
     logs_dir = settings.storage_root / "logs"
-    logs_dir.mkdir(parents=True, exist_ok=True)
     log_path = logs_dir / "server.log"
+    handler_names = ["console"]
+    handlers: dict[str, dict[str, Any]] = {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+            "formatter": "standard",
+        },
+    }
+    if settings.enable_file_logging:
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        handlers["file"] = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "INFO",
+            "formatter": "standard",
+            "filename": str(log_path),
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 5,
+        }
+        handler_names.append("file")
     logging.config.dictConfig(
         {
             "version": 1,
@@ -341,40 +359,26 @@ def create_app() -> FastAPI:
                     "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
                 }
             },
-            "handlers": {
-                "console": {
-                    "class": "logging.StreamHandler",
-                    "level": "INFO",
-                    "formatter": "standard",
-                },
-                "file": {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "level": "INFO",
-                    "formatter": "standard",
-                    "filename": str(log_path),
-                    "maxBytes": 10 * 1024 * 1024,
-                    "backupCount": 5,
-                },
-            },
+            "handlers": handlers,
             "root": {
                 "level": "INFO",
-                "handlers": ["console", "file"],
+                "handlers": handler_names,
             },
             "loggers": {
                 # Keep Uvicorn output on the same formatter/handlers as app logs.
                 "uvicorn": {
                     "level": "INFO",
-                    "handlers": ["console", "file"],
+                    "handlers": handler_names,
                     "propagate": False,
                 },
                 "uvicorn.error": {
                     "level": "INFO",
-                    "handlers": ["console", "file"],
+                    "handlers": handler_names,
                     "propagate": False,
                 },
                 "uvicorn.access": {
                     "level": "INFO",
-                    "handlers": ["console", "file"],
+                    "handlers": handler_names,
                     "propagate": False,
                 },
             },

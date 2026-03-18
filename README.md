@@ -49,6 +49,7 @@ Default local artifact storage:
   - optional `TRAQ_GCS_PREFIX`
 - set `TRAQ_ENABLE_DISCOVERY=false` in cloud deployments
 - set `TRAQ_AUTO_CREATE_SCHEMA=false` in cloud deployments
+- set `TRAQ_ENABLE_FILE_LOGGING=false` in cloud deployments
 - current cloud download strategy is app-streamed artifact responses, not signed URLs
 
 ## Admin CLI
@@ -62,8 +63,6 @@ Required environment:
 Interactive mode:
 
 - `uv run traq-admin`
-- direct script form still works:
-  - `python admin_cli.py`
 - inside the REPL, use the same commands as one-shot mode; a leading `/` is optional, for example `/round reopen --job-id job_1 --round-id round_1`
 - customer and billing records have short operator-facing codes, for example `C0001` and `B0001`
 
@@ -210,6 +209,7 @@ Environment variables:
 - `TRAQ_GCS_PREFIX` (optional object prefix when `TRAQ_ARTIFACT_BACKEND=gcs`)
 - `TRAQ_ENABLE_DISCOVERY` (default: `true`; set to `false` in cloud)
 - `TRAQ_AUTO_CREATE_SCHEMA` (default: `true`; set to `false` in cloud and run migrations explicitly)
+- `TRAQ_ENABLE_FILE_LOGGING` (default: `true`; set to `false` in cloud to use stdout/stderr only)
 - `TRAQ_DATABASE_URL` (required: `postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo`)
 - `TRAQ_ADMIN_BASE_URL` (default: `http://127.0.0.1:<TRAQ_DISCOVERY_PORT>`)
 - `TRAQ_DISCOVERY_PORT` (default: 8000)
