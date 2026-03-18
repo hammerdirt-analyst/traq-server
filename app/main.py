@@ -791,39 +791,16 @@ def create_app() -> FastAPI:
         if review_payload is not None:
             _write_json(_round_dir(job_id, round_record.round_id) / "review.json", review_payload)
 
-    def _existing_job_numbers() -> set[str]:
-        """Collect existing job numbers from authoritative job storage."""
-        values: set[str] = {r.job_number for r in jobs.values() if r.job_number}
-        try:
-            for row in db_store.list_jobs():
-                number = str(row.get("job_number") or "").strip()
-                if number:
-                    values.add(number)
-        except Exception:
-            logger.exception("DB job listing failed while collecting job numbers")
-        return values
-
-    def _job_number_counter_path() -> Path:
-        """Return path to job-number counter file."""
-        return settings.storage_root / "jobs" / "_job_number_counter.txt"
-
     def _next_job_number() -> str:
-        """Allocate next unique human-readable job number."""
-        counter_path = _job_number_counter_path()
-        counter_path.parent.mkdir(parents=True, exist_ok=True)
-        current = 0
-        if counter_path.exists():
-            try:
-                current = int(counter_path.read_text(encoding="utf-8").strip() or "0")
-            except ValueError:
-                current = 0
-        used = _existing_job_numbers()
-        while True:
-            current += 1
-            candidate = f"J{current:04d}"
-            if candidate not in used:
-                counter_path.write_text(str(current), encoding="utf-8")
-                return candidate
+        """Allocate next unique human-readable job number from PostgreSQL."""
+        try:
+            return db_store.allocate_job_number()
+        except Exception as exc:
+            logger.exception("DB job number allocation failed")
+            raise HTTPException(
+                status_code=500,
+                detail="Job number allocation failed",
+            ) from exc
 
     def _round_dir(job_id: str, round_id: str) -> Path:
         """Return filesystem directory for a job round."""

@@ -164,6 +164,22 @@ class RuntimeProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
 
+class RuntimeCounter(Base):
+    """DB-authoritative monotonic counters used for runtime identifiers.
+
+    These counters replace older local filesystem counter files so multi-instance
+    deployments can allocate identifiers safely inside one transactional store.
+    """
+
+    __tablename__ = "runtime_counters"
+
+    id: Mapped[PyUUID] = mapped_column(UUID_TYPE, primary_key=True, default=uuid4)
+    counter_key: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    current_value: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
 class Customer(Base):
     """Reusable customer/contact identity referenced by one or more jobs."""
 

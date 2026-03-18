@@ -105,6 +105,36 @@ class TreeIdentityApiTests(unittest.TestCase):
         )
         self.assertEqual(status_response.tree_number, 7)
 
+    def test_create_job_allocates_job_numbers_from_db_counter(self) -> None:
+        create_job = self._endpoint("/v1/jobs", "POST")
+        first = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Seq 1",
+                job_name="Customer Seq 1",
+                job_address="123 Oak St",
+                job_phone="555-0100",
+                contact_preference="text",
+                billing_name="Billing Seq 1",
+                billing_address="123 Oak St",
+            ),
+            x_api_key="test-key",
+        )
+        second = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Seq 2",
+                job_name="Customer Seq 2",
+                job_address="456 Oak St",
+                job_phone="555-0101",
+                contact_preference="text",
+                billing_name="Billing Seq 2",
+                billing_address="456 Oak St",
+            ),
+            x_api_key="test-key",
+        )
+
+        self.assertEqual(first.job_number, "J0001")
+        self.assertEqual(second.job_number, "J0002")
+
     def test_create_job_reuses_exact_customer_and_billing_identities(self) -> None:
         create_job = self._endpoint("/v1/jobs", "POST")
         first = create_job(

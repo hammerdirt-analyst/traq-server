@@ -28,6 +28,7 @@ from .db_models import (
     RoundImage,
     RoundRecording,
     RoundStatus,
+    RuntimeCounter,
     RuntimeProfile,
     UploadStatus,
 )
@@ -103,6 +104,42 @@ class DatabaseStore:
             if row is None:
                 return None
             return dict(row.profile_payload or {})
+
+    @staticmethod
+    def _parse_job_number_value(job_number: str | None) -> int | None:
+        value = str(job_number or "").strip().upper()
+        if not value.startswith("J"):
+            return None
+        digits = value[1:]
+        if not digits.isdigit():
+            return None
+        return int(digits)
+
+    def allocate_job_number(self) -> str:
+        """Allocate the next monotonic human-readable job number from the DB.
+
+        The counter is stored in PostgreSQL so concurrent server instances do
+        not depend on a local filesystem counter file.
+        """
+
+        with session_scope() as session:
+            row = session.scalar(
+                select(RuntimeCounter)
+                .where(RuntimeCounter.counter_key == "job_number")
+                .with_for_update()
+            )
+            if row is None:
+                row = RuntimeCounter(counter_key="job_number", current_value=0)
+                session.add(row)
+                session.flush()
+            max_existing = row.current_value
+            for job_number in session.scalars(select(Job.job_number)).all():
+                parsed = self._parse_job_number_value(job_number)
+                if parsed is not None and parsed > max_existing:
+                    max_existing = parsed
+            row.current_value = max_existing + 1
+            session.flush()
+            return f"J{row.current_value:04d}"
 
     def upsert_runtime_profile(
         self,

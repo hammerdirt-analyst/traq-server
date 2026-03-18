@@ -126,6 +126,19 @@ class DatabaseStoreTests(unittest.TestCase):
             {"name": "Updated Name", "phone": "916 699 1113"},
         )
 
+    def test_allocate_job_number_uses_db_counter_and_existing_jobs(self) -> None:
+        self.assertEqual(self.store.allocate_job_number(), "J0001")
+        self.assertEqual(self.store.allocate_job_number(), "J0002")
+
+        self.store.upsert_job(
+            job_id="job_seed",
+            job_number="J0010",
+            status="DRAFT",
+            details={},
+        )
+
+        self.assertEqual(self.store.allocate_job_number(), "J0011")
+
     def test_round_recording_flow(self) -> None:
         self.store.upsert_job(
             job_id="job_round",
