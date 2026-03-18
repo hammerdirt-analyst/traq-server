@@ -32,6 +32,7 @@ def cmd_device_list(
     store_factory: StoreFactory,
     print_json: JsonPrinter,
 ) -> int:
+    """List known devices, optionally filtered by status."""
     rows = store_factory().list_devices(status=args.status)
     if args.json:
         print_json(rows)
@@ -46,6 +47,7 @@ def cmd_device_pending(
     pending_devices: PendingDevices,
     print_json: JsonPrinter,
 ) -> int:
+    """List devices still waiting for approval."""
     rows = pending_devices()
     if args.json:
         print_json(rows)
@@ -61,6 +63,7 @@ def cmd_device_validate(
     store_factory: StoreFactory,
     print_json: JsonPrinter,
 ) -> int:
+    """Approve one pending device by list index."""
     rows = pending_devices()
     if not rows:
         print("No pending devices.")
@@ -87,6 +90,7 @@ def cmd_device_approve(
     store_factory: StoreFactory,
     print_json: JsonPrinter,
 ) -> int:
+    """Approve one device by explicit device id."""
     try:
         row = store_factory().approve_device(args.device_id, role=args.role)
     except Exception as exc:
@@ -102,6 +106,7 @@ def cmd_device_revoke(
     store_factory: StoreFactory,
     print_json: JsonPrinter,
 ) -> int:
+    """Revoke one approved device."""
     try:
         row = store_factory().revoke_device(args.device_id)
     except Exception as exc:
@@ -117,6 +122,7 @@ def cmd_device_issue_token(
     store_factory: StoreFactory,
     print_json: JsonPrinter,
 ) -> int:
+    """Issue an access token for an approved device."""
     try:
         row = store_factory().issue_token(args.device_id, ttl_seconds=args.ttl)
     except Exception as exc:

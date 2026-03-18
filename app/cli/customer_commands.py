@@ -11,6 +11,7 @@ JsonPrinter = Callable[[object], None]
 
 
 def _parse_search(value: str | None) -> str | None:
+    """Normalize optional CLI search input to a meaningful filter string."""
     if value is None:
         return None
     cleaned = value.strip()
@@ -18,6 +19,7 @@ def _parse_search(value: str | None) -> str | None:
 
 
 def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
+    """Execute one customer/billing action with shared CLI error handling."""
     try:
         payload = action()
     except Exception as exc:
@@ -28,14 +30,17 @@ def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
 
 
 def cmd_customer_list(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """List reusable customer identities."""
     return _wrap(lambda: service_factory().list_customers(search=_parse_search(args.search)), print_json)
 
 
 def cmd_customer_duplicates(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Show duplicate customer-name candidates."""
     return _wrap(lambda: service_factory().customer_duplicates(), print_json)
 
 
 def cmd_customer_create(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Create one reusable customer identity."""
     return _wrap(
         lambda: service_factory().create_customer(
             name=args.name,
@@ -47,6 +52,7 @@ def cmd_customer_create(args: argparse.Namespace, *, service_factory: CustomerSe
 
 
 def cmd_customer_update(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Update one reusable customer identity."""
     return _wrap(
         lambda: service_factory().update_customer(
             args.customer_id,
@@ -59,10 +65,12 @@ def cmd_customer_update(args: argparse.Namespace, *, service_factory: CustomerSe
 
 
 def cmd_customer_usage(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Show jobs and trees linked to one customer."""
     return _wrap(lambda: service_factory().customer_usage(args.customer_id), print_json)
 
 
 def cmd_customer_merge(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Merge one customer into another reusable customer record."""
     return _wrap(
         lambda: service_factory().merge_customer(
             args.customer_id,
@@ -73,18 +81,22 @@ def cmd_customer_merge(args: argparse.Namespace, *, service_factory: CustomerSer
 
 
 def cmd_customer_delete(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Delete an unused reusable customer identity."""
     return _wrap(lambda: service_factory().delete_customer(args.customer_id), print_json)
 
 
 def cmd_billing_list(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """List reusable billing profiles."""
     return _wrap(lambda: service_factory().list_billing_profiles(search=_parse_search(args.search)), print_json)
 
 
 def cmd_billing_duplicates(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Show duplicate billing-profile candidates."""
     return _wrap(lambda: service_factory().billing_duplicates(), print_json)
 
 
 def cmd_billing_create(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Create one reusable billing profile."""
     return _wrap(
         lambda: service_factory().create_billing_profile(
             billing_name=args.billing_name,
@@ -97,6 +109,7 @@ def cmd_billing_create(args: argparse.Namespace, *, service_factory: CustomerSer
 
 
 def cmd_billing_update(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Update one reusable billing profile."""
     return _wrap(
         lambda: service_factory().update_billing_profile(
             args.billing_profile_id,
@@ -110,10 +123,12 @@ def cmd_billing_update(args: argparse.Namespace, *, service_factory: CustomerSer
 
 
 def cmd_billing_usage(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Show jobs linked to one billing profile."""
     return _wrap(lambda: service_factory().billing_usage(args.billing_profile_id), print_json)
 
 
 def cmd_billing_merge(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Merge one billing profile into another."""
     return _wrap(
         lambda: service_factory().merge_billing_profile(
             args.billing_profile_id,
@@ -124,6 +139,7 @@ def cmd_billing_merge(args: argparse.Namespace, *, service_factory: CustomerServ
 
 
 def cmd_billing_delete(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+    """Delete an unused billing profile."""
     return _wrap(lambda: service_factory().delete_billing_profile(args.billing_profile_id), print_json)
 
 

@@ -25,6 +25,7 @@ class CustomerService:
 
     @staticmethod
     def _clean(value: str | None) -> str | None:
+        """Trim user-provided text and collapse blanks to ``None``."""
         if value is None:
             return None
         cleaned = value.strip()
@@ -32,6 +33,7 @@ class CustomerService:
 
     @staticmethod
     def _customer_to_dict(row: Customer) -> dict[str, Any]:
+        """Serialize a customer row for CLI and API responses."""
         return {
             "customer_id": str(row.id),
             "customer_code": row.customer_code,
@@ -42,6 +44,7 @@ class CustomerService:
 
     @staticmethod
     def _billing_to_dict(row: BillingProfile) -> dict[str, Any]:
+        """Serialize a billing profile row for CLI and API responses."""
         return {
             "billing_profile_id": str(row.id),
             "billing_code": row.billing_code,
@@ -53,6 +56,7 @@ class CustomerService:
 
     @staticmethod
     def _parse_uuid(value: str, label: str) -> UUID:
+        """Parse a UUID-like reference or raise a keyed lookup error."""
         try:
             return UUID(str(value))
         except (TypeError, ValueError) as exc:
@@ -60,6 +64,7 @@ class CustomerService:
 
     @classmethod
     def _next_code(cls, session, model, field_name: str, prefix: str) -> str:
+        """Allocate the next short code for a reusable identity table."""
         codes = session.scalars(select(getattr(model, field_name))).all()
         max_number = 0
         for code in codes:
@@ -72,6 +77,7 @@ class CustomerService:
         return f"{prefix}{max_number + 1:04d}"
 
     def _resolve_customer(self, session, customer_ref: str) -> Customer:
+        """Resolve a customer row from UUID or short code."""
         try:
             row = session.get(Customer, self._parse_uuid(customer_ref, "Customer"))
         except KeyError:
@@ -81,6 +87,7 @@ class CustomerService:
         return row
 
     def _resolve_billing(self, session, billing_ref: str) -> BillingProfile:
+        """Resolve a billing profile row from UUID or short code."""
         try:
             row = session.get(BillingProfile, self._parse_uuid(billing_ref, "Billing profile"))
         except KeyError:
@@ -90,6 +97,7 @@ class CustomerService:
         return row
 
     def list_customers(self, search: str | None = None) -> list[dict[str, Any]]:
+        """Return reusable customer rows, optionally filtered by search text."""
         with session_scope() as session:
             stmt = select(Customer).order_by(Customer.customer_code, Customer.created_at)
             term = self._clean(search)
@@ -107,6 +115,7 @@ class CustomerService:
             return [self._customer_to_dict(row) for row in rows]
 
     def customer_duplicates(self) -> list[dict[str, Any]]:
+        """Return duplicate-candidate groups based on normalized customer names."""
         with session_scope() as session:
             rows = session.scalars(select(Customer).order_by(Customer.customer_code)).all()
             grouped: dict[str, list[Customer]] = defaultdict(list)
@@ -126,6 +135,7 @@ class CustomerService:
             ]
 
     def get_customer(self, customer_ref: str) -> dict[str, Any] | None:
+        """Return one customer by UUID or short code."""
         with session_scope() as session:
             try:
                 row = self._resolve_customer(session, customer_ref)
@@ -140,6 +150,7 @@ class CustomerService:
         phone: str | None = None,
         address: str | None = None,
     ) -> dict[str, Any]:
+        """Create one reusable customer identity."""
         cleaned_name = self._clean(name)
         if not cleaned_name:
             raise ValueError("Customer name is required")
@@ -161,6 +172,7 @@ class CustomerService:
         phone: str | None = None,
         address: str | None = None,
     ) -> dict[str, Any]:
+        """Reuse an exact customer identity match or create a new one."""
         cleaned_name = self._clean(name)
         if not cleaned_name:
             raise ValueError("Customer name is required")
@@ -197,6 +209,7 @@ class CustomerService:
         phone: str | None = None,
         address: str | None = None,
     ) -> dict[str, Any]:
+        """Update editable fields for one reusable customer."""
         with session_scope() as session:
             row = self._resolve_customer(session, customer_id)
             cleaned_name = self._clean(name)
@@ -217,6 +230,7 @@ class CustomerService:
         *,
         target_customer_id: str,
     ) -> dict[str, Any]:
+        """Merge one customer into another and re-home dependent jobs/trees."""
         with session_scope() as session:
             source = self._resolve_customer(session, source_customer_id)
             target = self._resolve_customer(session, target_customer_id)
@@ -266,6 +280,7 @@ class CustomerService:
             }
 
     def delete_customer(self, customer_ref: str) -> dict[str, Any]:
+        """Delete an unused customer record."""
         with session_scope() as session:
             row = self._resolve_customer(session, customer_ref)
             if row.jobs:
@@ -282,6 +297,7 @@ class CustomerService:
             return {"deleted": True, "customer": payload}
 
     def customer_usage(self, customer_id: str) -> dict[str, Any]:
+        """Summarize jobs and trees linked to one customer."""
         with session_scope() as session:
             row = self._resolve_customer(session, customer_id)
             jobs = sorted(row.jobs, key=lambda job: job.job_number)
@@ -304,6 +320,7 @@ class CustomerService:
             }
 
     def list_billing_profiles(self, search: str | None = None) -> list[dict[str, Any]]:
+        """Return reusable billing profiles, optionally filtered by search text."""
         with session_scope() as session:
             stmt = select(BillingProfile).order_by(BillingProfile.billing_code, BillingProfile.created_at)
             term = self._clean(search)
@@ -321,6 +338,7 @@ class CustomerService:
             return [self._billing_to_dict(row) for row in rows]
 
     def billing_duplicates(self) -> list[dict[str, Any]]:
+        """Return duplicate-candidate groups based on normalized billing names."""
         with session_scope() as session:
             rows = session.scalars(select(BillingProfile).order_by(BillingProfile.billing_code)).all()
             grouped: dict[str, list[BillingProfile]] = defaultdict(list)
@@ -340,6 +358,7 @@ class CustomerService:
             ]
 
     def get_billing_profile(self, billing_profile_id: str) -> dict[str, Any] | None:
+        """Return one billing profile by UUID or short code."""
         with session_scope() as session:
             try:
                 row = self._resolve_billing(session, billing_profile_id)
@@ -355,6 +374,7 @@ class CustomerService:
         billing_address: str | None = None,
         contact_preference: str | None = None,
     ) -> dict[str, Any]:
+        """Create one reusable billing profile."""
         with session_scope() as session:
             row = BillingProfile(
                 billing_code=self._next_code(session, BillingProfile, "billing_code", "B"),
@@ -375,6 +395,7 @@ class CustomerService:
         billing_address: str | None = None,
         contact_preference: str | None = None,
     ) -> dict[str, Any] | None:
+        """Reuse an exact billing profile match or create a new one."""
         cleaned_name = self._clean(billing_name)
         cleaned_contact = self._clean(billing_contact_name)
         cleaned_address = self._clean(billing_address)
@@ -419,6 +440,7 @@ class CustomerService:
         billing_address: str | None = None,
         contact_preference: str | None = None,
     ) -> dict[str, Any]:
+        """Update editable fields for one reusable billing profile."""
         with session_scope() as session:
             row = self._resolve_billing(session, billing_profile_id)
             if billing_name is not None:
@@ -438,6 +460,7 @@ class CustomerService:
         *,
         target_billing_profile_id: str,
     ) -> dict[str, Any]:
+        """Merge one billing profile into another and re-home dependent jobs."""
         with session_scope() as session:
             source = self._resolve_billing(session, source_billing_profile_id)
             target = self._resolve_billing(session, target_billing_profile_id)
@@ -456,6 +479,7 @@ class CustomerService:
             }
 
     def delete_billing_profile(self, billing_ref: str) -> dict[str, Any]:
+        """Delete an unused billing profile."""
         with session_scope() as session:
             row = self._resolve_billing(session, billing_ref)
             if row.jobs:
@@ -468,6 +492,7 @@ class CustomerService:
             return {"deleted": True, "billing_profile": payload}
 
     def billing_usage(self, billing_profile_id: str) -> dict[str, Any]:
+        """Summarize jobs linked to one billing profile."""
         with session_scope() as session:
             row = self._resolve_billing(session, billing_profile_id)
             jobs = sorted(row.jobs, key=lambda job: job.job_number)

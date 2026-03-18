@@ -15,6 +15,7 @@ class FinalMutationService:
 
     @staticmethod
     def _job_to_dict(job: Job) -> dict[str, Any]:
+        """Serialize the archived final/correction state for one job."""
         return {
             "job_id": job.job_id,
             "job_number": job.job_number,
@@ -30,6 +31,7 @@ class FinalMutationService:
         payload: dict[str, Any],
         geojson_payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """Persist the first archived final snapshot for a job."""
         return self._upsert_snapshot(
             job_ref,
             kind="final",
@@ -45,6 +47,7 @@ class FinalMutationService:
         payload: dict[str, Any],
         geojson_payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """Persist or replace the archived correction snapshot for a job."""
         return self._upsert_snapshot(
             job_ref,
             kind="correction",
@@ -62,6 +65,7 @@ class FinalMutationService:
         geojson_payload: dict[str, Any] | None,
         allow_overwrite: bool,
     ) -> dict[str, Any]:
+        """Write one final-or-correction snapshot and optional GeoJSON export."""
         if not isinstance(payload, dict) or not payload:
             raise ValueError("Snapshot payload must be a non-empty JSON object")
         with session_scope() as session:
@@ -104,6 +108,7 @@ class FinalMutationService:
 
     @staticmethod
     def _find_job(session, job_ref: str) -> Job | None:
+        """Look up a job by server id or job number."""
         if job_ref.startswith("job_"):
             return session.scalar(select(Job).where(Job.job_id == job_ref))
         return session.scalar(select(Job).where(Job.job_number == job_ref))

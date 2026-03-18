@@ -55,6 +55,7 @@ class ArchiveRetentionDecision:
 
 
 def _round_ids_to_keep(finals: Iterable[JobFinal]) -> tuple[str, ...]:
+    """Collect unique round ids referenced by retained final snapshots."""
     keep: list[str] = []
     for row in finals:
         if row.round_id and row.round_id not in keep:
@@ -63,6 +64,7 @@ def _round_ids_to_keep(finals: Iterable[JobFinal]) -> tuple[str, ...]:
 
 
 def _is_final_artifact_retained(artifact: Artifact) -> bool:
+    """Return whether a final snapshot artifact must survive archiving."""
     if artifact.kind in RETAINED_FINAL_KINDS:
         return True
     if artifact.kind == ArtifactKind.audio:
@@ -73,6 +75,7 @@ def _is_final_artifact_retained(artifact: Artifact) -> bool:
 
 
 def _is_round_artifact_prunable(artifact: Artifact, kept_round_ids: set[str]) -> bool:
+    """Return whether a round-scoped artifact is safe to prune after archive."""
     round_row = artifact.round
     if round_row is None:
         return False

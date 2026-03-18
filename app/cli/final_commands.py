@@ -13,6 +13,7 @@ JsonPrinter = Callable[[object], None]
 
 
 def _read_json(path: str | None) -> dict[str, Any] | None:
+    """Load an optional JSON object from disk for final/correction writes."""
     if not path:
         return None
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -22,6 +23,7 @@ def _read_json(path: str | None) -> dict[str, Any] | None:
 
 
 def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
+    """Execute one final mutation with shared CLI error handling."""
     try:
         payload = action()
     except Exception as exc:
@@ -32,6 +34,7 @@ def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
 
 
 def cmd_final_set_final(args: argparse.Namespace, *, service_factory: FinalServiceFactory, print_json: JsonPrinter) -> int:
+    """Write an original final snapshot into the database."""
     return _wrap(
         lambda: service_factory().set_final(
             args.job,
@@ -43,6 +46,7 @@ def cmd_final_set_final(args: argparse.Namespace, *, service_factory: FinalServi
 
 
 def cmd_final_set_correction(args: argparse.Namespace, *, service_factory: FinalServiceFactory, print_json: JsonPrinter) -> int:
+    """Write or replace a correction snapshot in the database."""
     return _wrap(
         lambda: service_factory().set_correction(
             args.job,

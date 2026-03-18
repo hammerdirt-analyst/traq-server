@@ -66,6 +66,7 @@ def next_tree_number(session: Session, customer: Customer) -> int:
 
 
 def _next_customer_code(session: Session) -> str:
+    """Allocate the next short customer code for imported/runtime records."""
     codes = session.scalars(select(Customer.customer_code)).all()
     max_number = 0
     for code in codes:

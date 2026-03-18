@@ -14,6 +14,7 @@ JobMutationFactory = Callable[[], Any]
 
 
 def _print_http_result(code: int, body: Any, print_json: JsonPrinter) -> int:
+    """Render a uniform result for HTTP-backed admin operations."""
     if code != 200:
         print(f"HTTP {code}: {body}")
         return 1
@@ -22,6 +23,7 @@ def _print_http_result(code: int, body: Any, print_json: JsonPrinter) -> int:
 
 
 def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
+    """Execute one job mutation action with shared CLI error handling."""
     try:
         payload = action()
     except Exception as exc:
@@ -37,6 +39,7 @@ def cmd_job_create(
     job_service_factory: JobMutationFactory,
     print_json: JsonPrinter,
 ) -> int:
+    """Create one operational job record directly in the database."""
     return _wrap(
         lambda: job_service_factory().create_job(
             job_id=args.job_id,
@@ -61,6 +64,7 @@ def cmd_job_update(
     job_service_factory: JobMutationFactory,
     print_json: JsonPrinter,
 ) -> int:
+    """Update one operational job record directly in the database."""
     return _wrap(
         lambda: job_service_factory().update_job(
             args.job,
@@ -84,6 +88,7 @@ def cmd_job_list_assignments(
     http: HttpCaller,
     print_json: JsonPrinter,
 ) -> int:
+    """List current job-to-device assignments from the admin API."""
     code, body = http(
         "GET",
         f"{args.host.rstrip('/')}/v1/admin/jobs/assignments",
@@ -104,6 +109,7 @@ def cmd_job_assign(
     resolve_job_id: JobResolver,
     print_json: JsonPrinter,
 ) -> int:
+    """Assign one job to a device through the admin API."""
     try:
         job_id = resolve_job_id(args.host, args.api_key, args.job)
     except Exception as exc:
@@ -125,6 +131,7 @@ def cmd_job_unassign(
     resolve_job_id: JobResolver,
     print_json: JsonPrinter,
 ) -> int:
+    """Remove the current assignment for one job."""
     try:
         job_id = resolve_job_id(args.host, args.api_key, args.job)
     except Exception as exc:
@@ -146,6 +153,7 @@ def cmd_job_set_status(
     resolve_job_id: JobResolver,
     print_json: JsonPrinter,
 ) -> int:
+    """Force one server-side job or round status through the admin API."""
     try:
         job_id = resolve_job_id(args.host, args.api_key, args.job)
     except Exception as exc:
@@ -171,6 +179,7 @@ def cmd_round_reopen(
     http: HttpCaller,
     print_json: JsonPrinter,
 ) -> int:
+    """Reopen one round to DRAFT through the admin API."""
     code, body = http(
         "POST",
         f"{args.host.rstrip('/')}/v1/admin/jobs/{args.job_id}/rounds/{args.round_id}/reopen",

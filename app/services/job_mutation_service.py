@@ -26,6 +26,7 @@ class JobMutationService:
 
     @staticmethod
     def _clean(value: str | None) -> str | None:
+        """Trim free-form operator input and normalize blanks to ``None``."""
         if value is None:
             return None
         cleaned = value.strip()
@@ -33,6 +34,7 @@ class JobMutationService:
 
     @staticmethod
     def _parse_uuid(value: str | None, label: str) -> UUID | None:
+        """Parse an optional UUID reference or raise a keyed lookup error."""
         if value is None:
             return None
         try:
@@ -42,6 +44,7 @@ class JobMutationService:
 
     @staticmethod
     def _customer_snapshot(customer: Customer | None) -> dict[str, Any]:
+        """Build the customer-derived job shell fields for persistence."""
         if customer is None:
             return {
                 "customer_id": None,
@@ -60,6 +63,7 @@ class JobMutationService:
 
     @staticmethod
     def _billing_snapshot(billing: BillingProfile | None) -> dict[str, Any]:
+        """Build the billing-derived job shell fields for persistence."""
         if billing is None:
             return {
                 "billing_profile_id": None,
@@ -79,6 +83,7 @@ class JobMutationService:
         }
 
     def _resolve_customer(self, session, customer_ref: str | None) -> Customer | None:
+        """Resolve a customer from UUID or short code."""
         if customer_ref is None:
             return None
         try:
@@ -95,6 +100,7 @@ class JobMutationService:
         return row
 
     def _resolve_billing_profile(self, session, billing_ref: str | None) -> BillingProfile | None:
+        """Resolve a billing profile from UUID or short code."""
         if billing_ref is None:
             return None
         try:
@@ -114,6 +120,7 @@ class JobMutationService:
 
     @staticmethod
     def _job_to_dict(row: Job) -> dict[str, Any]:
+        """Serialize a job row with its denormalized operational shell."""
         payload = dict(row.details_json or {})
         payload.update(
             {
@@ -151,6 +158,7 @@ class JobMutationService:
         tree_species: str | None = None,
         details: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """Create a new job and materialize its mirrored shell fields."""
         with session_scope() as session:
             existing = session.scalar(select(Job).where(Job.job_id == job_id))
             if existing is not None:
@@ -193,6 +201,7 @@ class JobMutationService:
         status: str | None = None,
         details: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """Update an existing job and refresh its derived snapshots."""
         with session_scope() as session:
             job = self._find_job(session, job_ref)
             if job is None:
@@ -231,6 +240,7 @@ class JobMutationService:
         tree_species: str | None,
         details: dict[str, Any] | None,
     ) -> None:
+        """Apply one mutation request to the job shell and tree linkage."""
         previous_customer_id = job.customer_id
         customer_relinked = False
         if customer_id is not None:
@@ -295,11 +305,13 @@ class JobMutationService:
 
     @staticmethod
     def _find_job(session, job_ref: str) -> Job | None:
+        """Look up a job by server id or operator-facing job number."""
         if job_ref.startswith("job_"):
             return session.scalar(select(Job).where(Job.job_id == job_ref))
         return session.scalar(select(Job).where(Job.job_number == job_ref))
 
     def _sync_job_record(self, job: Job) -> None:
+        """Export the current job shell as a non-authoritative debug record."""
         settings = load_settings()
         job_path = settings.storage_root / "jobs" / job.job_id / "job_record.json"
         job_path.parent.mkdir(parents=True, exist_ok=True)

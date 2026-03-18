@@ -13,6 +13,7 @@ JsonPrinter = Callable[[object], None]
 
 
 def _collect_ipv4_candidates() -> list[dict[str, str]]:
+    """Collect likely non-loopback IPv4 addresses from the local host."""
     candidates: list[dict[str, str]] = []
     try:
         output = subprocess.check_output(["ip", "-4", "addr", "show"], text=True)
@@ -60,6 +61,7 @@ def _collect_ipv4_candidates() -> list[dict[str, str]]:
 
 
 def _collect_ipv6_candidates() -> list[dict[str, str]]:
+    """Collect likely global IPv6 addresses from the local host."""
     candidates: list[dict[str, str]] = []
     try:
         output = subprocess.check_output(["ip", "-6", "addr", "show"], text=True)
@@ -103,6 +105,7 @@ def _collect_ipv6_candidates() -> list[dict[str, str]]:
 
 
 def cmd_net_ipv4(args: argparse.Namespace, *, print_json: JsonPrinter) -> int:
+    """Show likely IPv4 addresses for configuring mobile clients."""
     rows = _collect_ipv4_candidates()
     try:
         concise = subprocess.check_output(["hostname", "-I"], text=True).strip()
@@ -131,6 +134,7 @@ def cmd_net_ipv4(args: argparse.Namespace, *, print_json: JsonPrinter) -> int:
 
 
 def cmd_net_ipv6(args: argparse.Namespace, *, print_json: JsonPrinter) -> int:
+    """Show likely IPv6 addresses for configuring mobile clients."""
     rows = _collect_ipv6_candidates()
     payload = {
         "ok": True,
