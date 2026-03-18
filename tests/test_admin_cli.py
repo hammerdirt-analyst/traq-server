@@ -378,6 +378,75 @@ class AdminCliTests(unittest.TestCase):
         updated_customer = json.loads(output)
         self.assertEqual(updated_customer["phone"], "555-3434")
 
+    def test_artifact_fetch_command_exports_report_pdf(self) -> None:
+        service = admin_cli._job_mutation_service()
+        final_service = admin_cli._final_mutation_service()
+        service.create_job(
+            job_id="job_artifact",
+            job_number="J0010",
+            status="ARCHIVED",
+            customer_id=None,
+            billing_profile_id=None,
+            tree_number=None,
+            job_name="Artifact Fetch",
+            job_address="123 Export St",
+            reason=None,
+            location_notes=None,
+            tree_species=None,
+        )
+        final_service.set_final(
+            "J0010",
+            payload={"round_id": "round_1", "transcript": "Final transcript"},
+        )
+        job_dir = self.storage_root / "jobs" / "job_artifact"
+        job_dir.mkdir(parents=True, exist_ok=True)
+        (job_dir / "final_report_letter.pdf").write_bytes(b"report-bytes")
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_artifact_fetch,
+            argparse.Namespace(job="J0010", kind="report-pdf"),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        self.assertEqual(payload["variant"], "final")
+        exported = Path(payload["saved_path"])
+        self.assertTrue(exported.exists())
+        self.assertEqual(exported.name, "J0010_report_letter.pdf")
+        self.assertEqual(exported.read_bytes(), b"report-bytes")
+
+    def test_artifact_fetch_command_exports_final_json(self) -> None:
+        service = admin_cli._job_mutation_service()
+        final_service = admin_cli._final_mutation_service()
+        service.create_job(
+            job_id="job_artifact_json",
+            job_number="J0011",
+            status="ARCHIVED",
+            customer_id=None,
+            billing_profile_id=None,
+            tree_number=None,
+            job_name="Artifact Json",
+            job_address="124 Export St",
+            reason=None,
+            location_notes=None,
+            tree_species=None,
+        )
+        final_service.set_final(
+            "J0011",
+            payload={"round_id": "round_1", "transcript": "Json transcript"},
+        )
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_artifact_fetch,
+            argparse.Namespace(job="J0011", kind="final-json"),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        exported = Path(payload["saved_path"])
+        self.assertTrue(exported.exists())
+        self.assertEqual(exported.name, "J0011_final.json")
+        exported_payload = json.loads(exported.read_text(encoding="utf-8"))
+        self.assertEqual(exported_payload["transcript"], "Json transcript")
+
         rc, output = self._stdout_for(
             admin_cli.cmd_billing_create,
             argparse.Namespace(

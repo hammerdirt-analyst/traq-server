@@ -467,6 +467,9 @@ class TreeIdentityApiTests(unittest.TestCase):
 
         store = DatabaseStore()
         self.assertIsNone(store.get_job_assignment(create_response.job_id))
+        archived_final = store.get_job_final(create_response.job_id, "final")
+        self.assertIsNotNone(archived_final)
+        self.assertEqual(archived_final["payload"]["transcript"], "")
 
         list_assigned_jobs = self._endpoint("/v1/jobs/assigned", "GET")
         assigned_jobs = list_assigned_jobs(x_api_key=token)

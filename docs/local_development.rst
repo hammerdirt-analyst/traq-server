@@ -115,6 +115,30 @@ One-shot examples::
    uv run traq-admin device list
    uv run traq-admin job list-assignments
    uv run traq-admin customer list
+   uv run traq-admin artifact fetch --job J0002 --kind report-pdf
+
+Artifact retrieval workflow
+---------------------------
+
+Use the admin CLI when an operator needs a customer-facing artifact by job
+number.
+
+Examples::
+
+   uv run traq-admin artifact fetch --job J0002 --kind report-pdf
+   uv run traq-admin artifact fetch --job J0002 --kind traq-pdf
+   uv run traq-admin artifact fetch --job J0002 --kind transcript
+   uv run traq-admin artifact fetch --job J0002 --kind final-json
+
+Artifacts are exported into a canonical local folder:
+
+- ``./exports/J0002/J0002_report_letter.pdf``
+- ``./exports/J0002/J0002_traq_page1.pdf``
+- ``./exports/J0002/J0002_transcript.txt``
+- ``./exports/J0002/J0002_final.json``
+
+If a correction artifact exists, the exported filename includes the correction
+variant.
 
 Automated tests
 ---------------

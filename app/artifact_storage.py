@@ -8,7 +8,10 @@ can switch between local filesystem storage and Google Cloud Storage.
 from __future__ import annotations
 
 from pathlib import Path, PurePosixPath
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from .config import Settings
 
 
 class ArtifactStore(Protocol):
@@ -192,3 +195,14 @@ class GCSArtifactStore(BaseArtifactStore):
             return True
         blob = self._bucket().blob(self._blob_name(key))
         return bool(blob.exists())
+
+
+def create_artifact_store(settings: "Settings") -> ArtifactStore:
+    """Build the configured artifact backend for the current runtime settings."""
+    if settings.artifact_backend == "gcs":
+        return GCSArtifactStore(
+            bucket_name=str(settings.artifact_gcs_bucket),
+            prefix=settings.artifact_gcs_prefix,
+            cache_root=settings.storage_root / "artifact_cache",
+        )
+    return LocalArtifactStore(settings.storage_root)

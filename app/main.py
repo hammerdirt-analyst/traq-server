@@ -61,6 +61,7 @@ from .services.tree_store import (
     resolve_tree,
 )
 from .services.customer_service import CustomerService
+from .services.final_mutation_service import FinalMutationService
 from .services.job_mutation_service import JobMutationService
 
 JOB_PHOTOS_SECTION_ID = "job_photos"
@@ -398,6 +399,7 @@ def create_app() -> FastAPI:
     else:
         artifact_store = LocalArtifactStore(settings.storage_root)
     customer_service = CustomerService()
+    final_mutation_service = FinalMutationService()
     job_mutation_service = JobMutationService()
     advertiser = ServiceDiscoveryAdvertiser(
         DiscoveryConfig(
@@ -3559,6 +3561,19 @@ def create_app() -> FastAPI:
                 detail="Final GeoJSON generation failed",
             ) from exc
         try:
+            geojson_payload = _read_json(geojson_path)
+            if correction_mode:
+                final_mutation_service.set_correction(
+                    job_id,
+                    payload=final_payload,
+                    geojson_payload=geojson_payload if isinstance(geojson_payload, dict) else None,
+                )
+            else:
+                final_mutation_service.set_final(
+                    job_id,
+                    payload=final_payload,
+                    geojson_payload=geojson_payload if isinstance(geojson_payload, dict) else None,
+                )
             pdf_path = artifact_store.commit_output(pdf_key, pdf_path)
             artifact_store.commit_output(report_key, report_path)
             artifact_store.commit_output(report_docx_key, report_docx_path)

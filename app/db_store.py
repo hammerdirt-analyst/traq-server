@@ -17,12 +17,15 @@ from sqlalchemy import select
 
 from .db import session_scope
 from .db_models import (
+    Artifact,
+    ArtifactKind,
     Device,
     DeviceRole,
     DeviceStatus,
     DeviceToken,
     Job,
     JobAssignment,
+    JobFinal,
     JobRound,
     JobStatus,
     RoundImage,
@@ -337,6 +340,40 @@ class DatabaseStore:
         with session_scope() as session:
             row = session.scalar(select(Job).where(Job.job_number == job_number))
             return None if row is None else self._job_to_dict(row)
+
+    def get_job_final(self, job_id: str, kind: str) -> dict[str, Any] | None:
+        """Return one archived final or correction snapshot for a job."""
+        with session_scope() as session:
+            row = session.scalar(
+                select(JobFinal).join(Job).where(Job.job_id == job_id, JobFinal.kind == kind)
+            )
+            if row is None:
+                return None
+            return {
+                "kind": row.kind,
+                "round_id": row.round_id,
+                "payload": row.payload,
+            }
+
+    def list_final_artifacts(self, job_id: str, kind: str) -> list[dict[str, Any]]:
+        """Return artifact rows linked to one archived final or correction snapshot."""
+        with session_scope() as session:
+            rows = session.scalars(
+                select(Artifact)
+                .join(JobFinal)
+                .join(Job)
+                .where(Job.job_id == job_id, JobFinal.kind == kind)
+                .order_by(Artifact.kind, Artifact.path)
+            ).all()
+            return [
+                {
+                    "kind": row.kind.value if isinstance(row.kind, ArtifactKind) else str(row.kind),
+                    "path": row.path,
+                    "content_type": row.content_type,
+                    "metadata_json": row.metadata_json or {},
+                }
+                for row in rows
+            ]
 
     def list_job_rounds(self, job_id: str) -> list[dict[str, Any]]:
         with session_scope() as session:

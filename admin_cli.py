@@ -40,6 +40,10 @@ from app.cli.customer_commands import (
     cmd_customer_usage as _cmd_customer_usage,
     register_customer_commands,
 )
+from app.cli.artifact_commands import (
+    cmd_artifact_fetch as _cmd_artifact_fetch,
+    register_artifact_commands,
+)
 from app.cli.final_commands import (
     cmd_final_set_correction as _cmd_final_set_correction,
     cmd_final_set_final as _cmd_final_set_final,
@@ -68,11 +72,13 @@ from app.cli.net_commands import (
     cmd_net_ipv6 as _cmd_net_ipv6,
     register_net_commands,
 )
+from app.artifact_storage import create_artifact_store
 from app.config import load_settings
 from app.services.customer_service import CustomerService
 from app.db import create_schema, init_database
 from app.db_store import DatabaseStore
 from app.services.final_mutation_service import FinalMutationService
+from app.services.artifact_fetch_service import ArtifactFetchService
 from app.services.inspection_service import InspectionService
 from app.services.job_mutation_service import JobMutationService
 
@@ -116,6 +122,17 @@ def _final_mutation_service() -> FinalMutationService:
     init_database(settings)
     create_schema()
     return FinalMutationService()
+
+
+def _artifact_fetch_service() -> ArtifactFetchService:
+    settings = _settings()
+    init_database(settings)
+    create_schema()
+    return ArtifactFetchService(
+        settings=settings,
+        db_store=DatabaseStore(),
+        artifact_store=create_artifact_store(settings),
+    )
 
 
 def _print_json(payload: object) -> None:
@@ -346,6 +363,10 @@ def cmd_net_ipv6(args: argparse.Namespace) -> int:
     return _cmd_net_ipv6(args, print_json=_print_json)
 
 
+def cmd_artifact_fetch(args: argparse.Namespace) -> int:
+    return _cmd_artifact_fetch(args, service_factory=_artifact_fetch_service, print_json=_print_json)
+
+
 def build_parser() -> argparse.ArgumentParser:
     settings = _settings()
     parser = argparse.ArgumentParser(description="TRAQ admin CLI")
@@ -423,6 +444,12 @@ def build_parser() -> argparse.ArgumentParser:
             "ipv6": cmd_net_ipv6,
         },
     )
+    register_artifact_commands(
+        sub,
+        {
+            "fetch": cmd_artifact_fetch,
+        },
+    )
     return parser
 
 
@@ -487,6 +514,7 @@ def _repl_command_catalog() -> list[str]:
             "final inspect",
             "final set-final",
             "final set-correction",
+            "artifact fetch",
             "net ipv4",
             "net ipv6",
             "show",
@@ -568,6 +596,7 @@ def _run_repl(parser: argparse.ArgumentParser) -> int:
             print("  /job assign --job J0001 --device-id <device_id>")
             print("  /job list-assignments")
             print("  /job set-status --job J0001 --status DRAFT")
+            print("  /artifact fetch --job J0001 --kind report-pdf")
             print("  /round reopen --job-id job_1 --round-id round_1")
             continue
         if raw == "show":

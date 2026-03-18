@@ -241,6 +241,8 @@ Final commands:
 
 ```bash
 uv run traq-admin final inspect --job <job_id_or_job_number>
+uv run traq-admin artifact fetch --job <job_id_or_job_number> --kind report-pdf
+uv run traq-admin artifact fetch --job <job_id_or_job_number> --kind final-json
 uv run traq-admin final set-final --job <job_id_or_job_number> --from-json <final_json_path> [--geojson-json <geojson_path>]
 uv run traq-admin final set-correction --job <job_id_or_job_number> --from-json <correction_json_path> [--geojson-json <geojson_path>]
 ```
@@ -334,6 +336,8 @@ uv run traq-admin round inspect --job J0001 --round-id round_1
 # Review / final inspection
 uv run traq-admin review inspect --job J0001 --round-id round_1
 uv run traq-admin final inspect --job J0001
+uv run traq-admin artifact fetch --job J0001 --kind report-pdf
+uv run traq-admin artifact fetch --job J0001 --kind final-json
 uv run traq-admin final set-final --job J0001 --from-json ./final.json --geojson-json ./final.geojson
 uv run traq-admin final set-correction --job J0001 --from-json ./final_correction.json --geojson-json ./final_correction.geojson
 
