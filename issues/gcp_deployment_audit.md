@@ -24,9 +24,12 @@ So the remaining work is no longer general cleanup. It is deployment-specific.
 
 ## Main Findings
 
-### 1. Artifact storage is still path-based in runtime code
+### 1. Artifact storage now has a runtime boundary, but only a local backend
 
-Current runtime still writes and reads local filesystem paths directly for:
+Current runtime now routes artifact access through a storage boundary, but the
+only implemented backend is still local filesystem storage.
+
+Covered runtime flows now include:
 
 - audio upload storage
 - image upload storage
@@ -36,13 +39,14 @@ Current runtime still writes and reads local filesystem paths directly for:
 
 Representative locations:
 
+- `app/artifact_storage.py`
 - `app/main.py`
-- `app/services/inspection_service.py`
 
 Impact:
 
-- this is not compatible with Cloud Run as the long-term storage model
-- a Cloud Storage-backed artifact service is still required
+- local path usage is now concentrated behind one runtime boundary
+- a Cloud Storage-backed backend is still required before Cloud Run deployment
+- inspection/admin paths outside runtime are not yet part of this abstraction
 
 Severity:
 
@@ -214,18 +218,17 @@ Do next:
 - move toward Alembic-managed schema changes
 - stop treating startup `create_schema()` as the production contract
 
-### Phase 2 — Introduce artifact storage abstraction
+### Phase 2 — Add Cloud Storage backend for artifact storage
 
 Do next:
 
-- create a storage service boundary for:
+- keep the existing local backend
+- add a Cloud Storage backend for:
   - audio writes/reads
   - image writes/reads
   - report image writes/reads
   - final artifact writes/reads
-- implement:
-  - local filesystem backend
-  - Cloud Storage backend
+- decide whether server-side materialization or signed URLs should be used for downloads
 
 ### Phase 3 — Cloud deployment controls
 
@@ -248,7 +251,7 @@ Do next:
 If deployment started today:
 
 - **Cloud SQL** is conceptually ready enough for local-style use
-- **Cloud Run** is **not** fully ready because artifact storage and downloads still rely on local filesystem semantics
+- **Cloud Run** is **not** fully ready because the runtime storage boundary still needs a Cloud Storage backend
 - **Cloud Storage** integration is the biggest remaining architectural step
 
 ## Immediate Highest-Value Fixes

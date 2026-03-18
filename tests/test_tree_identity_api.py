@@ -617,6 +617,10 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertIsNotNone(recording)
         self.assertEqual(recording["content_type"], "audio/wav")
         self.assertNotEqual(recording["metadata_json"].get("stored_path"), "/tmp/wrong.wav")
+        self.assertEqual(
+            recording["artifact_path"],
+            f"jobs/{create_response.job_id}/sections/site_factors/recordings/rec_1.wav",
+        )
 
     def test_image_upload_and_patch_persist_db_metadata_even_if_meta_file_is_stale(self) -> None:
         token = self._register_and_approve_device("device-image")
@@ -705,6 +709,14 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertEqual(image["latitude"], "38.5")
         self.assertEqual(image["longitude"], "-121.0")
         self.assertNotEqual(image["metadata_json"].get("caption"), "Wrong File Caption")
+        self.assertEqual(
+            image["artifact_path"],
+            f"jobs/{create_response.job_id}/sections/job_photos/images/img_1.jpg",
+        )
+        self.assertEqual(
+            image["metadata_json"].get("report_image_path"),
+            f"jobs/{create_response.job_id}/sections/job_photos/images/img_1.report.jpg",
+        )
 
     def test_submit_uses_db_transcript_state_not_transcript_cache_file(self) -> None:
         token = self._register_and_approve_device("device-transcript")

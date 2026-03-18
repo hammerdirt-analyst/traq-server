@@ -46,6 +46,7 @@ from fastapi.responses import FileResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
+from .artifact_storage import LocalArtifactStore
 from .config import load_settings
 from .db import create_schema, init_database, session_scope
 from .db_store import DatabaseStore
@@ -382,6 +383,7 @@ def create_app() -> FastAPI:
     jobs: dict[str, JobRecord] = {}
     security = SecurityStore(settings.storage_root / "security")
     db_store = DatabaseStore()
+    artifact_store = LocalArtifactStore(settings.storage_root)
     customer_service = CustomerService()
     job_mutation_service = JobMutationService()
     advertiser = ServiceDiscoveryAdvertiser(
@@ -403,6 +405,14 @@ def create_app() -> FastAPI:
         result = _run_extraction_core(section_id, transcript)
         _log_event("EXTRACT", "ok section=%s", section_id)
         return result
+
+    def _artifact_key(*parts: str) -> str:
+        """Return a normalized artifact key relative to the storage root."""
+        return artifact_store.resolve_key(*parts)
+
+    def _materialize_artifact_path(key: str) -> Path:
+        """Return a readable local path for one artifact key."""
+        return artifact_store.materialize_path(key)
 
     def _to_assigned_job(record: JobRecord) -> AssignedJob:
         """Convert internal JobRecord to API AssignedJob model."""
@@ -644,11 +654,15 @@ def create_app() -> FastAPI:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    def _job_artifact_key(job_id: str, *parts: str) -> str:
+        """Return artifact key rooted under one job."""
+        return _artifact_key("jobs", job_id, *parts)
+
     def _is_correction_mode(job_id: str, record: JobRecord | None) -> bool:
         """Return True when writes should target correction artifacts."""
         if record and (record.status or "").strip().upper() == "ARCHIVED":
             return True
-        return (_job_dir(job_id) / "final.json").exists()
+        return artifact_store.exists(_job_artifact_key(job_id, "final.json"))
 
     def _job_record_path(job_id: str) -> Path:
         """Return path to compatibility/debug job record JSON file."""
@@ -1506,9 +1520,8 @@ def create_app() -> FastAPI:
             logger.warning("Audio normalize failed file=%s error=%s", file_path, str(exc)[:240])
             return file_path, False
 
-    def _build_report_image_variant(source_path: Path, image_id: str) -> tuple[Path, int]:
+    def _build_report_image_variant(source_path: Path, report_path: Path) -> tuple[Path, int]:
         """Build compressed report-image variant for PDF embedding."""
-        report_path = source_path.with_name(f"{image_id}.report.jpg")
         try:
             from PIL import Image, ImageOps  # type: ignore
 
@@ -1537,7 +1550,10 @@ def create_app() -> FastAPI:
             meta = dict(row.get("metadata_json") or {})
             report_path = str(meta.get("report_image_path") or "").strip()
             stored_path = str(meta.get("stored_path") or row.get("artifact_path") or "").strip()
-            candidate = Path(report_path) if report_path else Path(stored_path)
+            candidate_key = report_path or stored_path
+            if not candidate_key:
+                continue
+            candidate = _materialize_artifact_path(candidate_key)
             if not candidate.exists():
                 continue
             caption = str(
@@ -1662,7 +1678,15 @@ def create_app() -> FastAPI:
 
     def _transcript_cache_path(job_id: str, section_id: str, recording_id: str) -> Path:
         """Return exported transcript path for one recording."""
-        return _section_dir(job_id, section_id) / "recordings" / f"{recording_id}.transcript.txt"
+        return _materialize_artifact_path(
+            _job_artifact_key(
+                job_id,
+                "sections",
+                section_id,
+                "recordings",
+                f"{recording_id}.transcript.txt",
+            )
+        )
 
     def _save_recording_runtime_state(
         job_id: str,
@@ -1693,9 +1717,15 @@ def create_app() -> FastAPI:
         )
         transcript_text = str(meta.get("transcript_text") or "").strip()
         if transcript_text:
-            _transcript_cache_path(job_id, section_id, recording_id).write_text(
+            artifact_store.write_text(
+                _job_artifact_key(
+                    job_id,
+                    "sections",
+                    section_id,
+                    "recordings",
+                    f"{recording_id}.transcript.txt",
+                ),
                 transcript_text,
-                encoding="utf-8",
             )
 
     def _build_section_transcript(
@@ -1726,7 +1756,7 @@ def create_app() -> FastAPI:
             if not force_reprocess and seen_recordings and rec_id in seen_recordings:
                 continue
             meta = _recording_meta(job_id, round_id, section_id, rec_id)
-            stored_path = meta.get("stored_path")
+            stored_path = str(meta.get("stored_path") or "").strip()
             if not stored_path:
                 continue
             transcript = str(meta.get("transcript_text") or "").strip()
@@ -1752,7 +1782,10 @@ def create_app() -> FastAPI:
                     probe.get("ffprobe_error"),
                 )
                 try:
-                    transcript = _transcribe_recording(Path(stored_path), probe=probe).strip()
+                    transcript = _transcribe_recording(
+                        _materialize_artifact_path(stored_path),
+                        probe=probe,
+                    ).strip()
                     meta["transcript_text"] = transcript
                     meta["processed"] = True
                     meta.pop("transcription_error", None)
@@ -3044,18 +3077,22 @@ def create_app() -> FastAPI:
         payload = await request.body()
         if not payload:
             raise HTTPException(status_code=400, detail="Empty recording payload")
-        recordings_dir = _section_dir(job_id, section_id) / "recordings"
-        recordings_dir.mkdir(parents=True, exist_ok=True)
         ext = _guess_extension(content_type, ".m4a")
-        file_path = recordings_dir / f"{recording_id}{ext}"
-        file_path.write_bytes(payload)
+        artifact_key = _job_artifact_key(
+            job_id,
+            "sections",
+            section_id,
+            "recordings",
+            f"{recording_id}{ext}",
+        )
+        file_path = artifact_store.write_bytes(artifact_key, payload)
         audio_probe = _probe_audio_metadata(file_path)
         meta = {
             "recording_id": recording_id,
             "section_id": section_id,
             "content_type": content_type,
             "bytes": len(payload),
-            "stored_path": str(file_path),
+            "stored_path": artifact_key,
             "uploaded_at": datetime.utcnow().isoformat() + "Z",
             "audio_probe": audio_probe,
         }
@@ -3070,10 +3107,10 @@ def create_app() -> FastAPI:
             upload_status="uploaded",
             content_type=content_type,
             duration_ms=audio_probe.get("duration_ms"),
-            artifact_path=str(file_path),
+            artifact_path=artifact_key,
             metadata_json=meta,
         )
-        _write_json(recordings_dir / f"{recording_id}.meta.json", meta)
+        _write_json(_section_dir(job_id, section_id) / "recordings" / f"{recording_id}.meta.json", meta)
         _log_event(
             "RECORDING",
             (
@@ -3124,8 +3161,6 @@ def create_app() -> FastAPI:
         payload = await request.body()
         if not payload:
             raise HTTPException(status_code=400, detail="Empty image payload")
-        images_dir = _section_dir(job_id, section_id) / "images"
-        images_dir.mkdir(parents=True, exist_ok=True)
         round_id = record.latest_round_id
         if not round_id:
             raise HTTPException(status_code=400, detail="No active round for image upload")
@@ -3137,16 +3172,32 @@ def create_app() -> FastAPI:
         if image_id not in existing_ids and len(existing_ids) >= 5:
             raise HTTPException(status_code=400, detail="Maximum 5 images per job")
         ext = _guess_extension(content_type, ".jpg")
-        file_path = images_dir / f"{image_id}{ext}"
-        file_path.write_bytes(payload)
-        report_path, report_bytes = _build_report_image_variant(file_path, image_id)
+        artifact_key = _job_artifact_key(
+            job_id,
+            "sections",
+            section_id,
+            "images",
+            f"{image_id}{ext}",
+        )
+        file_path = artifact_store.write_bytes(artifact_key, payload)
+        report_key = _job_artifact_key(
+            job_id,
+            "sections",
+            section_id,
+            "images",
+            f"{image_id}.report.jpg",
+        )
+        report_path, report_bytes = _build_report_image_variant(
+            file_path,
+            _materialize_artifact_path(report_key),
+        )
         meta = {
             "image_id": image_id,
             "section_id": section_id,
             "content_type": content_type,
             "bytes": len(payload),
-            "stored_path": str(file_path),
-            "report_image_path": str(report_path),
+            "stored_path": artifact_key,
+            "report_image_path": report_key,
             "report_bytes": report_bytes,
             "uploaded_at": datetime.utcnow().isoformat() + "Z",
         }
@@ -3156,10 +3207,10 @@ def create_app() -> FastAPI:
             section_id=section_id,
             image_id=image_id,
             upload_status="uploaded",
-            artifact_path=str(file_path),
+            artifact_path=artifact_key,
             metadata_json=meta,
         )
-        _write_json(images_dir / f"{image_id}.meta.json", meta)
+        _write_json(_section_dir(job_id, section_id) / "images" / f"{image_id}.meta.json", meta)
         _log_event(
             "IMAGE",
             "upload job=%s section=%s image=%s bytes=%s report_bytes=%s",
@@ -3223,8 +3274,7 @@ def create_app() -> FastAPI:
             artifact_path=str(existing.get("artifact_path") or meta.get("stored_path") or "").strip() or None,
             metadata_json=meta,
         )
-        images_dir = _section_dir(job_id, section_id) / "images"
-        _write_json(images_dir / f"{image_id}.meta.json", meta)
+        _write_json(_section_dir(job_id, section_id) / "images" / f"{image_id}.meta.json", meta)
         _log_event(
             "IMAGE",
             "patch job=%s section=%s image=%s keys=%s",
@@ -3366,7 +3416,8 @@ def create_app() -> FastAPI:
         report_docx_name = "final_report_letter_correction.docx" if correction_mode else "final_report_letter.docx"
         final_json_name = "final_correction.json" if correction_mode else "final.json"
         geojson_name = "final_correction.geojson" if correction_mode else "final.geojson"
-        pdf_path = _job_dir(job_id) / pdf_name
+        pdf_key = _job_artifact_key(job_id, pdf_name)
+        pdf_path = _materialize_artifact_path(pdf_key)
         requested_tree_number = requested_tree_number_from_form(payload.form)
         record.tree_number = _resolve_server_tree_number(
             record,
@@ -3407,8 +3458,10 @@ def create_app() -> FastAPI:
                 summary=polished_summary,
                 form_data=payload.form,
             )
-            report_path = _job_dir(job_id) / report_name
-            report_docx_path = _job_dir(job_id) / report_docx_name
+            report_key = _job_artifact_key(job_id, report_name)
+            report_docx_key = _job_artifact_key(job_id, report_docx_name)
+            report_path = _materialize_artifact_path(report_key)
+            report_docx_path = _materialize_artifact_path(report_docx_key)
             sender_name = ""
             if isinstance(profile_payload, dict):
                 sender_name = str(profile_payload.get("name") or "").strip()
@@ -3465,7 +3518,7 @@ def create_app() -> FastAPI:
             "user_name": user_name,
             "report_images": report_images,
         }
-        _write_json(_job_dir(job_id) / final_json_name, final_payload)
+        _write_json(_materialize_artifact_path(_job_artifact_key(job_id, final_json_name)), final_payload)
         # Generate the TRAQ PDF from the persisted final payload to keep
         # server and offline tool output aligned to the same canonical source.
         _generate_traq_pdf(form_data=final_payload["form"], output_path=pdf_path)
@@ -3476,7 +3529,7 @@ def create_app() -> FastAPI:
             if not isinstance(form_data, dict):
                 form_data = {}
             geojson_export.write_final_geojson(
-                output_path=_job_dir(job_id) / geojson_name,
+                output_path=_materialize_artifact_path(_job_artifact_key(job_id, geojson_name)),
                 job_number=record.job_number,
                 user_name=user_name,
                 form_data=form_data,
@@ -3512,8 +3565,14 @@ def create_app() -> FastAPI:
         """Download generated final report letter PDF for a job."""
         auth = require_api_key(x_api_key)
         _assert_job_assignment(job_id, auth)
-        correction_path = _job_dir(job_id) / "final_report_letter_correction.pdf"
-        report_path = correction_path if correction_path.exists() else (_job_dir(job_id) / "final_report_letter.pdf")
+        correction_path = _materialize_artifact_path(
+            _job_artifact_key(job_id, "final_report_letter_correction.pdf")
+        )
+        report_path = (
+            correction_path
+            if correction_path.exists()
+            else _materialize_artifact_path(_job_artifact_key(job_id, "final_report_letter.pdf"))
+        )
         if not report_path.exists():
             raise HTTPException(status_code=404, detail="Report letter not found")
         return FileResponse(
