@@ -37,7 +37,7 @@ jobs:
       - name: Build Sphinx HTML
         env:
           TRAQ_API_KEY: docs-build-key
-          TRAQ_DATABASE_URL: sqlite+pysqlite:///:memory:
+          TRAQ_DATABASE_URL: "sqlite+pysqlite:///:memory:"
           OPENAI_API_KEY: docs-build-placeholder
           TRAQ_ENABLE_DISCOVERY: "false"
           TRAQ_AUTO_CREATE_SCHEMA: "false"
