@@ -16,6 +16,7 @@ from .services.finalization_service import FinalizationService
 from .services.job_mutation_service import JobMutationService
 from .services.media_runtime_service import MediaRuntimeService
 from .services.review_payload_service import ReviewPayloadService
+from .services.review_form_service import ReviewFormService
 from .services.round_submit_service import RoundSubmitService
 from .services.runtime_state_service import RuntimeStateService
 
@@ -40,6 +41,7 @@ class RuntimeContext:
     job_mutation_service: JobMutationService = field(init=False)
     media_runtime_service: MediaRuntimeService = field(init=False)
     review_payload_service: ReviewPayloadService = field(init=False)
+    review_form_service: ReviewFormService = field(init=False)
     round_submit_service: RoundSubmitService = field(init=False)
     runtime_state_service: RuntimeStateService = field(init=False)
     advertiser: ServiceDiscoveryAdvertiser = field(init=False)
@@ -64,6 +66,7 @@ class RuntimeContext:
             logger=self.logger,
         )
         self.review_payload_service = ReviewPayloadService()
+        self.review_form_service = ReviewFormService()
         self.round_submit_service = RoundSubmitService()
         self.advertiser = ServiceDiscoveryAdvertiser(
             DiscoveryConfig(
