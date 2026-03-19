@@ -49,6 +49,11 @@ Move request/response models into dedicated modules:
   - media/image helper logic
   - job/round persistence helpers
 
+Current progress:
+- completed: `app/api/models.py`
+- completed: `app/services/access_control_service.py`
+- completed: `app/services/review_payload_service.py`
+
 ### Phase 2: Introduce Shared Runtime Context
 
 - define a small runtime/dependency boundary for:

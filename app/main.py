@@ -88,6 +88,7 @@ from .services.customer_service import CustomerService
 from .services.access_control_service import AccessControlService
 from .services.final_mutation_service import FinalMutationService
 from .services.job_mutation_service import JobMutationService
+from .services.review_payload_service import ReviewPayloadService
 
 JOB_PHOTOS_SECTION_ID = "job_photos"
 
@@ -213,6 +214,7 @@ def create_app() -> FastAPI:
     customer_service = CustomerService()
     final_mutation_service = FinalMutationService()
     job_mutation_service = JobMutationService()
+    review_payload_service = ReviewPayloadService()
     advertiser = ServiceDiscoveryAdvertiser(
         DiscoveryConfig(
             port=settings.discovery_port,
@@ -251,7 +253,14 @@ def create_app() -> FastAPI:
                 server_revision_id = round_record.server_revision_id
             review_data = (db_store.get_job_round(record.job_id, record.latest_round_id) or {}).get("review_payload")
             if isinstance(review_data, dict):
-                review_payload = review_data
+                review_payload = review_payload_service.normalize_payload(
+                    review_data,
+                    tree_number=record.tree_number,
+                    normalize_form_schema=_normalize_form_schema,
+                    hydrated_images=review_payload_service.build_round_images(
+                        db_store.list_round_images(record.job_id, record.latest_round_id)
+                    ),
+                )
                 if server_revision_id is None:
                     server_revision_id = review_data.get("server_revision_id")
         return AssignedJob(
@@ -2081,7 +2090,9 @@ def create_app() -> FastAPI:
             "form": normalized_data,
             "narrative": narrative,
             "tree_number": record.tree_number,
-            "images": [],
+            "images": review_payload_service.build_round_images(
+                db_store.list_round_images(job_id, round_id)
+            ),
             "transcription_failures": transcription_failures,
         }
         logger.info(
@@ -3084,47 +3095,22 @@ def create_app() -> FastAPI:
         payload = (persisted_round or {}).get("review_payload")
         if isinstance(payload, dict):
             logger.info("GET /v1/jobs/%s/rounds/%s/review (cached)", job_id, round_id)
-            payload = dict(payload)
-            if "form" not in payload:
-                draft_form = payload.get("draft_form") or {}
-                if isinstance(draft_form, dict):
-                    payload["form"] = draft_form.get("data", {})
-            if isinstance(payload.get("draft_form"), dict):
-                draft_form = dict(payload.get("draft_form") or {})
-                draft_data = _normalize_form_schema(dict(draft_form.get("data") or {}))
-                draft_data = dict(draft_data)
-                client_tree_details = dict(draft_data.get("client_tree_details") or {})
-                if record.tree_number is not None:
-                    client_tree_details["tree_number"] = str(record.tree_number)
-                    draft_data["client_tree_details"] = client_tree_details
-                draft_form["data"] = draft_data
-                payload["draft_form"] = draft_form
-                payload["form"] = draft_data
-            elif isinstance(payload.get("form"), dict):
-                form_data = _normalize_form_schema(dict(payload.get("form") or {}))
-                form_data = dict(form_data)
-                client_tree_details = dict(form_data.get("client_tree_details") or {})
-                if record.tree_number is not None:
-                    client_tree_details["tree_number"] = str(record.tree_number)
-                    form_data["client_tree_details"] = client_tree_details
-                payload["form"] = form_data
-            if "narrative" not in payload:
-                payload["narrative"] = payload.get("draft_narrative") or ""
-            payload["tree_number"] = record.tree_number
-            return payload
-        payload = {
-            "round_id": round_id,
-            "server_revision_id": round_record.server_revision_id,
-            "transcript": "Transcript ready.",
-            "section_recordings": {},
-            "section_transcripts": {},
-            "draft_form": {"schema_name": "demo", "schema_version": "0.0", "data": {}},
-            "draft_narrative": "Demo narrative.",
-            "form": {},
-            "narrative": "Demo narrative.",
-            "tree_number": record.tree_number,
-            "images": [],
-        }
+            return review_payload_service.normalize_payload(
+                payload,
+                tree_number=record.tree_number,
+                normalize_form_schema=_normalize_form_schema,
+                hydrated_images=review_payload_service.build_round_images(
+                    db_store.list_round_images(job_id, round_id)
+                ),
+            )
+        payload = review_payload_service.build_default_payload(
+            round_id=round_id,
+            server_revision_id=round_record.server_revision_id,
+            tree_number=record.tree_number,
+            images=review_payload_service.build_round_images(
+                db_store.list_round_images(job_id, round_id)
+            ),
+        )
         _save_round_record(job_id, round_record, review_payload=payload)
         logger.info("GET /v1/jobs/%s/rounds/%s/review", job_id, round_id)
         return payload

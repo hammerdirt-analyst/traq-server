@@ -322,6 +322,97 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertIn("draft_form", assigned.review_payload)
         self.assertEqual(assigned.review_payload.get("tree_number"), 3)
 
+    def test_assigned_jobs_include_hydrated_review_images_from_db_state(self) -> None:
+        token = self._register_and_approve_device("device-images-assigned")
+        create_job = self._endpoint("/v1/jobs", "POST")
+        create_response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Images",
+                tree_number=5,
+                job_name="Job Images",
+                job_address="500 Image Way",
+                job_phone="555-0555",
+                contact_preference="text",
+                billing_name="Customer Images",
+                billing_address="500 Image Way",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(create_response.job_id, x_api_key=token)
+
+        async def receive() -> dict[str, object]:
+            return {
+                "type": "http.request",
+                "body": b"fake image bytes",
+                "more_body": False,
+            }
+
+        request = Request(
+            {
+                "type": "http",
+                "method": "PUT",
+                "path": f"/v1/jobs/{create_response.job_id}/sections/job_photos/images/img_1",
+                "headers": [],
+            },
+            receive,
+        )
+        upload_image = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PUT",
+        )
+        asyncio.run(
+            upload_image(
+                create_response.job_id,
+                "job_photos",
+                "img_1",
+                request,
+                content_type="image/jpeg",
+                x_api_key=token,
+            )
+        )
+        patch_image = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PATCH",
+        )
+        patch_image(
+            create_response.job_id,
+            "job_photos",
+            "img_1",
+            {"caption": "Hydrated image"},
+            x_api_key=token,
+        )
+
+        store = DatabaseStore()
+        store.upsert_job_round(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            status="review_returned",
+            server_revision_id="rev_round_1",
+            review_payload={
+                "round_id": round_response.round_id,
+                "server_revision_id": "rev_round_1",
+                "draft_form": {
+                    "schema_name": "demo",
+                    "schema_version": "0.0",
+                    "data": {"client_tree_details": {"tree_number": "5"}},
+                },
+                "draft_narrative": "Resume test",
+                "form": {"client_tree_details": {"tree_number": "5"}},
+                "narrative": "Resume test",
+                "images": [],
+            },
+        )
+
+        list_assigned_jobs = self._endpoint("/v1/jobs/assigned", "GET")
+        assigned_jobs = list_assigned_jobs(x_api_key=token)
+        self.assertEqual(len(assigned_jobs), 1)
+        self.assertEqual(assigned_jobs[0].review_payload["images"][0]["id"], "img_1")
+        self.assertEqual(
+            assigned_jobs[0].review_payload["images"][0]["caption"],
+            "Hydrated image",
+        )
+
     def test_runtime_reads_refresh_job_metadata_from_db_not_file(self) -> None:
         token = self._register_and_approve_device("device-3")
         create_job = self._endpoint("/v1/jobs", "POST")
@@ -720,6 +811,93 @@ class TreeIdentityApiTests(unittest.TestCase):
             image["metadata_json"].get("report_image_path"),
             f"jobs/{create_response.job_id}/sections/job_photos/images/img_1.report.jpg",
         )
+
+    def test_get_review_hydrates_images_from_db_when_cached_payload_is_empty(self) -> None:
+        token = self._register_and_approve_device("device-review-image")
+        create_job = self._endpoint("/v1/jobs", "POST")
+        create_response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Review Image",
+                tree_number=6,
+                job_name="Job Review Image",
+                job_address="600 Review Rd",
+                job_phone="555-0666",
+                contact_preference="text",
+                billing_name="Customer Review Image",
+                billing_address="600 Review Rd",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(create_response.job_id, x_api_key=token)
+
+        async def receive() -> dict[str, object]:
+            return {
+                "type": "http.request",
+                "body": b"fake image bytes",
+                "more_body": False,
+            }
+
+        request = Request(
+            {
+                "type": "http",
+                "method": "PUT",
+                "path": f"/v1/jobs/{create_response.job_id}/sections/job_photos/images/img_1",
+                "headers": [],
+            },
+            receive,
+        )
+        upload_image = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PUT",
+        )
+        asyncio.run(
+            upload_image(
+                create_response.job_id,
+                "job_photos",
+                "img_1",
+                request,
+                content_type="image/jpeg",
+                x_api_key=token,
+            )
+        )
+        patch_image = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PATCH",
+        )
+        patch_image(
+            create_response.job_id,
+            "job_photos",
+            "img_1",
+            {"caption": "Review image"},
+            x_api_key=token,
+        )
+
+        store = DatabaseStore()
+        store.upsert_job_round(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            status="review_returned",
+            server_revision_id="rev_round_1",
+            review_payload={
+                "round_id": round_response.round_id,
+                "server_revision_id": "rev_round_1",
+                "draft_form": {
+                    "schema_name": "demo",
+                    "schema_version": "0.0",
+                    "data": {"client_tree_details": {"tree_number": "6"}},
+                },
+                "draft_narrative": "Review test",
+                "form": {"client_tree_details": {"tree_number": "6"}},
+                "narrative": "Review test",
+                "images": [],
+            },
+        )
+
+        get_review = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/review", "GET")
+        payload = get_review(create_response.job_id, round_response.round_id, x_api_key=token)
+        self.assertEqual(payload["images"][0]["id"], "img_1")
+        self.assertEqual(payload["images"][0]["caption"], "Review image")
 
     def test_submit_uses_db_transcript_state_not_transcript_cache_file(self) -> None:
         token = self._register_and_approve_device("device-transcript")
