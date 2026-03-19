@@ -5,8 +5,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Callable
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Body, Header, HTTPException
 from fastapi.responses import FileResponse
+
+from .models import FinalSubmitRequest
 
 
 def build_final_router(
@@ -44,7 +46,7 @@ def build_final_router(
     @router.post("/v1/jobs/{job_id}/final")
     def submit_final(
         job_id: str,
-        payload: Any,
+        payload: FinalSubmitRequest = Body(...),
         x_api_key: str | None = Header(default=None),
     ) -> FileResponse:
         """Finalize a job and generate final artifacts."""

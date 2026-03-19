@@ -19,6 +19,7 @@ from app.api.final_routes import build_final_router
 from app.api.image_routes import build_image_router
 from app.api.job_read_routes import build_job_read_router
 from app.api.job_write_routes import build_job_write_router
+from app.api.models import FinalSubmitRequest
 from app.api.recording_routes import build_recording_router
 from app.api.round_manifest_routes import build_round_manifest_router
 from app.api.round_reprocess_routes import build_round_reprocess_router
@@ -799,6 +800,43 @@ class ApiRouterTests(unittest.TestCase):
         get_report = self._router_endpoint(router, "/v1/jobs/{job_id}/final/report", "GET")
         report_response = get_report("job_1", x_api_key="test-key")
         self.assertEqual(report_response.filename, "report_letter.pdf")
+
+    def test_final_router_uses_final_submit_request_body(self) -> None:
+        router = build_final_router(
+            require_api_key=lambda key: None,
+            assert_job_assignment=lambda *args, **kwargs: None,
+            ensure_job_record=lambda *args, **kwargs: None,
+            job_record_factory=lambda **kwargs: None,
+            jobs={},
+            db_store=None,
+            is_correction_mode=lambda *args, **kwargs: False,
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
+            finalization_service=None,
+            artifact_store=None,
+            job_artifact_key=lambda *parts: "/".join(parts),
+            requested_tree_number_from_form=lambda form: None,
+            resolve_server_tree_number=lambda *args, **kwargs: None,
+            normalize_form_schema=lambda form: form,
+            apply_tree_number_to_form=lambda form, tree_number: form,
+            save_job_record=lambda record: None,
+            identity_key=lambda auth, key: "identity",
+            load_runtime_profile=lambda key: None,
+            media_runtime_service=None,
+            generate_traq_pdf=lambda form_data, output_path: None,
+            write_json=lambda path, payload: None,
+            read_json=lambda path: None,
+            final_mutation_service=None,
+            unassign_job_record=lambda job_id: None,
+            materialize_artifact_path=lambda key: self.storage_root / key,
+        )
+
+        route = next(
+            route
+            for route in router.routes
+            if isinstance(route, APIRoute) and route.path == "/v1/jobs/{job_id}/final"
+        )
+        self.assertEqual(len(route.dependant.body_params), 1)
+        self.assertIs(route.dependant.body_params[0].type_, FinalSubmitRequest)
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):
