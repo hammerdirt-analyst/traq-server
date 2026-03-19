@@ -14,6 +14,7 @@ from app import db as db_module
 from app.api.admin_routes import build_admin_router
 from app.api.core_routes import build_core_router
 from app.api.extraction_routes import build_extraction_router
+from app.api.job_read_routes import build_job_read_router
 
 
 class ApiRouterTests(unittest.TestCase):
@@ -164,6 +165,85 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(record.status, "DRAFT")
         self.assertEqual(record.latest_round_status, "DRAFT")
         self.assertEqual(len(saved), 1)
+
+    def test_job_read_router_builds_expected_endpoints(self) -> None:
+        class DummyRound:
+            def __init__(self) -> None:
+                self.status = "REVIEW_RETURNED"
+                self.server_revision_id = None
+
+        class DummyJob:
+            def __init__(self) -> None:
+                self.status = "DRAFT"
+                self.tree_number = 7
+                self.rounds = {"round_1": DummyRound()}
+                self.latest_round_id = "round_1"
+                self.latest_round_status = "DRAFT"
+
+        record = DummyJob()
+
+        router = build_job_read_router(
+            require_api_key=lambda key: type(
+                "Auth",
+                (),
+                {"is_admin": False, "device_id": "device-1"},
+            )(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_job_record=lambda job_id: record,
+            list_job_assignments=lambda: [{"job_id": "job_1", "device_id": "device-1"}],
+            resolve_assigned_job=lambda job_id: self.main_module.AssignedJob(
+                job_id=job_id,
+                job_number="J0001",
+                status="DRAFT",
+                customer_name="",
+                address="",
+                tree_species="",
+                job_name="",
+                job_address="",
+                job_phone="",
+                contact_preference="",
+                billing_name="",
+                billing_address="",
+                latest_round_id="round_1",
+                latest_round_status="DRAFT",
+                tree_number=7,
+                review_payload={},
+            ),
+            save_job_record=lambda job: None,
+            save_round_record=lambda job_id, round_record, review_payload=None: None,
+            review_payload_service=type(
+                "ReviewService",
+                (),
+                {
+                    "build_round_images": lambda self, rows: [{"image_id": "img_1"}],
+                    "normalize_payload": lambda self, payload, **kwargs: {"ok": True, **payload, "images": kwargs["hydrated_images"]},
+                    "build_default_payload": lambda self, **kwargs: {"round_id": kwargs["round_id"], "images": kwargs["images"]},
+                },
+            )(),
+            normalize_form_schema=lambda form: form,
+            db_store=type(
+                "DbStore",
+                (),
+                {
+                    "get_job_round": lambda self, job_id, round_id: {"review_payload": {"cached": True}},
+                    "list_round_images": lambda self, job_id, round_id: [{"image_id": "img_1"}],
+                },
+            )(),
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
+        )
+
+        list_assigned = self._router_endpoint(router, "/v1/jobs/assigned", "GET")
+        assigned = list_assigned(x_api_key="test-key")
+        self.assertEqual(len(assigned), 1)
+        self.assertEqual(assigned[0].job_id, "job_1")
+
+        get_job = self._router_endpoint(router, "/v1/jobs/{job_id}", "GET")
+        status = get_job("job_1", x_api_key="test-key")
+        self.assertEqual(status.tree_number, 7)
+
+        get_review = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}/review", "GET")
+        review = get_review("job_1", "round_1", x_api_key="test-key")
+        self.assertEqual(review["images"][0]["image_id"], "img_1")
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):
