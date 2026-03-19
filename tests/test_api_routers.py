@@ -11,6 +11,7 @@ import unittest
 from fastapi.routing import APIRoute
 
 from app import db as db_module
+from app.api.admin_routes import build_admin_router
 from app.api.core_routes import build_core_router
 from app.api.extraction_routes import build_extraction_router
 
@@ -126,6 +127,43 @@ class ApiRouterTests(unittest.TestCase):
         payload = health()
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["storage_root"], str(self.storage_root))
+
+    def test_admin_router_builds_expected_endpoints(self) -> None:
+        class DummyRound:
+            def __init__(self, status: str = "REVIEW_RETURNED") -> None:
+                self.status = status
+
+        class DummyJob:
+            def __init__(self) -> None:
+                self.status = "REVIEW_RETURNED"
+                self.rounds = {"round_1": DummyRound()}
+                self.latest_round_id = "round_1"
+                self.latest_round_status = "REVIEW_RETURNED"
+
+        record = DummyJob()
+        saved: list[DummyJob] = []
+
+        router = build_admin_router(
+            require_api_key=lambda key, required_role=None: {"api_key": key, "role": required_role},
+            ensure_job_record=lambda job_id: record,
+            assign_job_record=lambda **kwargs: {"job_id": kwargs["job_id"], "device_id": kwargs["device_id"]},
+            unassign_job_record=lambda job_id: {"job_id": job_id},
+            list_job_assignments=lambda: [{"job_id": "job_1", "device_id": "device-1"}],
+            save_job_record=lambda job: saved.append(job),
+            db_store=type("DbStore", (), {"get_job_round": lambda self, job_id, round_id: None})(),
+            round_record_factory=lambda **kwargs: DummyRound(status=kwargs["status"]),
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
+        )
+
+        assignments = self._router_endpoint(router, "/v1/admin/jobs/assignments", "GET")
+        self.assertEqual(assignments(x_api_key="test-key")["assignments"][0]["job_id"], "job_1")
+
+        reopen = self._router_endpoint(router, "/v1/admin/jobs/{job_id}/rounds/{round_id}/reopen", "POST")
+        response = reopen("job_1", "round_1", x_api_key="test-key")
+        self.assertTrue(response["ok"])
+        self.assertEqual(record.status, "DRAFT")
+        self.assertEqual(record.latest_round_status, "DRAFT")
+        self.assertEqual(len(saved), 1)
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):

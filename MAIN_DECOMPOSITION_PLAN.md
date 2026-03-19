@@ -83,6 +83,7 @@ Current progress:
 Current progress:
 - completed: `app/api/core_routes.py`
 - completed: `app/api/extraction_routes.py`
+- completed: `app/api/admin_routes.py`
 
 ### Phase 4: Move Core Runtime Routers
 

@@ -40,6 +40,7 @@ import uuid
 
 from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
+from .api.admin_routes import build_admin_router
 from .api.core_routes import build_core_router
 from .api.extraction_routes import build_extraction_router
 from .api.models import (
@@ -2177,149 +2178,19 @@ def create_app() -> FastAPI:
             "transcription_failures": review_payload.get("transcription_failures") or [],
         }
 
-    @app.post("/v1/admin/jobs/{job_id}/rounds/{round_id}/reopen")
-    def admin_reopen_round(
-        job_id: str,
-        round_id: str,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Admin endpoint to reopen round back to DRAFT state."""
-        require_api_key(x_api_key, required_role="admin")
-        record = _ensure_job_record(job_id)
-        if not record or round_id not in record.rounds:
-            raise HTTPException(status_code=404, detail="Round not found")
-        round_record = record.rounds[round_id]
-        round_record.status = "DRAFT"
-        record.latest_round_id = round_id
-        record.latest_round_status = "DRAFT"
-        record.status = "DRAFT"
-        _save_job_record(record)
-        logger.info("POST /v1/admin/jobs/%s/rounds/%s/reopen", job_id, round_id)
-        return {"ok": True, "job_id": job_id, "round_id": round_id, "status": "DRAFT"}
-
-    @app.get("/v1/admin/jobs/assignments")
-    def admin_list_job_assignments(
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Admin endpoint listing current job assignments."""
-        require_api_key(x_api_key, required_role="admin")
-        return {"ok": True, "assignments": _list_job_assignments()}
-
-    @app.post("/v1/admin/jobs/{job_id}/assign")
-    def admin_assign_job(
-        job_id: str,
-        payload: AssignJobRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Admin endpoint assigning/reassigning a job to device."""
-        require_api_key(x_api_key, required_role="admin")
-        if _ensure_job_record(job_id) is None:
-            raise HTTPException(status_code=404, detail="Job not found")
-        device_id = (payload.device_id or "").strip()
-        if not device_id:
-            raise HTTPException(status_code=400, detail="device_id is required")
-        try:
-            row = _assign_job_record(
-                job_id=job_id,
-                device_id=device_id,
-                assigned_by="admin",
-            )
-        except KeyError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        except PermissionError as exc:
-            raise HTTPException(status_code=403, detail=str(exc)) from exc
-        logger.info("POST /v1/admin/jobs/%s/assign -> %s", job_id, device_id)
-        return {"ok": True, "assignment": row}
-
-    @app.post("/v1/admin/jobs/{job_id}/unassign")
-    def admin_unassign_job(
-        job_id: str,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Admin endpoint removing job assignment."""
-        require_api_key(x_api_key, required_role="admin")
-        try:
-            removed = _unassign_job_record(job_id)
-        except KeyError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        logger.info("POST /v1/admin/jobs/%s/unassign", job_id)
-        return {"ok": True, "removed": removed}
-
-    @app.post("/v1/admin/jobs/{job_id}/status")
-    def admin_set_job_status(
-        job_id: str,
-        payload: AdminJobStatusRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Admin endpoint forcing job status update."""
-        require_api_key(x_api_key, required_role="admin")
-        record = _ensure_job_record(job_id)
-        if record is None:
-            raise HTTPException(status_code=404, detail="Job not found")
-
-        allowed_job_status = {
-            "NOT_STARTED",
-            "DRAFT",
-            "SUBMITTED_FOR_PROCESSING",
-            "REVIEW_RETURNED",
-            "ARCHIVED",
-            "FAILED",
-        }
-        allowed_round_status = {
-            "DRAFT",
-            "SUBMITTED_FOR_PROCESSING",
-            "REVIEW_RETURNED",
-            "FAILED",
-        }
-
-        status = (payload.status or "").strip().upper()
-        if status not in allowed_job_status:
-            raise HTTPException(status_code=400, detail=f"Invalid job status: {status}")
-
-        round_id = (payload.round_id or "").strip() or None
-        round_status = (payload.round_status or "").strip().upper() or None
-        if round_status and round_status not in allowed_round_status:
-            raise HTTPException(status_code=400, detail=f"Invalid round status: {round_status}")
-
-        record.status = status
-        if round_id:
-            round_record = record.rounds.get(round_id)
-            if round_record is None:
-                persisted_round = db_store.get_job_round(job_id, round_id)
-                if not isinstance(persisted_round, dict):
-                    raise HTTPException(status_code=404, detail="Round not found")
-                round_record = RoundRecord(
-                    round_id=round_id,
-                    status=str(persisted_round.get("status") or "DRAFT"),
-                    manifest=list(persisted_round.get("manifest") or []),
-                    server_revision_id=persisted_round.get("server_revision_id"),
-                )
-                record.rounds[round_id] = round_record
-            if round_status:
-                round_record.status = round_status
-            record.latest_round_id = round_id
-            record.latest_round_status = round_record.status
-        elif round_status:
-            latest_round_id = record.latest_round_id
-            if latest_round_id and latest_round_id in record.rounds:
-                record.rounds[latest_round_id].status = round_status
-                record.latest_round_status = round_status
-
-        logger.info(
-            "POST /v1/admin/jobs/%s/status -> job=%s round_id=%s round_status=%s",
-            job_id,
-            record.status,
-            record.latest_round_id,
-            record.latest_round_status,
+    app.include_router(
+        build_admin_router(
+            require_api_key=require_api_key,
+            ensure_job_record=_ensure_job_record,
+            assign_job_record=_assign_job_record,
+            unassign_job_record=_unassign_job_record,
+            list_job_assignments=_list_job_assignments,
+            save_job_record=_save_job_record,
+            db_store=db_store,
+            round_record_factory=RoundRecord,
+            logger=logger,
         )
-        _save_job_record(record)
-        return {
-            "ok": True,
-            "job_id": job_id,
-            "status": record.status,
-            "latest_round_id": record.latest_round_id,
-            "latest_round_status": record.latest_round_status,
-        }
+    )
 
     @app.put("/v1/jobs/{job_id}/sections/{section_id}/recordings/{recording_id}")
     async def upload_recording(
