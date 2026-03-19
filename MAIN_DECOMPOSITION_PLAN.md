@@ -80,6 +80,10 @@ Current progress:
 - register routers from `app/main.py`
 - keep behavior unchanged
 
+Current progress:
+- completed: `app/api/core_routes.py`
+- completed: `app/api/extraction_routes.py`
+
 ### Phase 4: Move Core Runtime Routers
 
 - move these route groups after helper extraction is stable:

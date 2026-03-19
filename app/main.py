@@ -40,6 +40,8 @@ import uuid
 
 from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
+from .api.core_routes import build_core_router
+from .api.extraction_routes import build_extraction_router
 from .api.models import (
     AdminJobStatusRequest,
     AssignJobRequest,
@@ -1681,86 +1683,20 @@ def create_app() -> FastAPI:
         _save_round_record(job_id, round_record, review_payload=review_payload)
         return review_payload
 
-    @app.get("/health")
-    def health() -> dict:
-        """Health check endpoint for connectivity and storage-root visibility."""
-        logger.info("GET /health")
-        return {
-            "status": "ok",
-            "storage_root": str(settings.storage_root),
-        }
-
-    @app.post("/v1/auth/register-device")
-    def register_device(payload: RegisterDeviceRequest) -> dict[str, Any]:
-        """Register or refresh a device record in pending/approved workflow."""
-        if not payload.device_id.strip():
-            raise HTTPException(status_code=400, detail="device_id is required")
-        device = _register_device_record(
-            device_id=payload.device_id.strip(),
-            device_name=(payload.device_name or "").strip() or None,
-            app_version=(payload.app_version or "").strip() or None,
-            profile_summary=payload.profile_summary or {},
+    app.include_router(
+        build_core_router(
+            settings=settings,
+            logger=logger,
+            require_api_key=require_api_key,
+            register_device_record=_register_device_record,
+            get_device_record=_get_device_record,
+            issue_device_token_record=_issue_device_token_record,
+            load_runtime_profile=_load_runtime_profile,
+            save_runtime_profile=_save_runtime_profile,
+            identity_key=_identity_key,
+            customer_service=customer_service,
         )
-        return {
-            "ok": True,
-            "device_id": device.get("device_id"),
-            "status": device.get("status"),
-            "role": device.get("role"),
-        }
-
-    @app.post("/v1/auth/token")
-    def issue_device_token(payload: IssueTokenRequest) -> dict[str, Any]:
-        """Issue bearer token for an approved device."""
-        device_id = (payload.device_id or "").strip()
-        if not device_id:
-            raise HTTPException(status_code=400, detail="device_id is required")
-        device = _get_device_record(device_id)
-        if not device:
-            raise HTTPException(status_code=404, detail="Device not found")
-        status = str(device.get("status") or "")
-        if status != "approved":
-            raise HTTPException(status_code=403, detail=f"Device status is {status or 'unknown'}")
-        try:
-            issued = _issue_device_token_record(
-                device_id=device_id,
-                ttl_seconds=payload.ttl_seconds or 604800,
-            )
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail="Token issuance failed") from exc
-        return {"ok": True, **issued}
-
-    @app.get("/v1/auth/device/{device_id}/status")
-    def get_device_status(device_id: str) -> dict[str, Any]:
-        """Return registration/approval status for a device id."""
-        device = _get_device_record(device_id.strip())
-        if not device:
-            return {"ok": True, "device_id": device_id, "status": "not_registered"}
-        return {
-            "ok": True,
-            "device_id": device.get("device_id"),
-            "status": device.get("status"),
-            "role": device.get("role"),
-            "updated_at": device.get("updated_at"),
-        }
-
-    @app.get("/v1/profile", response_model=ProfilePayload)
-    def get_profile(x_api_key: str | None = Header(default=None)) -> ProfilePayload:
-        """Load the DB-authoritative profile for the current auth identity."""
-        auth = require_api_key(x_api_key)
-        payload = _load_runtime_profile(_identity_key(auth, x_api_key))
-        if isinstance(payload, dict):
-            return ProfilePayload(**payload)
-        return ProfilePayload()
-
-    @app.put("/v1/profile", response_model=ProfilePayload)
-    def put_profile(
-        payload: ProfilePayload,
-        x_api_key: str | None = Header(default=None),
-    ) -> ProfilePayload:
-        """Persist the DB-authoritative profile for the current auth identity."""
-        auth = require_api_key(x_api_key)
-        stored = _save_runtime_profile(_identity_key(auth, x_api_key), payload.model_dump())
-        return ProfilePayload(**stored)
+    )
 
     @app.post("/v1/jobs", response_model=CreateJobResponse)
     def create_job(
@@ -1829,36 +1765,6 @@ def create_app() -> FastAPI:
             billing_contact_name=created.get("billing_contact_name"),
             location_notes=created.get("location_notes"),
         )
-
-    @app.get("/v1/customers", response_model=list[CustomerLookupRow])
-    def list_customer_lookup_rows(
-        query: str | None = None,
-        x_api_key: str | None = Header(default=None),
-    ) -> list[CustomerLookupRow]:
-        """List reusable customer defaults for Start New Job prefill."""
-        require_api_key(x_api_key)
-        rows = customer_service.list_customers(search=query)
-        return [
-            CustomerLookupRow(
-                customer_id=row["customer_id"],
-                customer_code=row["customer_code"],
-                customer_name=row["name"],
-                job_name=row["name"],
-                job_address=row.get("address"),
-                job_phone=row.get("phone"),
-            )
-            for row in rows
-        ]
-
-    @app.get("/v1/billing-profiles", response_model=list[BillingProfileLookupRow])
-    def list_billing_profile_lookup_rows(
-        query: str | None = None,
-        x_api_key: str | None = Header(default=None),
-    ) -> list[BillingProfileLookupRow]:
-        """List reusable billing defaults for Start New Job prefill."""
-        require_api_key(x_api_key)
-        rows = customer_service.list_billing_profiles(search=query)
-        return [BillingProfileLookupRow(**row) for row in rows]
 
     @app.get("/v1/jobs/assigned", response_model=list[AssignedJob])
     def list_assigned_jobs(
@@ -2911,98 +2817,13 @@ def create_app() -> FastAPI:
             filename="report_letter.pdf",
         )
 
-    @app.post("/v1/extract/site_factors")
-    def extract_site_factors(
-        payload: SiteFactorsRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for site_factors section transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("site_factors", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/extract/client_tree_details")
-    def extract_client_tree_details(
-        payload: ClientTreeDetailsRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for client_tree_details transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("client_tree_details", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/extract/load_factors")
-    def extract_load_factors(
-        payload: LoadFactorsRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for load_factors transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("load_factors", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/extract/crown_and_branches")
-    def extract_crown_and_branches(
-        payload: CrownAndBranchesRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for crown_and_branches transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("crown_and_branches", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/extract/trunk")
-    def extract_trunk(
-        payload: TrunkRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for trunk transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("trunk", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/extract/roots_and_root_collar")
-    def extract_roots_and_root_collar(
-        payload: RootsAndRootCollarRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for roots_and_root_collar transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("roots_and_root_collar", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/extract/tree_health_and_species")
-    def extract_tree_health_and_species(
-        payload: TreeHealthAndSpeciesRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for tree_health_and_species transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("tree_health_and_species", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/extract/target_assessment")
-    def extract_target_assessment(
-        payload: TargetAssessmentRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Direct extraction endpoint for target_assessment transcript."""
-        require_api_key(x_api_key)
-        result = _run_extraction_logged("target_assessment", payload.transcript)
-        return result.model_dump()
-
-    @app.post("/v1/summary")
-    def generate_summary(
-        payload: SummaryRequest,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Generate narrative summary from supplied form/transcript payload."""
-        require_api_key(x_api_key)
-        summary = _generate_summary(
-            form_data=payload.form,
-            transcript=payload.transcript,
+    app.include_router(
+        build_extraction_router(
+            require_api_key=require_api_key,
+            run_extraction_logged=_run_extraction_logged,
+            generate_summary=_generate_summary,
         )
-        return {"summary": summary}
+    )
 
     print("Demo server initialized.")
     logger.info("Demo server initialized.")
