@@ -44,9 +44,33 @@ import uuid
 from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
 from openai import OpenAI
-from pydantic import BaseModel, Field
-
 from .artifact_storage import GCSArtifactStore, LocalArtifactStore
+from .api.models import (
+    AdminJobStatusRequest,
+    AssignJobRequest,
+    AssignedJob,
+    BillingProfileLookupRow,
+    ClientTreeDetailsRequest,
+    CreateJobRequest,
+    CreateJobResponse,
+    CreateRoundResponse,
+    CrownAndBranchesRequest,
+    CustomerLookupRow,
+    FinalSubmitRequest,
+    IssueTokenRequest,
+    LoadFactorsRequest,
+    ManifestItem,
+    ProfilePayload,
+    RegisterDeviceRequest,
+    RootsAndRootCollarRequest,
+    SiteFactorsRequest,
+    StatusResponse,
+    SubmitRoundRequest,
+    SummaryRequest,
+    TargetAssessmentRequest,
+    TreeHealthAndSpeciesRequest,
+    TrunkRequest,
+)
 from .config import load_settings
 from .db import create_schema, init_database, session_scope
 from .db_store import DatabaseStore
@@ -61,6 +85,7 @@ from .services.tree_store import (
     resolve_tree,
 )
 from .services.customer_service import CustomerService
+from .services.access_control_service import AccessControlService
 from .services.final_mutation_service import FinalMutationService
 from .services.job_mutation_service import JobMutationService
 
@@ -96,224 +121,6 @@ class RoundRecord:
     status: str
     manifest: list[dict[str, Any]] = field(default_factory=list)
     server_revision_id: str | None = None
-
-
-class AssignedJob(BaseModel):
-    job_id: str
-    job_number: str
-    status: str
-    latest_round_id: str | None = None
-    latest_round_status: str | None = None
-    customer_name: str
-    tree_number: int | None = None
-    address: str
-    tree_species: str
-    reason: str | None = None
-    job_name: str
-    job_address: str
-    job_phone: str
-    contact_preference: str
-    billing_name: str
-    billing_address: str
-    billing_contact_name: str | None = None
-    location_notes: str | None = None
-    server_revision_id: str | None = None
-    review_payload: dict[str, Any] | None = None
-
-
-class CustomerLookupRow(BaseModel):
-    customer_id: str
-    customer_code: str
-    customer_name: str
-    job_name: str
-    job_address: str | None = None
-    job_phone: str | None = None
-
-
-class BillingProfileLookupRow(BaseModel):
-    billing_profile_id: str
-    billing_code: str
-    billing_name: str | None = None
-    billing_address: str | None = None
-    billing_contact_name: str | None = None
-    contact_preference: str | None = None
-
-
-class CreateJobResponse(BaseModel):
-    job_id: str
-    job_number: str
-    status: str
-    customer_name: str | None = None
-    tree_number: int | None = None
-    address: str | None = None
-    tree_species: str | None = None
-    reason: str | None = None
-    job_name: str | None = None
-    job_address: str | None = None
-    job_phone: str | None = None
-    contact_preference: str | None = None
-    billing_name: str | None = None
-    billing_address: str | None = None
-    billing_contact_name: str | None = None
-    location_notes: str | None = None
-
-
-class CreateRoundResponse(BaseModel):
-    round_id: str
-    status: str
-
-
-class CreateJobRequest(BaseModel):
-    customer_name: str | None = Field(default=None, description="Customer/client name.")
-    job_name: str = Field(..., description="Client/job name.")
-    job_address: str = Field(..., description="Job site address.")
-    job_phone: str = Field(..., description="Primary contact phone.")
-    contact_preference: str = Field(..., description="Contact preference (text/phone call).")
-    billing_name: str = Field(..., description="Billing name.")
-    billing_address: str = Field(..., description="Billing address.")
-    billing_contact_name: str | None = Field(
-        default=None,
-        description="Billing contact name (person).",
-    )
-    tree_number: int | None = Field(
-        default=None,
-        description="Optional customer-scoped tree number. Server validates or allocates the authoritative value.",
-    )
-    location_notes: str | None = Field(
-        default=None,
-        description="Free text notes describing the tree location on the property.",
-    )
-
-
-class ProfilePayload(BaseModel):
-    name: str | None = None
-    phone: str | None = None
-    isa_number: str | None = None
-    correspondence_street: str | None = None
-    correspondence_city: str | None = None
-    correspondence_state: str | None = None
-    correspondence_zip: str | None = None
-    correspondence_email: str | None = None
-
-
-class StatusResponse(BaseModel):
-    status: str
-    latest_round_id: str | None = None
-    latest_round_status: str | None = None
-    tree_number: int | None = None
-    review_ready: bool = False
-    server_revision_id: str | None = None
-
-
-class ManifestItem(BaseModel):
-    artifact_id: str
-    section_id: str
-    client_order: int = Field(default=0)
-    kind: str = Field(default="recording")
-    issue_id: str | None = None
-    recorded_at: str | None = None
-
-
-class FinalSubmitRequest(BaseModel):
-    round_id: str
-    server_revision_id: str
-    client_revision_id: str
-    form: dict[str, Any]
-    narrative: dict[str, Any]
-    profile: ProfilePayload | None = None
-
-
-class SubmitRoundRequest(BaseModel):
-    server_revision_id: str | None = None
-    client_revision_id: str | None = None
-    form: dict[str, Any] | None = None
-    narrative: dict[str, Any] | None = None
-
-
-class RegisterDeviceRequest(BaseModel):
-    device_id: str
-    device_name: str | None = None
-    app_version: str | None = None
-    profile_summary: dict[str, Any] | None = None
-
-
-class IssueTokenRequest(BaseModel):
-    device_id: str
-    ttl_seconds: int | None = 604800
-
-
-class AssignJobRequest(BaseModel):
-    device_id: str
-
-
-class AdminJobStatusRequest(BaseModel):
-    status: str
-    round_id: str | None = None
-    round_status: str | None = None
-
-
-class SiteFactorsRequest(BaseModel):
-    transcript: str = Field(..., description="Full transcript for site factors section.")
-
-
-class ClientTreeDetailsRequest(BaseModel):
-    transcript: str = Field(
-        ...,
-        description="Full transcript for client & tree details section.",
-    )
-
-
-class LoadFactorsRequest(BaseModel):
-    transcript: str = Field(
-        ...,
-        description="Full transcript for load factors section.",
-    )
-
-
-class CrownAndBranchesRequest(BaseModel):
-    transcript: str = Field(
-        ...,
-        description="Full transcript for crown and branches section.",
-    )
-
-
-class TrunkRequest(BaseModel):
-    transcript: str = Field(
-        ...,
-        description="Full transcript for trunk section.",
-    )
-
-
-class RootsAndRootCollarRequest(BaseModel):
-    transcript: str = Field(
-        ...,
-        description="Full transcript for roots and root collar section.",
-    )
-
-
-class TargetAssessmentRequest(BaseModel):
-    transcript: str = Field(
-        ...,
-        description="Full transcript for target assessment section.",
-    )
-
-
-class SummaryRequest(BaseModel):
-    form: dict[str, Any] = Field(
-        ...,
-        description="Draft form payload with extracted section data.",
-    )
-    transcript: str = Field(
-        ...,
-        description="Combined transcript text for the job/round.",
-    )
-
-
-class TreeHealthAndSpeciesRequest(BaseModel):
-    transcript: str = Field(
-        ...,
-        description="Full transcript for tree health and species section.",
-    )
 
 
 def create_app() -> FastAPI:
@@ -390,6 +197,11 @@ def create_app() -> FastAPI:
     jobs: dict[str, JobRecord] = {}
     security = SecurityStore(settings.storage_root / "security")
     db_store = DatabaseStore()
+    access_control_service = AccessControlService(
+        api_key=settings.api_key,
+        db_store=db_store,
+        logger=logger,
+    )
     if settings.artifact_backend == "gcs":
         artifact_store = GCSArtifactStore(
             bucket_name=settings.artifact_gcs_bucket or "",
@@ -520,26 +332,15 @@ def create_app() -> FastAPI:
 
     def _assign_job_record(*, job_id: str, device_id: str, assigned_by: str | None) -> dict[str, Any]:
         """Write job assignment to the DB store only."""
-        try:
-            return db_store.assign_job(
-                job_id=job_id,
-                device_id=device_id,
-                assigned_by=assigned_by,
-            )
-        except (KeyError, PermissionError) as exc:
-            logger.warning("DB assignment failed for %s -> %s: %s", job_id, device_id, exc)
-            raise
-        except Exception:
-            logger.exception("DB assignment failed for %s -> %s", job_id, device_id)
-            raise
+        return access_control_service.assign_job(
+            job_id=job_id,
+            device_id=device_id,
+            assigned_by=assigned_by,
+        )
 
     def _unassign_job_record(job_id: str) -> dict[str, Any]:
         """Remove job assignment from the DB store only."""
-        try:
-            return db_store.unassign_job(job_id)
-        except Exception:
-            logger.exception("DB unassign failed for %s", job_id)
-            raise
+        return access_control_service.unassign_job(job_id)
 
     def require_api_key(
         x_api_key: str | None,
@@ -547,30 +348,14 @@ def create_app() -> FastAPI:
         required_role: str | None = None,
     ) -> AuthContext:
         """Authenticate request using server API key or device token."""
-        if x_api_key and x_api_key == settings.api_key:
-            return AuthContext(
-                device_id=None,
-                role="admin",
-                is_admin=True,
-                source="server_api_key",
-            )
-        if x_api_key:
-            auth = None
-            try:
-                auth = db_store.validate_token(x_api_key)
-            except Exception:
-                logger.exception("DB token validation failed")
-            if auth is not None:
-                if required_role == "admin" and not auth.is_admin:
-                    raise HTTPException(status_code=403, detail="Admin role required")
-                return auth
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        return access_control_service.require_api_key(
+            x_api_key,
+            required_role=required_role,
+        )
 
     def _identity_key(auth: AuthContext, x_api_key: str | None) -> str:
         """Build identity key used to scope profile persistence."""
-        if auth.source == "device_token" and auth.device_id:
-            return f"device:{auth.device_id}"
-        return f"admin:{x_api_key or ''}"
+        return access_control_service.identity_key(auth, x_api_key)
 
     def _resolve_server_tree_number(
         record: JobRecord,
@@ -605,18 +390,12 @@ def create_app() -> FastAPI:
         allow_correction: bool = False,
     ) -> None:
         """Enforce round edit lock rules for non-admin callers."""
-        if auth.is_admin:
-            return
-        if allow_correction and (record.status or "").strip().upper() == "ARCHIVED":
-            return
-        round_record = record.rounds.get(round_id)
-        if round_record is None:
-            return
-        if round_record.status != "DRAFT":
-            raise HTTPException(
-                status_code=409,
-                detail="Round is locked. Admin must reopen to DRAFT.",
-            )
+        access_control_service.assert_round_editable(
+            record,
+            round_id,
+            auth,
+            allow_correction=allow_correction,
+        )
 
     def _assert_job_editable(
         record: JobRecord,
@@ -625,43 +404,19 @@ def create_app() -> FastAPI:
         allow_correction: bool = False,
     ) -> None:
         """Enforce job-level edit lock rules for non-admin callers."""
-        if auth.is_admin:
-            return
-        if allow_correction and (record.status or "").strip().upper() == "ARCHIVED":
-            return
-        latest = (record.latest_round_status or "").strip()
-        if latest and latest != "DRAFT":
-            raise HTTPException(
-                status_code=409,
-                detail="Job is locked. Admin must reopen round to DRAFT.",
-            )
+        access_control_service.assert_job_editable(
+            record,
+            auth,
+            allow_correction=allow_correction,
+        )
 
     def _assert_job_assignment(job_id: str, auth: AuthContext) -> None:
         """Enforce caller authorization for target job id."""
-        if auth.is_admin:
-            return
-        if not auth.device_id:
-            raise HTTPException(status_code=403, detail="Device identity required")
-        assigned = db_store.get_job_assignment(job_id)
-        if assigned is None:
-            # Allow auto-claim for jobs that already exist either in memory
-            # or on disk (common after server restart).
-            job_exists_in_memory = job_id in jobs
-            job_exists_in_db = db_store.get_job(job_id) is not None
-            if job_exists_in_memory or job_exists_in_db:
-                try:
-                    db_store.assign_job(
-                        job_id=job_id,
-                        device_id=auth.device_id,
-                        assigned_by="auto",
-                    )
-                    return
-                except Exception as exc:
-                    raise HTTPException(status_code=403, detail=f"Job assignment failed: {exc}") from exc
-            raise HTTPException(status_code=403, detail="Job is not assigned to this device")
-        assigned_device = str(assigned.get("device_id") or "")
-        if assigned_device != auth.device_id:
-            raise HTTPException(status_code=403, detail="Job is assigned to another device")
+        access_control_service.assert_job_assignment(
+            job_id,
+            auth,
+            job_exists_in_memory=job_id in jobs,
+        )
 
     def _job_dir(job_id: str) -> Path:
         """Return filesystem directory path for a job id."""
