@@ -24,6 +24,7 @@ class _DummyDbStore:
         }
         self.upsert_calls: list[dict] = []
         self.image_rows: list[dict] = []
+        self.round_recording_rows: list[dict] = []
 
     def get_round_recording(self, **_kwargs):
         return dict(self.recording)
@@ -35,6 +36,10 @@ class _DummyDbStore:
     def list_round_images(self, job_id: str, round_id: str):
         del job_id, round_id
         return list(self.image_rows)
+
+    def list_round_recordings(self, job_id: str, round_id: str):
+        del job_id, round_id
+        return list(self.round_recording_rows)
 
 
 class MediaRuntimeServiceTests(unittest.TestCase):
@@ -86,6 +91,74 @@ class MediaRuntimeServiceTests(unittest.TestCase):
         self.assertEqual(len(self.db.upsert_calls), 1)
         transcript_path = self.root / "jobs/job_1/sections/site_factors/recordings/rec_1.transcript.txt"
         self.assertEqual(transcript_path.read_text(encoding="utf-8"), "DB transcript")
+
+    def test_recording_meta_backfills_storage_fields(self) -> None:
+        meta = self.service.recording_meta(
+            job_id="job_1",
+            round_id="round_1",
+            section_id="site_factors",
+            recording_id="rec_1",
+        )
+
+        self.assertEqual(
+            meta["stored_path"],
+            "jobs/job_1/sections/site_factors/recordings/rec_1.wav",
+        )
+        self.assertEqual(meta["content_type"], "audio/wav")
+        self.assertEqual(meta["duration_ms"], 1234)
+
+    def test_build_reprocess_manifest_merges_db_manifest_and_review_refs(self) -> None:
+        self.db.round_recording_rows = [
+            {
+                "section_id": "site_factors",
+                "recording_id": "rec_1",
+                "metadata_json": {"uploaded_at": "2026-03-19T10:00:00Z"},
+            },
+            {
+                "section_id": "site_factors",
+                "recording_id": "rec_2",
+                "metadata_json": {"uploaded_at": "2026-03-19T11:00:00Z"},
+            },
+        ]
+
+        class _RoundRecord:
+            round_id = "round_1"
+            manifest = [
+                {
+                    "kind": "recording",
+                    "section_id": "site_factors",
+                    "artifact_id": "rec_1",
+                    "recorded_at": "2026-03-19T09:00:00Z",
+                }
+            ]
+
+        manifest = self.service.build_reprocess_manifest(
+            job_id="job_1",
+            round_record=_RoundRecord(),
+            round_review={"section_recordings": {"site_factors": ["rec_2"]}},
+        )
+
+        self.assertEqual(
+            manifest,
+            [
+                {
+                    "artifact_id": "rec_1",
+                    "section_id": "site_factors",
+                    "client_order": 1,
+                    "kind": "recording",
+                    "issue_id": None,
+                    "recorded_at": "2026-03-19T09:00:00Z",
+                },
+                {
+                    "artifact_id": "rec_2",
+                    "section_id": "site_factors",
+                    "client_order": 2,
+                    "kind": "recording",
+                    "issue_id": None,
+                    "recorded_at": "2026-03-19T11:00:00Z",
+                },
+            ],
+        )
 
     def test_transcribe_recording_uses_openai_client(self) -> None:
         audio_path = self.root / "input.wav"

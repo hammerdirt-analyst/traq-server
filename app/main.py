@@ -508,100 +508,19 @@ def create_app() -> FastAPI:
                 return dict(payload)
         return {}
 
-    def _recording_meta(
-        job_id: str,
-        round_id: str,
-        section_id: str,
-        recording_id: str,
-    ) -> dict[str, Any]:
-        """Load DB-authoritative recording metadata for one uploaded recording."""
-        payload = db_store.get_round_recording(
-            job_id=job_id,
-            round_id=round_id,
-            section_id=section_id,
-            recording_id=recording_id,
-        )
-        if not isinstance(payload, dict):
-            return {}
-        meta = dict(payload.get("metadata_json") or {})
-        if payload.get("artifact_path") and "stored_path" not in meta:
-            meta["stored_path"] = payload.get("artifact_path")
-        if payload.get("content_type") is not None and "content_type" not in meta:
-            meta["content_type"] = payload.get("content_type")
-        if payload.get("duration_ms") is not None and "duration_ms" not in meta:
-            meta["duration_ms"] = payload.get("duration_ms")
-        return meta
+    _recording_meta = media_runtime_service.recording_meta
 
     def _build_reprocess_manifest(
         job_id: str,
         round_record: RoundRecord,
         round_review: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """Build server-side manifest for forced reprocess from DB recording metadata."""
-        by_section: dict[str, set[str]] = {}
-        recorded_at_map: dict[tuple[str, str], str] = {}
-
-        # Source A: DB-backed uploaded recording metadata for this round.
-        for payload in db_store.list_round_recordings(job_id, round_record.round_id):
-            section_id = str(payload.get("section_id") or "")
-            recording_id = str(payload.get("recording_id") or "")
-            if not section_id or not recording_id:
-                continue
-            by_section.setdefault(section_id, set()).add(recording_id)
-            meta = dict(payload.get("metadata_json") or {})
-            uploaded_at = meta.get("uploaded_at")
-            if isinstance(uploaded_at, str) and uploaded_at.strip():
-                recorded_at_map[(section_id, recording_id)] = uploaded_at
-
-        # Source B: round manifest (fallback for edge-cases).
-        for item in round_record.manifest:
-            if item.get("kind") != "recording":
-                continue
-            section_id = item.get("section_id")
-            artifact_id = item.get("artifact_id")
-            if not section_id or not artifact_id:
-                continue
-            s = str(section_id)
-            r = str(artifact_id)
-            by_section.setdefault(s, set()).add(r)
-            recorded_at = item.get("recorded_at")
-            if isinstance(recorded_at, str) and recorded_at.strip():
-                recorded_at_map[(s, r)] = recorded_at
-
-        # Source C: prior review references.
-        section_recordings = round_review.get("section_recordings")
-        if isinstance(section_recordings, dict):
-            for section_id, recording_ids in section_recordings.items():
-                if not isinstance(recording_ids, list):
-                    continue
-                for recording_id in recording_ids:
-                    if not recording_id:
-                        continue
-                    by_section.setdefault(str(section_id), set()).add(str(recording_id))
-
-        manifest: list[dict[str, Any]] = []
-        client_order = 1
-        for section_id in sorted(by_section.keys()):
-            for recording_id in sorted(by_section[section_id]):
-                meta = _recording_meta(job_id, round_record.round_id, section_id, recording_id)
-                stored_path = meta.get("stored_path")
-                if not stored_path:
-                    continue
-                manifest.append(
-                    {
-                        "artifact_id": recording_id,
-                        "section_id": section_id,
-                        "client_order": client_order,
-                        "kind": "recording",
-                        "issue_id": None,
-                        "recorded_at": recorded_at_map.get(
-                            (section_id, recording_id),
-                            meta.get("uploaded_at"),
-                        ),
-                    }
-                )
-                client_order += 1
-        return manifest
+        """Build server-side manifest for forced reprocess from recording metadata."""
+        return media_runtime_service.build_reprocess_manifest(
+            job_id=job_id,
+            round_record=round_record,
+            round_review=round_review,
+        )
     _merge_flat_section = review_form_service.merge_flat_section
     _merge_notes_explanations_descriptions = (
         review_form_service.merge_notes_explanations_descriptions
@@ -665,113 +584,19 @@ def create_app() -> FastAPI:
         force_transcribe: bool = False,
     ) -> tuple[str, list[str], list[dict[str, Any]]]:
         """Build section transcript using DB-backed recording runtime state."""
-        lines: list[str] = []
-        used: list[str] = []
-        failures: list[dict[str, Any]] = []
-        local_seen: set[str] = set()
-        for item in manifest:
-            if item.get("kind") != "recording":
-                continue
-            if item.get("section_id") != section_id:
-                continue
-            if issue_id is not None and item.get("issue_id") != issue_id:
-                continue
-            rec_id = item.get("artifact_id") or "unknown"
-            if rec_id in local_seen:
-                continue
-            if not force_reprocess and seen_recordings and rec_id in seen_recordings:
-                continue
-            meta = _recording_meta(job_id, round_id, section_id, rec_id)
-            stored_path = str(meta.get("stored_path") or "").strip()
-            if not stored_path:
-                continue
-            transcript = str(meta.get("transcript_text") or "").strip()
-            if transcript and not force_transcribe:
-                pass
-            else:
-                probe = meta.get("audio_probe") or {}
-                _log_event(
-                    "TRANSCRIBE",
-                    (
-                        "start job=%s section=%s recording=%s "
-                        "bytes=%s codec=%s sr=%s ch=%s duration=%s format=%s ffprobe_error=%s"
-                    ),
-                    job_id,
-                    section_id,
-                    rec_id,
-                    meta.get("bytes"),
-                    probe.get("codec_name"),
-                    probe.get("sample_rate"),
-                    probe.get("channels"),
-                    probe.get("duration"),
-                    probe.get("format_name"),
-                    probe.get("ffprobe_error"),
-                )
-                try:
-                    transcript = media_runtime_service.transcribe_recording(
-                        _materialize_artifact_path(stored_path),
-                        probe=probe,
-                        log_event=_log_event,
-                    ).strip()
-                    meta["transcript_text"] = transcript
-                    meta["processed"] = True
-                    meta.pop("transcription_error", None)
-                    media_runtime_service.save_recording_runtime_state(
-                        job_id=job_id,
-                        round_id=round_id,
-                        section_id=section_id,
-                        recording_id=rec_id,
-                        meta=meta,
-                        job_artifact_key=_job_artifact_key,
-                    )
-                    if os.environ.get("TRAQ_LOG_RAW_TRANSCRIPTS", "0").strip() == "1":
-                        _log_event(
-                            "TRANSCRIBE",
-                            "raw section=%s recording=%s text=%s",
-                            section_id,
-                            rec_id,
-                            transcript[:800],
-                        )
-                    _log_event(
-                        "TRANSCRIBE",
-                        "ok section=%s recording=%s chars=%s",
-                        section_id,
-                        rec_id,
-                        len(transcript),
-                    )
-                except Exception as exc:
-                    logger.exception(
-                        "[TRANSCRIBE] failed for job=%s section=%s recording=%s",
-                        job_id,
-                        section_id,
-                        rec_id,
-                    )
-                    failures.append(
-                        {
-                            "section_id": section_id,
-                            "recording_id": rec_id,
-                            "error": str(exc),
-                        }
-                    )
-                    meta["processed"] = False
-                    meta["transcription_error"] = str(exc)
-                    media_runtime_service.save_recording_runtime_state(
-                        job_id=job_id,
-                        round_id=round_id,
-                        section_id=section_id,
-                        recording_id=rec_id,
-                        meta=meta,
-                        job_artifact_key=_job_artifact_key,
-                    )
-                    local_seen.add(rec_id)
-                    continue
-            if transcript:
-                lines.append(transcript)
-                used.append(rec_id)
-            local_seen.add(rec_id)
-        if not lines:
-            return "", [], failures
-        return "\n\n".join(lines), used, failures
+        return media_runtime_service.build_section_transcript(
+            job_id=job_id,
+            round_id=round_id,
+            section_id=section_id,
+            manifest=manifest,
+            issue_id=issue_id,
+            seen_recordings=seen_recordings or set(),
+            force_reprocess=force_reprocess,
+            force_transcribe=force_transcribe,
+            materialize_artifact_path=_materialize_artifact_path,
+            job_artifact_key=_job_artifact_key,
+            log_event=_log_event,
+        )
 
     def _process_round(
         job_id: str,

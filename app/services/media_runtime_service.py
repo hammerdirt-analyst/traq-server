@@ -212,6 +212,105 @@ class MediaRuntimeService:
         images.sort(key=lambda item: item.get("uploaded_at", ""))
         return images[:5]
 
+    def recording_meta(
+        self,
+        *,
+        job_id: str,
+        round_id: str,
+        section_id: str,
+        recording_id: str,
+    ) -> dict[str, Any]:
+        """Load DB-backed metadata for one uploaded recording."""
+        payload = self._db_store.get_round_recording(
+            job_id=job_id,
+            round_id=round_id,
+            section_id=section_id,
+            recording_id=recording_id,
+        )
+        if not isinstance(payload, dict):
+            return {}
+        meta = dict(payload.get("metadata_json") or {})
+        if payload.get("artifact_path") and "stored_path" not in meta:
+            meta["stored_path"] = payload.get("artifact_path")
+        if payload.get("content_type") is not None and "content_type" not in meta:
+            meta["content_type"] = payload.get("content_type")
+        if payload.get("duration_ms") is not None and "duration_ms" not in meta:
+            meta["duration_ms"] = payload.get("duration_ms")
+        return meta
+
+    def build_reprocess_manifest(
+        self,
+        *,
+        job_id: str,
+        round_record: Any,
+        round_review: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        """Rebuild one round manifest from DB recordings, manifest, and review refs."""
+        by_section: dict[str, set[str]] = {}
+        recorded_at_map: dict[tuple[str, str], str] = {}
+
+        for payload in self._db_store.list_round_recordings(job_id, round_record.round_id):
+            section_id = str(payload.get("section_id") or "")
+            recording_id = str(payload.get("recording_id") or "")
+            if not section_id or not recording_id:
+                continue
+            by_section.setdefault(section_id, set()).add(recording_id)
+            meta = dict(payload.get("metadata_json") or {})
+            uploaded_at = meta.get("uploaded_at")
+            if isinstance(uploaded_at, str) and uploaded_at.strip():
+                recorded_at_map[(section_id, recording_id)] = uploaded_at
+
+        for item in round_record.manifest:
+            if item.get("kind") != "recording":
+                continue
+            section_id = item.get("section_id")
+            artifact_id = item.get("artifact_id")
+            if not section_id or not artifact_id:
+                continue
+            normalized_section = str(section_id)
+            normalized_artifact = str(artifact_id)
+            by_section.setdefault(normalized_section, set()).add(normalized_artifact)
+            recorded_at = item.get("recorded_at")
+            if isinstance(recorded_at, str) and recorded_at.strip():
+                recorded_at_map[(normalized_section, normalized_artifact)] = recorded_at
+
+        section_recordings = round_review.get("section_recordings")
+        if isinstance(section_recordings, dict):
+            for section_id, recording_ids in section_recordings.items():
+                if not isinstance(recording_ids, list):
+                    continue
+                for recording_id in recording_ids:
+                    if recording_id:
+                        by_section.setdefault(str(section_id), set()).add(str(recording_id))
+
+        manifest: list[dict[str, Any]] = []
+        client_order = 1
+        for section_id in sorted(by_section.keys()):
+            for recording_id in sorted(by_section[section_id]):
+                meta = self.recording_meta(
+                    job_id=job_id,
+                    round_id=round_record.round_id,
+                    section_id=section_id,
+                    recording_id=recording_id,
+                )
+                if not meta.get("stored_path"):
+                    continue
+                manifest.append(
+                    {
+                        "artifact_id": recording_id,
+                        "section_id": section_id,
+                        "client_order": client_order,
+                        "kind": "recording",
+                        "issue_id": None,
+                        "recorded_at": recorded_at_map.get(
+                            (section_id, recording_id),
+                            meta.get("uploaded_at"),
+                        ),
+                    }
+                )
+                client_order += 1
+        return manifest
+
     def transcribe_recording(
         self,
         file_path: Path,
@@ -272,6 +371,133 @@ class MediaRuntimeService:
         raise RuntimeError(
             f"Transcription failed after {max_attempts} attempts for {file_path.name}"
         ) from last_exc
+
+    def build_section_transcript(
+        self,
+        *,
+        job_id: str,
+        round_id: str,
+        section_id: str,
+        manifest: list[dict[str, Any]],
+        issue_id: str | None,
+        seen_recordings: set[str],
+        force_reprocess: bool,
+        force_transcribe: bool,
+        materialize_artifact_path: Callable[[str], Path],
+        job_artifact_key: Callable[..., str],
+        log_event: Callable[..., None],
+    ) -> tuple[str, list[str], list[dict[str, Any]]]:
+        """Build one section transcript from uploaded recordings and cached state."""
+        lines: list[str] = []
+        used: list[str] = []
+        failures: list[dict[str, Any]] = []
+        local_seen = set(seen_recordings)
+        ordered_recording_ids = [
+            str(item.get("artifact_id"))
+            for item in manifest
+            if item.get("kind") == "recording"
+            and str(item.get("section_id") or "") == section_id
+            and (issue_id is None or item.get("issue_id") == issue_id)
+            and item.get("artifact_id")
+        ]
+
+        for rec_id in ordered_recording_ids:
+            if rec_id in local_seen and not force_reprocess:
+                continue
+            meta = self.recording_meta(
+                job_id=job_id,
+                round_id=round_id,
+                section_id=section_id,
+                recording_id=rec_id,
+            )
+            stored_path = str(meta.get("stored_path") or "").strip()
+            if not stored_path:
+                continue
+            transcript = str(meta.get("transcript_text") or "").strip()
+            if not transcript or force_transcribe:
+                probe = meta.get("audio_probe") or {}
+                log_event(
+                    "TRANSCRIBE",
+                    (
+                        "start job=%s section=%s recording=%s "
+                        "bytes=%s codec=%s sr=%s ch=%s duration=%s format=%s ffprobe_error=%s"
+                    ),
+                    job_id,
+                    section_id,
+                    rec_id,
+                    meta.get("bytes"),
+                    probe.get("codec_name"),
+                    probe.get("sample_rate"),
+                    probe.get("channels"),
+                    probe.get("duration"),
+                    probe.get("format_name"),
+                    probe.get("ffprobe_error"),
+                )
+                try:
+                    transcript = self.transcribe_recording(
+                        materialize_artifact_path(stored_path),
+                        probe=probe,
+                        log_event=log_event,
+                    ).strip()
+                    meta["transcript_text"] = transcript
+                    meta["processed"] = True
+                    meta.pop("transcription_error", None)
+                    self.save_recording_runtime_state(
+                        job_id=job_id,
+                        round_id=round_id,
+                        section_id=section_id,
+                        recording_id=rec_id,
+                        meta=meta,
+                        job_artifact_key=job_artifact_key,
+                    )
+                    if os.environ.get("TRAQ_LOG_RAW_TRANSCRIPTS", "0").strip() == "1":
+                        log_event(
+                            "TRANSCRIBE",
+                            "raw section=%s recording=%s text=%s",
+                            section_id,
+                            rec_id,
+                            transcript[:800],
+                        )
+                    log_event(
+                        "TRANSCRIBE",
+                        "ok section=%s recording=%s chars=%s",
+                        section_id,
+                        rec_id,
+                        len(transcript),
+                    )
+                except Exception as exc:
+                    self._logger.exception(
+                        "[TRANSCRIBE] failed for job=%s section=%s recording=%s",
+                        job_id,
+                        section_id,
+                        rec_id,
+                    )
+                    failures.append(
+                        {
+                            "section_id": section_id,
+                            "recording_id": rec_id,
+                            "error": str(exc),
+                        }
+                    )
+                    meta["processed"] = False
+                    meta["transcription_error"] = str(exc)
+                    self.save_recording_runtime_state(
+                        job_id=job_id,
+                        round_id=round_id,
+                        section_id=section_id,
+                        recording_id=rec_id,
+                        meta=meta,
+                        job_artifact_key=job_artifact_key,
+                    )
+                    local_seen.add(rec_id)
+                    continue
+            if transcript:
+                lines.append(transcript)
+                used.append(rec_id)
+            local_seen.add(rec_id)
+        if not lines:
+            return "", [], failures
+        return "\n\n".join(lines), used, failures
 
     def save_recording_runtime_state(
         self,
