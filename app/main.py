@@ -43,6 +43,7 @@ from fastapi.responses import FileResponse
 from .api.admin_routes import build_admin_router
 from .api.core_routes import build_core_router
 from .api.extraction_routes import build_extraction_router
+from .api.image_routes import build_image_router
 from .api.job_read_routes import build_job_read_router
 from .api.job_write_routes import build_job_write_router
 from .api.recording_routes import build_recording_router
@@ -1815,159 +1816,23 @@ def create_app() -> FastAPI:
             log_event=_log_event,
         )
     )
-
-    @app.put("/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}")
-    async def upload_image(
-        job_id: str,
-        section_id: str,
-        image_id: str,
-        request: Request,
-        content_type: str | None = Header(default=None, alias="Content-Type"),
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        auth = require_api_key(x_api_key)
-        _assert_job_assignment(job_id, auth)
-        if section_id != JOB_PHOTOS_SECTION_ID:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Images must use section_id='{JOB_PHOTOS_SECTION_ID}'",
-            )
-        record = _ensure_job_record(job_id)
-        if record is None:
-            raise HTTPException(status_code=404, detail="Job not found")
-        _assert_job_editable(record, auth, allow_correction=True)
-        payload = await request.body()
-        if not payload:
-            raise HTTPException(status_code=400, detail="Empty image payload")
-        round_id = record.latest_round_id
-        if not round_id:
-            raise HTTPException(status_code=400, detail="No active round for image upload")
-        existing_ids = {
-            str(row.get("image_id") or "")
-            for row in db_store.list_round_images(job_id, round_id)
-            if str(row.get("section_id") or "") == section_id
-        }
-        if image_id not in existing_ids and len(existing_ids) >= 5:
-            raise HTTPException(status_code=400, detail="Maximum 5 images per job")
-        ext = media_runtime_service.guess_extension(content_type, ".jpg")
-        artifact_key = _job_artifact_key(
-            job_id,
-            "sections",
-            section_id,
-            "images",
-            f"{image_id}{ext}",
+    app.include_router(
+        build_image_router(
+            require_api_key=require_api_key,
+            assert_job_assignment=_assert_job_assignment,
+            ensure_job_record=_ensure_job_record,
+            assert_job_editable=_assert_job_editable,
+            media_runtime_service=media_runtime_service,
+            job_artifact_key=_job_artifact_key,
+            materialize_artifact_path=_materialize_artifact_path,
+            artifact_store=artifact_store,
+            db_store=db_store,
+            write_json=_write_json,
+            section_dir=_section_dir,
+            log_event=_log_event,
+            job_photos_section_id=JOB_PHOTOS_SECTION_ID,
         )
-        file_path = artifact_store.write_bytes(artifact_key, payload)
-        report_key = _job_artifact_key(
-            job_id,
-            "sections",
-            section_id,
-            "images",
-            f"{image_id}.report.jpg",
-        )
-        report_path, report_bytes = media_runtime_service.build_report_image_variant(
-            file_path,
-            _materialize_artifact_path(report_key),
-        )
-        meta = {
-            "image_id": image_id,
-            "section_id": section_id,
-            "content_type": content_type,
-            "bytes": len(payload),
-            "stored_path": artifact_key,
-            "report_image_path": report_key,
-            "report_bytes": report_bytes,
-            "uploaded_at": datetime.utcnow().isoformat() + "Z",
-        }
-        db_store.upsert_round_image(
-            job_id=job_id,
-            round_id=round_id,
-            section_id=section_id,
-            image_id=image_id,
-            upload_status="uploaded",
-            artifact_path=artifact_key,
-            metadata_json=meta,
-        )
-        _write_json(_section_dir(job_id, section_id) / "images" / f"{image_id}.meta.json", meta)
-        _log_event(
-            "IMAGE",
-            "upload job=%s section=%s image=%s bytes=%s report_bytes=%s",
-            job_id,
-            section_id,
-            image_id,
-            len(payload),
-            report_bytes,
-        )
-        return {
-            "ok": True,
-            "job_id": job_id,
-            "section_id": section_id,
-            "image_id": image_id,
-            "bytes": len(payload),
-        }
-
-    @app.patch("/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}")
-    def patch_image(
-        job_id: str,
-        section_id: str,
-        image_id: str,
-        payload: dict[str, Any],
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Update image metadata (caption/GPS) for stored job photo."""
-        auth = require_api_key(x_api_key)
-        _assert_job_assignment(job_id, auth)
-        if section_id != JOB_PHOTOS_SECTION_ID:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Images must use section_id='{JOB_PHOTOS_SECTION_ID}'",
-            )
-        record = _ensure_job_record(job_id)
-        if record is None:
-            raise HTTPException(status_code=404, detail="Job not found")
-        _assert_job_editable(record, auth, allow_correction=True)
-        round_id = record.latest_round_id
-        if not round_id:
-            raise HTTPException(status_code=400, detail="No active round for image patch")
-        existing = db_store.get_round_image(
-            job_id=job_id,
-            round_id=round_id,
-            section_id=section_id,
-            image_id=image_id,
-        )
-        if not isinstance(existing, dict):
-            raise HTTPException(status_code=404, detail="Image not found")
-        meta = dict(existing.get("metadata_json") or {})
-        meta.update(payload)
-        meta["updated_at"] = datetime.utcnow().isoformat() + "Z"
-        db_store.upsert_round_image(
-            job_id=job_id,
-            round_id=round_id,
-            section_id=section_id,
-            image_id=image_id,
-            upload_status=str(existing.get("upload_status") or "uploaded"),
-            caption=str(payload.get("caption") or meta.get("caption") or "").strip() or None,
-            latitude=str((payload.get("gps") or {}).get("latitude") or payload.get("latitude") or meta.get("latitude") or "").strip() or None,
-            longitude=str((payload.get("gps") or {}).get("longitude") or payload.get("longitude") or meta.get("longitude") or "").strip() or None,
-            artifact_path=str(existing.get("artifact_path") or meta.get("stored_path") or "").strip() or None,
-            metadata_json=meta,
-        )
-        _write_json(_section_dir(job_id, section_id) / "images" / f"{image_id}.meta.json", meta)
-        _log_event(
-            "IMAGE",
-            "patch job=%s section=%s image=%s keys=%s",
-            job_id,
-            section_id,
-            image_id,
-            sorted(payload.keys()),
-        )
-        return {
-            "ok": True,
-            "job_id": job_id,
-            "section_id": section_id,
-            "image_id": image_id,
-            "payload": payload,
-        }
+    )
 
     @app.post("/v1/jobs/{job_id}/final")
     def submit_final(

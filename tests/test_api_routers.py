@@ -15,6 +15,7 @@ from app import db as db_module
 from app.api.admin_routes import build_admin_router
 from app.api.core_routes import build_core_router
 from app.api.extraction_routes import build_extraction_router
+from app.api.image_routes import build_image_router
 from app.api.job_read_routes import build_job_read_router
 from app.api.job_write_routes import build_job_write_router
 from app.api.recording_routes import build_recording_router
@@ -547,6 +548,113 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(stored["db_kwargs"]["round_id"], "round_1")
         self.assertEqual(stored["meta"]["recording_id"], "rec_1")
         self.assertTrue(stored["logged"])
+
+    def test_image_router_builds_expected_endpoints(self) -> None:
+        class DummyAuth:
+            is_admin = False
+            device_id = "device-1"
+
+        class DummyJob:
+            latest_round_id = "round_1"
+
+        stored: dict[str, object] = {}
+        written_file = self.storage_root / "img_1.jpg"
+
+        class DummyArtifactStore:
+            def write_bytes(self, key, payload):
+                stored["artifact_key"] = key
+                stored["payload"] = payload
+                return written_file
+
+        class DummyDbStore:
+            def __init__(self) -> None:
+                self.image_row = {
+                    "upload_status": "uploaded",
+                    "artifact_path": "job_1/sections/job_photos/images/img_1.jpg",
+                    "metadata_json": {"stored_path": "job_1/sections/job_photos/images/img_1.jpg"},
+                }
+
+            def list_round_images(self, job_id, round_id):
+                return []
+
+            def upsert_round_image(self, **kwargs):
+                stored.setdefault("upserts", []).append(kwargs)
+
+            def get_round_image(self, **kwargs):
+                return self.image_row
+
+        class DummyMediaService:
+            def guess_extension(self, content_type, default_ext):
+                stored["content_type"] = content_type
+                return ".jpg"
+
+            def build_report_image_variant(self, source_path, output_path):
+                stored["report_source"] = source_path
+                stored["report_output"] = output_path
+                return output_path, 42
+
+        class DummyRequest:
+            async def body(self):
+                return b"image-bytes"
+
+        db_store = DummyDbStore()
+        router = build_image_router(
+            require_api_key=lambda key: DummyAuth(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_job_record=lambda job_id: DummyJob(),
+            assert_job_editable=lambda record, auth, allow_correction=False: None,
+            media_runtime_service=DummyMediaService(),
+            job_artifact_key=lambda *parts: "/".join(parts),
+            materialize_artifact_path=lambda key: self.storage_root / key,
+            artifact_store=DummyArtifactStore(),
+            db_store=db_store,
+            write_json=lambda path, payload: stored.setdefault("meta", payload),
+            section_dir=lambda job_id, section_id: self.storage_root / job_id / section_id,
+            log_event=lambda *args, **kwargs: stored.setdefault("logged", True),
+            job_photos_section_id="job_photos",
+        )
+
+        upload_image = self._router_endpoint(
+            router,
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PUT",
+        )
+        upload_payload = asyncio.run(
+            upload_image(
+                "job_1",
+                "job_photos",
+                "img_1",
+                DummyRequest(),
+                content_type="image/jpeg",
+                x_api_key="test-key",
+            )
+        )
+        self.assertTrue(upload_payload["ok"])
+        self.assertEqual(upload_payload["image_id"], "img_1")
+        self.assertEqual(
+            stored["artifact_key"],
+            "job_1/sections/job_photos/images/img_1.jpg",
+        )
+        self.assertEqual(stored["upserts"][0]["round_id"], "round_1")
+        self.assertEqual(stored["meta"]["report_bytes"], 42)
+
+        patch_image = self._router_endpoint(
+            router,
+            "/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}",
+            "PATCH",
+        )
+        patch_payload = patch_image(
+            "job_1",
+            "job_photos",
+            "img_1",
+            {"caption": "Oak", "gps": {"latitude": "1", "longitude": "2"}},
+            x_api_key="test-key",
+        )
+        self.assertTrue(patch_payload["ok"])
+        self.assertEqual(patch_payload["payload"]["caption"], "Oak")
+        self.assertEqual(stored["upserts"][1]["caption"], "Oak")
+        self.assertEqual(stored["upserts"][1]["latitude"], "1")
+        self.assertEqual(stored["upserts"][1]["longitude"], "2")
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):
