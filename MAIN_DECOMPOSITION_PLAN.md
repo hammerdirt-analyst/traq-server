@@ -67,6 +67,9 @@ Current progress:
   - any shared auth/runtime services
 - reduce large closure-based helper coupling in `app/main.py`
 
+Current progress:
+- completed: `app/runtime_context.py`
+
 ### Phase 3: Move Low-Risk Routers First
 
 - move these route groups into routers first:

@@ -40,7 +40,6 @@ import uuid
 
 from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
-from .artifact_storage import GCSArtifactStore, LocalArtifactStore
 from .api.models import (
     AdminJobStatusRequest,
     AssignJobRequest,
@@ -69,10 +68,9 @@ from .api.models import (
 )
 from .config import load_settings
 from .db import create_schema, init_database, session_scope
-from .db_store import DatabaseStore
 from .extractors.registry import run_extraction as _run_extraction_core
-from .security_store import AuthContext, SecurityStore
-from .service_discovery import DiscoveryConfig, ServiceDiscoveryAdvertiser
+from .runtime_context import RuntimeContext
+from .security_store import AuthContext
 from .services.tree_store import (
     apply_tree_number_to_form,
     get_or_create_customer,
@@ -80,14 +78,6 @@ from .services.tree_store import (
     requested_tree_number_from_form,
     resolve_tree,
 )
-from .services.customer_service import CustomerService
-from .services.access_control_service import AccessControlService
-from .services.final_mutation_service import FinalMutationService
-from .services.finalization_service import FinalizationService
-from .services.job_mutation_service import JobMutationService
-from .services.media_runtime_service import MediaRuntimeService
-from .services.review_payload_service import ReviewPayloadService
-from .services.runtime_state_service import RuntimeStateService
 
 JOB_PHOTOS_SECTION_ID = "job_photos"
 
@@ -194,49 +184,26 @@ def create_app() -> FastAPI:
     )
     logger = logging.getLogger("traq_demo")
     app = FastAPI(title="Tree Risk Demo API")
-    jobs: dict[str, JobRecord] = {}
-    security = SecurityStore(settings.storage_root / "security")
-    db_store = DatabaseStore()
-    access_control_service = AccessControlService(
-        api_key=settings.api_key,
-        db_store=db_store,
-        logger=logger,
-    )
-    if settings.artifact_backend == "gcs":
-        artifact_store = GCSArtifactStore(
-            bucket_name=settings.artifact_gcs_bucket or "",
-            prefix=settings.artifact_gcs_prefix,
-            cache_root=settings.storage_root / "artifact_cache",
-        )
-    else:
-        artifact_store = LocalArtifactStore(settings.storage_root)
-    customer_service = CustomerService()
-    final_mutation_service = FinalMutationService()
-    finalization_service = FinalizationService()
-    job_mutation_service = JobMutationService()
-    media_runtime_service = MediaRuntimeService(
-        db_store=db_store,
-        artifact_store=artifact_store,
-        logger=logger,
-    )
-    review_payload_service = ReviewPayloadService()
-    runtime_state_service = RuntimeStateService(
-        storage_root=settings.storage_root,
-        db_store=db_store,
-        artifact_store=artifact_store,
-        logger=logger,
+    runtime = RuntimeContext(settings=settings, logger=logger)
+    runtime.bind_runtime_state_service(
         parse_tree_number=parse_tree_number,
         job_record_factory=JobRecord,
         round_record_factory=RoundRecord,
         write_json=lambda path, payload: _write_json(path, payload),
     )
-    advertiser = ServiceDiscoveryAdvertiser(
-        DiscoveryConfig(
-            port=settings.discovery_port,
-            service_name=settings.discovery_name,
-        ),
-        logger=logger,
-    )
+    jobs = runtime.jobs
+    security = runtime.security
+    db_store = runtime.db_store
+    artifact_store = runtime.artifact_store
+    access_control_service = runtime.access_control_service
+    customer_service = runtime.customer_service
+    final_mutation_service = runtime.final_mutation_service
+    finalization_service = runtime.finalization_service
+    job_mutation_service = runtime.job_mutation_service
+    media_runtime_service = runtime.media_runtime_service
+    review_payload_service = runtime.review_payload_service
+    runtime_state_service = runtime.runtime_state_service
+    advertiser = runtime.advertiser
 
     def _log_event(tag: str, message: str, *args: Any) -> None:
         """Log tagged operational event through app logger."""
