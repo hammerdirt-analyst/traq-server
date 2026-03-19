@@ -176,9 +176,10 @@ Additional controls to define before broad production use:
 Known non-blocking issue
 ------------------------
 
-Tracked separately:
+Tracked in the remote issue tracker:
 
-- ``issues/archived_job_auto_claim_too_permissive.md``
+- archived jobs can still auto-claim after local restore and should require an
+  explicit reopen flow
 
 This is a lifecycle control issue, not a deployment blocker for the first cloud
 rollout.
