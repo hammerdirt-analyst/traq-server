@@ -46,6 +46,7 @@ from .api.extraction_routes import build_extraction_router
 from .api.job_read_routes import build_job_read_router
 from .api.job_write_routes import build_job_write_router
 from .api.round_manifest_routes import build_round_manifest_router
+from .api.round_reprocess_routes import build_round_reprocess_router
 from .api.round_submit_routes import build_round_submit_router
 from .api.models import (
     AdminJobStatusRequest,
@@ -1770,67 +1771,19 @@ def create_app() -> FastAPI:
         )
     )
 
-    @app.post("/v1/jobs/{job_id}/rounds/{round_id}/reprocess")
-    def reprocess_round(
-        job_id: str,
-        round_id: str,
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Force re-transcribe/re-extract all server-stored round recordings."""
-        auth = require_api_key(x_api_key)
-        _assert_job_assignment(job_id, auth)
-        record, round_record = _ensure_round_record(job_id, round_id)
-        persisted_round = db_store.get_job_round(job_id, round_id)
-        round_review = (persisted_round or {}).get("review_payload")
-        if not isinstance(round_review, dict):
-            raise HTTPException(status_code=404, detail="Review not found for round")
-        manifest = _build_reprocess_manifest(job_id, round_record, round_review)
-        if not manifest:
-            raise HTTPException(status_code=400, detail="No server recordings available to reprocess")
-
-        logger.info(
-            "POST /v1/jobs/%s/rounds/%s/reprocess (%s recordings)",
-            job_id,
-            round_id,
-            len(manifest),
+    app.include_router(
+        build_round_reprocess_router(
+            require_api_key=require_api_key,
+            assert_job_assignment=_assert_job_assignment,
+            ensure_round_record=_ensure_round_record,
+            db_store=db_store,
+            build_reprocess_manifest=_build_reprocess_manifest,
+            save_job_record=_save_job_record,
+            load_latest_review=_load_latest_review,
+            process_round=_process_round,
+            logger=logger,
         )
-        round_record.status = "SUBMITTED_FOR_PROCESSING"
-        record.latest_round_status = round_record.status
-        record.status = "SUBMITTED_FOR_PROCESSING"
-        _save_job_record(record)
-        round_record.server_revision_id = round_record.server_revision_id or f"rev_{round_id}"
-        base_review_override = _load_latest_review(job_id, exclude_round_id=round_id)
-        review_payload: dict[str, Any] = {}
-        try:
-            review_payload = _process_round(
-                job_id,
-                round_id,
-                record,
-                base_review_override=base_review_override,
-                manifest_override=manifest,
-                force_reprocess=True,
-                force_transcribe=True,
-            )
-            round_record.status = "REVIEW_RETURNED"
-            record.latest_round_status = round_record.status
-            record.status = "REVIEW_RETURNED"
-            _save_job_record(record)
-        except Exception:
-            logger.exception("Round reprocess failed for %s/%s", job_id, round_id)
-            round_record.status = "FAILED"
-            record.latest_round_status = "FAILED"
-            record.status = "FAILED"
-            _save_job_record(record)
-            raise HTTPException(status_code=500, detail="Round reprocess failed")
-
-        return {
-            "ok": True,
-            "round_id": round_id,
-            "status": round_record.status,
-            "tree_number": record.tree_number,
-            "manifest_count": len(manifest),
-            "transcription_failures": review_payload.get("transcription_failures") or [],
-        }
+    )
 
     app.include_router(
         build_admin_router(

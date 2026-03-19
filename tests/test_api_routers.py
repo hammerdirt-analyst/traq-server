@@ -17,6 +17,7 @@ from app.api.extraction_routes import build_extraction_router
 from app.api.job_read_routes import build_job_read_router
 from app.api.job_write_routes import build_job_write_router
 from app.api.round_manifest_routes import build_round_manifest_router
+from app.api.round_reprocess_routes import build_round_reprocess_router
 from app.api.round_submit_routes import build_round_submit_router
 
 
@@ -425,6 +426,43 @@ class ApiRouterTests(unittest.TestCase):
         )
         self.assertTrue(payload["accepted"])
         self.assertEqual(payload["processed_count"], 1)
+        self.assertEqual(record.status, "REVIEW_RETURNED")
+
+    def test_round_reprocess_router_builds_expected_endpoint(self) -> None:
+        class DummyAuth:
+            is_admin = False
+            device_id = "device-1"
+
+        class DummyRound:
+            def __init__(self) -> None:
+                self.status = "REVIEW_RETURNED"
+                self.server_revision_id = None
+
+        class DummyJob:
+            def __init__(self) -> None:
+                self.latest_round_status = "REVIEW_RETURNED"
+                self.status = "REVIEW_RETURNED"
+                self.tree_number = 7
+
+        record = DummyJob()
+        round_record = DummyRound()
+
+        router = build_round_reprocess_router(
+            require_api_key=lambda key: DummyAuth(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_round_record=lambda job_id, round_id: (record, round_record),
+            db_store=type("DbStore", (), {"get_job_round": lambda self, job_id, round_id: {"review_payload": {"cached": True}}})(),
+            build_reprocess_manifest=lambda job_id, round_record, review: [{"artifact_id": "rec_1"}],
+            save_job_record=lambda record: None,
+            load_latest_review=lambda job_id, exclude_round_id=None: {"draft_form": {}},
+            process_round=lambda *args, **kwargs: {"transcription_failures": []},
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
+        )
+
+        reprocess = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}/reprocess", "POST")
+        payload = reprocess("job_1", "round_1", x_api_key="test-key")
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["manifest_count"], 1)
         self.assertEqual(record.status, "REVIEW_RETURNED")
 
     @staticmethod
