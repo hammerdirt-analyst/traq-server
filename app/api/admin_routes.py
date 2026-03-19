@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Body, Header, HTTPException
 
-from .models import AdminJobStatusRequest, AssignJobRequest
+from .models import AdminJobStatusRequest, AdminJobUnlockRequest, AssignJobRequest
 
 
 def build_admin_router(
@@ -44,6 +44,54 @@ def build_admin_router(
         save_job_record(record)
         logger.info("POST /v1/admin/jobs/%s/rounds/%s/reopen", job_id, round_id)
         return {"ok": True, "job_id": job_id, "round_id": round_id, "status": "DRAFT"}
+
+    @router.post("/v1/admin/jobs/{job_id}/unlock")
+    def admin_unlock_job(
+        job_id: str,
+        payload: AdminJobUnlockRequest = Body(default_factory=AdminJobUnlockRequest),
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint reopening a finalized job and optionally reassigning it."""
+        require_api_key(x_api_key, required_role="admin")
+        record = ensure_job_record(job_id)
+        if record is None:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        round_id = (payload.round_id or record.latest_round_id or "").strip()
+        if not round_id:
+            raise HTTPException(status_code=400, detail="round_id is required")
+        if round_id not in record.rounds:
+            raise HTTPException(status_code=404, detail="Round not found")
+
+        round_record = record.rounds[round_id]
+        round_record.status = "DRAFT"
+        record.latest_round_id = round_id
+        record.latest_round_status = "DRAFT"
+        record.status = "DRAFT"
+        save_job_record(record)
+
+        assignment = None
+        device_id = (payload.device_id or "").strip()
+        if device_id:
+            try:
+                assignment = assign_job_record(
+                    job_id=job_id,
+                    device_id=device_id,
+                    assigned_by="admin_unlock",
+                )
+            except KeyError as exc:
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
+            except PermissionError as exc:
+                raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+        logger.info("POST /v1/admin/jobs/%s/unlock -> round=%s device=%s", job_id, round_id, device_id or None)
+        return {
+            "ok": True,
+            "job_id": job_id,
+            "round_id": round_id,
+            "status": "DRAFT",
+            "assignment": assignment,
+        }
 
     @router.get("/v1/admin/jobs/assignments")
     def admin_list_job_assignments(

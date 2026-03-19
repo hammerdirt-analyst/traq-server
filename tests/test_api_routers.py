@@ -9,6 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
+from fastapi import HTTPException
 from fastapi.routing import APIRoute
 
 from app import db as db_module
@@ -175,6 +176,15 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(record.status, "DRAFT")
         self.assertEqual(record.latest_round_status, "DRAFT")
         self.assertEqual(len(saved), 1)
+
+        unlock = self._router_endpoint(router, "/v1/admin/jobs/{job_id}/unlock", "POST")
+        response = unlock(
+            "job_1",
+            type("Payload", (), {"round_id": "round_1", "device_id": "device-1"})(),
+            x_api_key="test-key",
+        )
+        self.assertTrue(response["ok"])
+        self.assertEqual(response["assignment"]["device_id"], "device-1")
 
     def test_job_read_router_builds_expected_endpoints(self) -> None:
         class DummyRound:
@@ -800,6 +810,131 @@ class ApiRouterTests(unittest.TestCase):
         get_report = self._router_endpoint(router, "/v1/jobs/{job_id}/final/report", "GET")
         report_response = get_report("job_1", x_api_key="test-key")
         self.assertEqual(report_response.filename, "report_letter.pdf")
+
+    def test_final_router_returns_conflict_for_duplicate_final(self) -> None:
+        class DummyAuth:
+            is_admin = False
+            device_id = "device-1"
+
+        class DummyJob:
+            def __init__(self, job_id: str, job_number: str, status: str) -> None:
+                self.job_id = job_id
+                self.job_number = job_number
+                self.status = status
+                self.latest_round_id = "round_1"
+                self.latest_round_status = "REVIEW_RETURNED"
+                self.tree_number = None
+                self.billing_name = "Billing"
+                self.customer_name = "Customer"
+
+        class DummyProfile:
+            def model_dump(self):
+                return {"name": "Arborist"}
+
+        class DummyPayload:
+            round_id = "round_1"
+            server_revision_id = "srv-1"
+            client_revision_id = "cli-1"
+            form = {"data": {"tree_number": 7}}
+            narrative = {"text": "Tree is stable."}
+            profile = DummyProfile()
+
+        class DummyArtifactStore:
+            def __init__(self, root: Path) -> None:
+                self.root = root
+
+            def stage_output(self, key):
+                path = self.root / key
+                path.parent.mkdir(parents=True, exist_ok=True)
+                return path
+
+            def commit_output(self, key, path):
+                return path
+
+        class DummyDbStore:
+            def get_job_round(self, job_id, round_id):
+                return {"review_payload": {"transcript": "Transcript text"}}
+
+        router = build_final_router(
+            require_api_key=lambda key: DummyAuth(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_job_record=lambda job_id: DummyJob(job_id, "J0001", "REVIEW_RETURNED"),
+            job_record_factory=DummyJob,
+            jobs={},
+            db_store=DummyDbStore(),
+            is_correction_mode=lambda job_id, record: False,
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
+            finalization_service=type(
+                "FinalizationService",
+                (),
+                {
+                    "transcript_from_review_payload": lambda self, payload: "Transcript text",
+                    "artifact_names": lambda self, correction_mode: type(
+                        "ArtifactNames",
+                        (),
+                        {
+                            "pdf_name": "final_traq_page1.pdf",
+                            "report_name": "final_report_letter.pdf",
+                            "report_docx_name": "final_report_letter.docx",
+                            "final_json_name": "final.json",
+                            "geojson_name": "final.geojson",
+                        },
+                    )(),
+                    "ensure_risk_defaults": lambda self, form, normalize_form_schema: form,
+                    "build_job_info": lambda self, record: {"job_number": record.job_number},
+                    "resolve_profile_payload": lambda self, profile_payload, fallback_loader: profile_payload,
+                    "build_final_payload": lambda self, **kwargs: {"form": kwargs["form"], "transcript": kwargs["transcript"]},
+                },
+            )(),
+            artifact_store=DummyArtifactStore(self.storage_root),
+            job_artifact_key=lambda *parts: "/".join(parts),
+            requested_tree_number_from_form=lambda form: 7,
+            resolve_server_tree_number=lambda record, requested_tree_number=None: requested_tree_number,
+            normalize_form_schema=lambda form: form,
+            apply_tree_number_to_form=lambda form, tree_number: form,
+            save_job_record=lambda record: None,
+            identity_key=lambda auth, key: "identity",
+            load_runtime_profile=lambda key: {"name": "Fallback"},
+            media_runtime_service=type("MediaService", (), {"load_job_report_images": lambda self, job_id, round_id: []})(),
+            generate_traq_pdf=lambda form_data, output_path: Path(output_path).write_bytes(b"%PDF-1.4"),
+            write_json=lambda path, payload: Path(path).write_text('{"ok": true}'),
+            read_json=lambda path: {"type": "FeatureCollection"},
+            final_mutation_service=type(
+                "FinalMutationService",
+                (),
+                {
+                    "set_final": lambda self, job_id, payload, geojson_payload=None: (_ for _ in ()).throw(
+                        ValueError("Final snapshot already exists for job_1")
+                    ),
+                },
+            )(),
+            unassign_job_record=lambda job_id: None,
+            materialize_artifact_path=lambda key: self.storage_root / key,
+        )
+
+        from app import geojson_export, report_letter
+
+        old_polish_summary = report_letter.polish_summary
+        old_build_report_letter = report_letter.build_report_letter
+        old_generate_pdf = report_letter.generate_report_letter_pdf
+        old_generate_docx = report_letter.generate_report_letter_docx
+        old_geojson = geojson_export.write_final_geojson
+        self.addCleanup(setattr, report_letter, "polish_summary", old_polish_summary)
+        self.addCleanup(setattr, report_letter, "build_report_letter", old_build_report_letter)
+        self.addCleanup(setattr, report_letter, "generate_report_letter_pdf", old_generate_pdf)
+        self.addCleanup(setattr, report_letter, "generate_report_letter_docx", old_generate_docx)
+        self.addCleanup(setattr, geojson_export, "write_final_geojson", old_geojson)
+
+        report_letter.polish_summary = lambda narrative_text, form_data, transcript: "Summary"
+        report_letter.build_report_letter = lambda **kwargs: "Letter"
+        report_letter.generate_report_letter_pdf = lambda *args, **kwargs: Path(args[1]).write_bytes(b"%PDF-1.4")
+        report_letter.generate_report_letter_docx = lambda *args, **kwargs: Path(args[1]).write_text("docx")
+        geojson_export.write_final_geojson = lambda output_path, **kwargs: Path(output_path).write_text('{"type":"FeatureCollection"}')
+
+        submit_final = self._router_endpoint(router, "/v1/jobs/{job_id}/final", "POST")
+        with self.assertRaises(HTTPException) as exc:
+            submit_final("job_1", DummyPayload(), x_api_key="test-key")
+        self.assertEqual(exc.exception.status_code, 409)
 
     def test_final_router_uses_final_submit_request_body(self) -> None:
         router = build_final_router(

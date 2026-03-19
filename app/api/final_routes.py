@@ -212,6 +212,18 @@ def build_final_router(
             artifact_store.commit_output(final_json_key, final_json_path)
             artifact_store.commit_output(geojson_key, geojson_path)
             unassign_job_record(job_id)
+        except ValueError as exc:
+            detail = str(exc)
+            if "Final snapshot already exists" in detail:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "Final snapshot already exists for this job. "
+                        "Reopen the job with the admin unlock workflow and resubmit as a correction."
+                    ),
+                ) from exc
+            logger.exception("Failed to finalize job %s", job_id)
+            raise HTTPException(status_code=500, detail="Finalization cleanup failed") from exc
         except KeyError:
             logger.info("Finalized job %s had no assignment to remove", job_id)
         except Exception:

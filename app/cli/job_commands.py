@@ -173,6 +173,33 @@ def cmd_job_set_status(
     return _print_http_result(code, body, print_json)
 
 
+def cmd_job_unlock(
+    args: argparse.Namespace,
+    *,
+    http: HttpCaller,
+    resolve_job_id: JobResolver,
+    print_json: JsonPrinter,
+) -> int:
+    """Reopen a finalized job and optionally reassign it to a device."""
+    try:
+        job_id = resolve_job_id(args.host, args.api_key, args.job)
+    except Exception as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    payload: dict[str, Any] = {}
+    if args.round_id:
+        payload["round_id"] = args.round_id
+    if args.device_id:
+        payload["device_id"] = args.device_id
+    code, body = http(
+        "POST",
+        f"{args.host.rstrip('/')}/v1/admin/jobs/{parse.quote(job_id)}/unlock",
+        api_key=args.api_key,
+        payload=payload,
+    )
+    return _print_http_result(code, body, print_json)
+
+
 def cmd_round_reopen(
     args: argparse.Namespace,
     *,
@@ -254,6 +281,14 @@ def register_job_commands(
     assign_cmd.add_argument("--host", default=default_host)
     assign_cmd.add_argument("--api-key", default=default_api_key)
     assign_cmd.set_defaults(func=handlers["assign"])
+
+    unlock_cmd = job_sub.add_parser("unlock", help="Reopen a finalized job and optionally reassign it")
+    unlock_cmd.add_argument("--job", required=True, help="job_id or job_number")
+    unlock_cmd.add_argument("--round-id")
+    unlock_cmd.add_argument("--device-id")
+    unlock_cmd.add_argument("--host", default=default_host)
+    unlock_cmd.add_argument("--api-key", default=default_api_key)
+    unlock_cmd.set_defaults(func=handlers["unlock"])
 
     unassign_cmd = job_sub.add_parser("unassign", help="Remove assignment from a job")
     unassign_cmd.add_argument("--job", required=True, help="job_id or job_number")

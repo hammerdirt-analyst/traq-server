@@ -61,6 +61,7 @@ from app.cli.job_commands import (
     cmd_job_assign as _cmd_job_assign,
     cmd_job_list_assignments as _cmd_job_list_assignments,
     cmd_job_set_status as _cmd_job_set_status,
+    cmd_job_unlock as _cmd_job_unlock,
     cmd_job_unassign as _cmd_job_unassign,
     cmd_job_update as _cmd_job_update,
     cmd_round_reopen as _cmd_round_reopen,
@@ -327,6 +328,16 @@ def cmd_job_set_status(args: argparse.Namespace) -> int:
     return _cmd_job_set_status(args, http=_http, resolve_job_id=_resolve_job_id, print_json=_print_json)
 
 
+def cmd_job_unlock(args: argparse.Namespace) -> int:
+    if args.device_id:
+        try:
+            args.device_id = _resolve_device_id(args.device_id)
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+            return 1
+    return _cmd_job_unlock(args, http=_http, resolve_job_id=_resolve_job_id, print_json=_print_json)
+
+
 def cmd_job_inspect(args: argparse.Namespace) -> int:
     return _cmd_job_inspect(args, inspection_service=_inspection_service, print_json=_print_json)
 
@@ -409,6 +420,7 @@ def build_parser() -> argparse.ArgumentParser:
             "update": cmd_job_update,
             "list_assignments": cmd_job_list_assignments,
             "assign": cmd_job_assign,
+            "unlock": cmd_job_unlock,
             "unassign": cmd_job_unassign,
             "set_status": cmd_job_set_status,
         },
@@ -468,6 +480,7 @@ def _inject_repl_defaults(tokens: list[str], *, host: str, api_key: str) -> list
     augmented = list(tokens)
     needs_http_defaults = (
         (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status"})
+        or (top == "job" and sub == "unlock")
         or (top == "round" and sub == "reopen")
     )
     if needs_http_defaults:
@@ -505,6 +518,7 @@ def _repl_command_catalog() -> list[str]:
             "job update",
             "job list-assignments",
             "job assign",
+            "job unlock",
             "job unassign",
             "job set-status",
             "job inspect",

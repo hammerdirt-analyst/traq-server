@@ -196,6 +196,23 @@ class AdminCliTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertEqual(http_mock.call_count, 3)
 
+    @patch("admin_cli._http")
+    def test_job_unlock(self, http_mock) -> None:
+        http_mock.return_value = (200, {"ok": True, "status": "DRAFT"})
+        self._register_pending_device("device-1")
+        rc, output = self._stdout_for(
+            admin_cli.cmd_job_unlock,
+            argparse.Namespace(
+                job="job_1",
+                round_id="round_2",
+                device_id="device-1",
+                host="http://127.0.0.1:8000",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"status": "DRAFT"', output)
+
     def test_resolve_device_id_accepts_unique_prefix(self) -> None:
         self._register_pending_device("dc82323f-5424-49a2-9211-67b01f9f9ded")
         resolved = admin_cli._resolve_device_id("dc82323f")
@@ -752,6 +769,23 @@ class AdminCliTests(unittest.TestCase):
                 "J0001",
                 "--device-id",
                 "device-1",
+                "--host",
+                "http://127.0.0.1:8000",
+                "--api-key",
+                "demo-key",
+            ],
+        )
+        self.assertEqual(
+            admin_cli._inject_repl_defaults(
+                ["job", "unlock", "--job", "J0001"],
+                host="http://127.0.0.1:8000",
+                api_key="demo-key",
+            ),
+            [
+                "job",
+                "unlock",
+                "--job",
+                "J0001",
                 "--host",
                 "http://127.0.0.1:8000",
                 "--api-key",

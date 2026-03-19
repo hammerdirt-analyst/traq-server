@@ -195,6 +195,13 @@ class AdminJobStatusRequest(BaseModel):
     round_status: str | None = None
 
 
+class AdminJobUnlockRequest(BaseModel):
+    """Admin payload used to reopen a finalized job for one device."""
+
+    round_id: str | None = None
+    device_id: str | None = None
+
+
 class SiteFactorsRequest(BaseModel):
     """Transcript payload for the site-factors extractor."""
 

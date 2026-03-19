@@ -422,6 +422,9 @@ def create_app() -> FastAPI:
         """Return True when writes should target correction artifacts."""
         if record and (record.status or "").strip().upper() == "ARCHIVED":
             return True
+        job_row = db_store.get_job(job_id)
+        if isinstance(job_row, dict) and job_row.get("final_snapshot"):
+            return True
         return artifact_store.exists(_job_artifact_key(job_id, "final.json"))
 
     _load_runtime_profile = device_profile_service.load_runtime_profile
