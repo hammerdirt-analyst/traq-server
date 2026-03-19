@@ -81,6 +81,7 @@ from .db import create_schema, init_database, session_scope
 from .extractors.registry import run_extraction as _run_extraction_core
 from .runtime_context import RuntimeContext
 from .security_store import AuthContext
+from .services.assigned_job_service import AssignedJobService
 from .services.tree_store import (
     apply_tree_number_to_form,
     get_or_create_customer,
@@ -216,6 +217,12 @@ def create_app() -> FastAPI:
     review_payload_service = runtime.review_payload_service
     round_submit_service = runtime.round_submit_service
     runtime_state_service = runtime.runtime_state_service
+    assigned_job_service = AssignedJobService(
+        db_store=db_store,
+        review_payload_service=review_payload_service,
+        normalize_form_schema=review_form_service.normalize_form_schema,
+        assigned_job_factory=AssignedJob,
+    )
     advertiser = runtime.advertiser
 
     def _log_event(tag: str, message: str, *args: Any) -> None:
@@ -238,58 +245,15 @@ def create_app() -> FastAPI:
         """Return a readable local path for one artifact key."""
         return artifact_store.materialize_path(key)
 
-    def _to_assigned_job(record: JobRecord) -> AssignedJob:
-        """Convert internal JobRecord to API AssignedJob model."""
-        server_revision_id = None
-        review_payload: dict[str, Any] | None = None
-        if record.latest_round_id:
-            round_record = record.rounds.get(record.latest_round_id)
-            if round_record is not None:
-                server_revision_id = round_record.server_revision_id
-            review_data = (db_store.get_job_round(record.job_id, record.latest_round_id) or {}).get("review_payload")
-            if isinstance(review_data, dict):
-                review_payload = review_payload_service.normalize_payload(
-                    review_data,
-                    tree_number=record.tree_number,
-                    normalize_form_schema=_normalize_form_schema,
-                    hydrated_images=review_payload_service.build_round_images(
-                        db_store.list_round_images(record.job_id, record.latest_round_id)
-                    ),
-                )
-                if server_revision_id is None:
-                    server_revision_id = review_data.get("server_revision_id")
-        return AssignedJob(
-            job_id=record.job_id,
-            job_number=record.job_number,
-            status=record.status or "NOT_STARTED",
-            latest_round_id=record.latest_round_id,
-            latest_round_status=record.latest_round_status,
-            customer_name=record.customer_name or "",
-            tree_number=record.tree_number,
-            address=record.address or "",
-            tree_species=record.tree_species or "",
-            reason=record.reason,
-            job_name=record.job_name or "",
-            job_address=record.job_address or "",
-            job_phone=record.job_phone or "",
-            contact_preference=record.contact_preference or "",
-            billing_name=record.billing_name or "",
-            billing_address=record.billing_address or "",
-            billing_contact_name=record.billing_contact_name,
-            location_notes=record.location_notes,
-            server_revision_id=server_revision_id,
-            review_payload=review_payload,
-        )
+    _to_assigned_job = assigned_job_service.to_assigned_job
 
     def _resolve_assigned_job(job_id: str) -> AssignedJob | None:
         """Resolve assigned job object from the latest persisted runtime state."""
-        persisted = _refresh_job_record_from_store(job_id)
-        if persisted is not None:
-            return _to_assigned_job(persisted)
-        record = jobs.get(job_id)
-        if record is not None:
-            return _to_assigned_job(record)
-        return None
+        return assigned_job_service.resolve_assigned_job(
+            job_id,
+            refresh_job_record_from_store=_refresh_job_record_from_store,
+            jobs_cache=jobs,
+        )
 
     _register_device_record = device_profile_service.register_device_record
     _get_device_record = device_profile_service.get_device_record

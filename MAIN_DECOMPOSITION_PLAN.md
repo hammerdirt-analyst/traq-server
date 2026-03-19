@@ -59,6 +59,7 @@ Current progress:
 - completed: `app/services/round_submit_service.py`
 - completed: `app/services/review_form_service.py`
 - completed: `app/services/device_profile_service.py`
+- completed: `app/services/assigned_job_service.py`
 
 ### Phase 2: Introduce Shared Runtime Context
 
