@@ -16,6 +16,7 @@ from app.api.core_routes import build_core_router
 from app.api.extraction_routes import build_extraction_router
 from app.api.job_read_routes import build_job_read_router
 from app.api.job_write_routes import build_job_write_router
+from app.api.round_manifest_routes import build_round_manifest_router
 
 
 class ApiRouterTests(unittest.TestCase):
@@ -331,6 +332,38 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(round_response.round_id, "round_1")
         self.assertEqual(loaded_record.latest_round_id, "round_1")
         self.assertEqual(saved_rounds[0][0], "job_abc123def456")
+
+    def test_round_manifest_router_builds_expected_endpoint(self) -> None:
+        class DummyRound:
+            def __init__(self) -> None:
+                self.manifest = []
+
+        round_record = DummyRound()
+
+        router = build_round_manifest_router(
+            require_api_key=lambda key: object(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_round_record=lambda job_id, round_id: (object(), round_record),
+            assert_round_editable=lambda record, round_id, auth, allow_correction=False: None,
+            save_round_record=lambda job_id, round_record: None,
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
+        )
+
+        set_manifest = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}/manifest", "PUT")
+        payload = set_manifest(
+            "job_1",
+            "round_1",
+            [
+                self.main_module.ManifestItem(
+                    artifact_id="rec_1",
+                    section_id="site_factors",
+                    kind="recording",
+                )
+            ],
+            x_api_key="test-key",
+        )
+        self.assertEqual(payload["manifest_count"], 1)
+        self.assertEqual(round_record.manifest[0]["artifact_id"], "rec_1")
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):

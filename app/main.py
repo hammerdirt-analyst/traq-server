@@ -45,6 +45,7 @@ from .api.core_routes import build_core_router
 from .api.extraction_routes import build_extraction_router
 from .api.job_read_routes import build_job_read_router
 from .api.job_write_routes import build_job_write_router
+from .api.round_manifest_routes import build_round_manifest_router
 from .api.models import (
     AdminJobStatusRequest,
     AssignJobRequest,
@@ -1736,27 +1737,16 @@ def create_app() -> FastAPI:
         )
     )
 
-    @app.put("/v1/jobs/{job_id}/rounds/{round_id}/manifest")
-    def set_manifest(
-        job_id: str,
-        round_id: str,
-        manifest: list[ManifestItem],
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        """Replace round manifest (recordings/images metadata list)."""
-        auth = require_api_key(x_api_key)
-        _assert_job_assignment(job_id, auth)
-        record, round_record = _ensure_round_record(job_id, round_id)
-        _assert_round_editable(record, round_id, auth, allow_correction=True)
-        round_record.manifest = [item.model_dump() for item in manifest]
-        _save_round_record(job_id, round_record)
-        logger.info(
-            "PUT /v1/jobs/%s/rounds/%s/manifest (%s items)",
-            job_id,
-            round_id,
-            len(manifest),
+    app.include_router(
+        build_round_manifest_router(
+            require_api_key=require_api_key,
+            assert_job_assignment=_assert_job_assignment,
+            ensure_round_record=_ensure_round_record,
+            assert_round_editable=_assert_round_editable,
+            save_round_record=_save_round_record,
+            logger=logger,
         )
-        return {"ok": True, "round_id": round_id, "manifest_count": len(manifest)}
+    )
 
     @app.post("/v1/jobs/{job_id}/rounds/{round_id}/submit")
     def submit_round(
