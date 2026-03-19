@@ -1,27 +1,13 @@
-"""Main FastAPI application for TRAQ field-data processing.
+"""FastAPI composition root for the TRAQ server.
 
-Authors:
-    Roger Erismann (https://hammerdirt.solutions), OpenAI Codex
+This module now focuses on application assembly:
+- define the lightweight runtime dataclasses still shared across routers
+- construct shared runtime dependencies
+- wire routers and service collaborators together
+- attach startup and shutdown hooks
 
-Purpose:
-    Exposes the end-to-end server workflow used by the mobile client:
-    device auth, job/round lifecycle, media ingest, transcription/extraction,
-    review payload generation, and final artifact exports (TRAQ PDF, report
-    letter PDF, and GeoJSON).
-
-Architecture highlights:
-    - Overlay-based PDF fill (`pdf_fill.py`) using canonical mapping
-      (`app/traq_2_schema/traq_full_map.json`)
-    - Registry-driven section extraction (`extractors/registry.py`)
-    - DB-backed device auth, assignment, and runtime state
-    - Local artifact storage under the configured storage root for uploaded
-      media and generated outputs
-
-Operational notes:
-    - Logging is configured here (console + rotating file under
-      `<storage_root>/logs/server.log`).
-    - This module uses nested helper functions inside `create_app()` to keep
-      closure access to settings/log/security state explicit and centralized.
+Core job, review, media, and finalization behavior lives in dedicated router
+and service modules under `app/api/` and `app/services/`.
 """
 from __future__ import annotations
 
