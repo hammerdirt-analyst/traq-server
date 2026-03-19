@@ -54,6 +54,7 @@ Current progress:
 - completed: `app/services/access_control_service.py`
 - completed: `app/services/review_payload_service.py`
 - completed: `app/services/finalization_service.py`
+- completed: `app/services/media_runtime_service.py`
 
 ### Phase 2: Introduce Shared Runtime Context
 

@@ -32,10 +32,7 @@ import logging
 import logging.config
 import logging.handlers
 import os
-import time
 from pathlib import Path
-import shutil
-import subprocess
 from typing import Any
 import re
 import hashlib
@@ -43,7 +40,6 @@ import uuid
 
 from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
-from openai import OpenAI
 from .artifact_storage import GCSArtifactStore, LocalArtifactStore
 from .api.models import (
     AdminJobStatusRequest,
@@ -89,6 +85,7 @@ from .services.access_control_service import AccessControlService
 from .services.final_mutation_service import FinalMutationService
 from .services.finalization_service import FinalizationService
 from .services.job_mutation_service import JobMutationService
+from .services.media_runtime_service import MediaRuntimeService
 from .services.review_payload_service import ReviewPayloadService
 
 JOB_PHOTOS_SECTION_ID = "job_photos"
@@ -216,6 +213,11 @@ def create_app() -> FastAPI:
     final_mutation_service = FinalMutationService()
     finalization_service = FinalizationService()
     job_mutation_service = JobMutationService()
+    media_runtime_service = MediaRuntimeService(
+        db_store=db_store,
+        artifact_store=artifact_store,
+        logger=logger,
+    )
     review_payload_service = ReviewPayloadService()
     advertiser = ServiceDiscoveryAdvertiser(
         DiscoveryConfig(
@@ -1182,178 +1184,6 @@ def create_app() -> FastAPI:
                 merged[key] = value
         return merged
 
-    def _guess_extension(content_type: str | None, default: str) -> str:
-        """Infer file extension from content type."""
-        if not content_type:
-            return default
-        ct = content_type.lower()
-        if ct in {"audio/mp4", "audio/m4a"}:
-            return ".m4a"
-        if ct in {"audio/wav", "audio/x-wav"}:
-            return ".wav"
-        if ct in {"image/jpeg", "image/jpg"}:
-            return ".jpg"
-        if ct == "image/png":
-            return ".png"
-        return default
-
-    def _probe_audio_metadata(file_path: Path) -> dict[str, Any]:
-        """Best-effort audio probe metadata for debugging cross-device issues."""
-        probe: dict[str, Any] = {
-            "file_bytes": file_path.stat().st_size,
-            "ext": file_path.suffix.lower(),
-        }
-        try:
-            ffprobe_bin = os.environ.get("TRAQ_FFPROBE_BIN", "ffprobe")
-            cmd = [
-                ffprobe_bin,
-                "-v",
-                "error",
-                "-show_entries",
-                (
-                    "stream=codec_name,sample_rate,channels,bit_rate"
-                    ":format=format_name,duration,bit_rate"
-                ),
-                "-of",
-                "json",
-                str(file_path),
-            ]
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=4,
-            )
-            if result.returncode != 0:
-                probe["ffprobe_error"] = (result.stderr or "").strip()[:240]
-                return probe
-            payload = json.loads(result.stdout or "{}")
-            streams = payload.get("streams") or []
-            fmt = payload.get("format") or {}
-            if streams and isinstance(streams[0], dict):
-                stream0 = streams[0]
-                probe["codec_name"] = stream0.get("codec_name")
-                probe["sample_rate"] = stream0.get("sample_rate")
-                probe["channels"] = stream0.get("channels")
-                probe["stream_bit_rate"] = stream0.get("bit_rate")
-            probe["format_name"] = fmt.get("format_name")
-            probe["duration"] = fmt.get("duration")
-            probe["format_bit_rate"] = fmt.get("bit_rate")
-            probe["ffprobe_bin"] = ffprobe_bin
-        except FileNotFoundError:
-            probe["ffprobe_error"] = "ffprobe_not_found"
-        except Exception as exc:
-            probe["ffprobe_error"] = str(exc)[:240]
-        return probe
-
-    def _is_canonical_transcribe_audio(
-        file_path: Path,
-        probe: dict[str, Any] | None = None,
-    ) -> bool:
-        """Check whether audio already matches canonical transcribe format."""
-        if file_path.suffix.lower() != ".wav":
-            return False
-        if not isinstance(probe, dict):
-            return False
-        codec = str(probe.get("codec_name") or "").lower()
-        sample_rate = str(probe.get("sample_rate") or "").strip()
-        channels = str(probe.get("channels") or "").strip()
-        return codec == "pcm_s16le" and sample_rate == "16000" and channels == "1"
-
-    def _normalize_audio_for_transcription(file_path: Path) -> tuple[Path, bool]:
-        """Normalize audio to 16kHz mono PCM WAV for consistent transcription input."""
-        ffmpeg_bin = os.environ.get("TRAQ_FFMPEG_BIN", "ffmpeg")
-        normalized_path = file_path.with_suffix(".norm16k.wav")
-        cmd = [
-            ffmpeg_bin,
-            "-y",
-            "-i",
-            str(file_path),
-            "-ac",
-            "1",
-            "-ar",
-            "16000",
-            "-c:a",
-            "pcm_s16le",
-            str(normalized_path),
-        ]
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=20,
-            )
-            if result.returncode != 0 or not normalized_path.exists():
-                logger.warning(
-                    "Audio normalize failed file=%s error=%s",
-                    file_path,
-                    (result.stderr or "").strip()[:240],
-                )
-                return file_path, False
-            return normalized_path, True
-        except FileNotFoundError:
-            logger.warning("Audio normalize skipped: ffmpeg not found (%s)", ffmpeg_bin)
-            return file_path, False
-        except Exception as exc:
-            logger.warning("Audio normalize failed file=%s error=%s", file_path, str(exc)[:240])
-            return file_path, False
-
-    def _build_report_image_variant(source_path: Path, report_path: Path) -> tuple[Path, int]:
-        """Build compressed report-image variant for PDF embedding."""
-        try:
-            from PIL import Image, ImageOps  # type: ignore
-
-            with Image.open(source_path) as image:
-                image = ImageOps.exif_transpose(image)
-                if image.mode not in ("RGB", "L"):
-                    image = image.convert("RGB")
-                elif image.mode == "L":
-                    image = image.convert("RGB")
-                image.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
-                image.save(
-                    report_path,
-                    format="JPEG",
-                    quality=72,
-                    optimize=True,
-                    progressive=False,
-                )
-        except Exception:
-            shutil.copyfile(source_path, report_path)
-        return report_path, report_path.stat().st_size
-
-    def _load_job_report_images(job_id: str) -> list[dict[str, str]]:
-        """Load and normalize report image metadata for job from DB-backed image state."""
-        images: list[dict[str, str]] = []
-        for row in db_store.list_round_images(job_id, round_id=_ensure_job_record(job_id).latest_round_id or ""):
-            meta = dict(row.get("metadata_json") or {})
-            report_path = str(meta.get("report_image_path") or "").strip()
-            stored_path = str(meta.get("stored_path") or row.get("artifact_path") or "").strip()
-            candidate_key = report_path or stored_path
-            if not candidate_key:
-                continue
-            candidate = _materialize_artifact_path(candidate_key)
-            if not candidate.exists():
-                continue
-            caption = str(
-                row.get("caption")
-                or meta.get("caption")
-                or meta.get("caption_text")
-                or ""
-            ).strip()
-            uploaded_at = str(meta.get("uploaded_at") or "").strip()
-            images.append(
-                {
-                    "path": str(candidate),
-                    "caption": caption,
-                    "uploaded_at": uploaded_at,
-                }
-            )
-        images.sort(key=lambda item: item.get("uploaded_at", ""))
-        return images[:5]
-
     def _write_json(path: Path, payload: dict[str, Any]) -> None:
         """Write JSON payload to disk with UTF-8 encoding."""
         path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -1389,125 +1219,6 @@ def create_app() -> FastAPI:
         from . import pdf_fill
 
         pdf_fill.generate_traq_pdf(form_data=form_data, output_path=output_path, flatten=True)
-
-    def _transcribe_recording(
-        file_path: Path,
-        probe: dict[str, Any] | None = None,
-    ) -> str:
-        """Transcribe one audio recording, with optional normalization step.
-
-        Returns:
-            Raw transcript text from the configured OpenAI transcription model.
-        """
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if not api_key:
-            raise RuntimeError("OPENAI_API_KEY is not set")
-        model = os.environ.get("TRAQ_OPENAI_TRANSCRIBE_MODEL", "gpt-4o-transcribe")
-        language = os.environ.get("TRAQ_OPENAI_TRANSCRIBE_LANGUAGE", "en")
-        prompt = os.environ.get(
-            "TRAQ_OPENAI_TRANSCRIBE_PROMPT",
-            (
-                "Arborist TRAQ field recording. Keep exact wording and numbers. "
-                "Common terms: target one/two, mobile home unit, one times height, "
-                "occupancy constant/frequent, dripline, not practical to move, "
-                "restriction practical/not practical, rerouting with cones."
-            ),
-        )
-        if file_path.stat().st_size > 25 * 1024 * 1024:
-            raise RuntimeError(f"Recording exceeds 25MB limit: {file_path}")
-        if _is_canonical_transcribe_audio(file_path, probe):
-            transcribe_path, normalized = file_path, False
-            logger.info("Transcribe normalize skipped: canonical wav16k mono pcm input")
-        else:
-            transcribe_path, normalized = _normalize_audio_for_transcription(file_path)
-        _log_event(
-            "TRANSCRIBE",
-            "input file=%s normalized=%s",
-            transcribe_path.name,
-            normalized,
-        )
-        timeout_seconds = float(os.environ.get("TRAQ_OPENAI_TRANSCRIBE_TIMEOUT", "90"))
-        max_attempts = max(1, int(os.environ.get("TRAQ_OPENAI_TRANSCRIBE_ATTEMPTS", "3")))
-        backoff_seconds = float(os.environ.get("TRAQ_OPENAI_TRANSCRIBE_BACKOFF", "1.5"))
-        client = OpenAI(api_key=api_key, timeout=timeout_seconds, max_retries=0)
-
-        last_exc: Exception | None = None
-        for attempt in range(1, max_attempts + 1):
-            try:
-                with transcribe_path.open("rb") as audio_file:
-                    response = client.audio.transcriptions.create(
-                        model=model,
-                        file=audio_file,
-                        language=language,
-                        prompt=prompt,
-                    )
-                return response.text if hasattr(response, "text") else str(response)
-            except Exception as exc:
-                last_exc = exc
-                logger.warning(
-                    "[TRANSCRIBE] attempt %s/%s failed file=%s error=%s",
-                    attempt,
-                    max_attempts,
-                    file_path.name,
-                    exc,
-                )
-                if attempt < max_attempts:
-                    time.sleep(backoff_seconds * attempt)
-        raise RuntimeError(
-            f"Transcription failed after {max_attempts} attempts for {file_path.name}"
-        ) from last_exc
-
-    def _transcript_cache_path(job_id: str, section_id: str, recording_id: str) -> Path:
-        """Return exported transcript path for one recording."""
-        return _materialize_artifact_path(
-            _job_artifact_key(
-                job_id,
-                "sections",
-                section_id,
-                "recordings",
-                f"{recording_id}.transcript.txt",
-            )
-        )
-
-    def _save_recording_runtime_state(
-        job_id: str,
-        round_id: str,
-        section_id: str,
-        recording_id: str,
-        meta: dict[str, Any],
-    ) -> None:
-        """Persist DB-authoritative recording runtime state and export transcript text."""
-        existing = db_store.get_round_recording(
-            job_id=job_id,
-            round_id=round_id,
-            section_id=section_id,
-            recording_id=recording_id,
-        )
-        if not isinstance(existing, dict):
-            return
-        db_store.upsert_round_recording(
-            job_id=job_id,
-            round_id=round_id,
-            section_id=section_id,
-            recording_id=recording_id,
-            upload_status=str(existing.get("upload_status") or "uploaded"),
-            content_type=existing.get("content_type"),
-            duration_ms=existing.get("duration_ms"),
-            artifact_path=existing.get("artifact_path"),
-            metadata_json=meta,
-        )
-        transcript_text = str(meta.get("transcript_text") or "").strip()
-        if transcript_text:
-            artifact_store.write_text(
-                _job_artifact_key(
-                    job_id,
-                    "sections",
-                    section_id,
-                    "recordings",
-                    f"{recording_id}.transcript.txt",
-                ),
-                transcript_text,
-            )
 
     def _build_section_transcript(
         job_id: str,
@@ -1563,14 +1274,22 @@ def create_app() -> FastAPI:
                     probe.get("ffprobe_error"),
                 )
                 try:
-                    transcript = _transcribe_recording(
+                    transcript = media_runtime_service.transcribe_recording(
                         _materialize_artifact_path(stored_path),
                         probe=probe,
+                        log_event=_log_event,
                     ).strip()
                     meta["transcript_text"] = transcript
                     meta["processed"] = True
                     meta.pop("transcription_error", None)
-                    _save_recording_runtime_state(job_id, round_id, section_id, rec_id, meta)
+                    media_runtime_service.save_recording_runtime_state(
+                        job_id=job_id,
+                        round_id=round_id,
+                        section_id=section_id,
+                        recording_id=rec_id,
+                        meta=meta,
+                        job_artifact_key=_job_artifact_key,
+                    )
                     if os.environ.get("TRAQ_LOG_RAW_TRANSCRIPTS", "0").strip() == "1":
                         _log_event(
                             "TRANSCRIBE",
@@ -1602,7 +1321,14 @@ def create_app() -> FastAPI:
                     )
                     meta["processed"] = False
                     meta["transcription_error"] = str(exc)
-                    _save_recording_runtime_state(job_id, round_id, section_id, rec_id, meta)
+                    media_runtime_service.save_recording_runtime_state(
+                        job_id=job_id,
+                        round_id=round_id,
+                        section_id=section_id,
+                        recording_id=rec_id,
+                        meta=meta,
+                        job_artifact_key=_job_artifact_key,
+                    )
                     local_seen.add(rec_id)
                     continue
             if transcript:
@@ -2860,7 +2586,7 @@ def create_app() -> FastAPI:
         payload = await request.body()
         if not payload:
             raise HTTPException(status_code=400, detail="Empty recording payload")
-        ext = _guess_extension(content_type, ".m4a")
+        ext = media_runtime_service.guess_extension(content_type, ".m4a")
         artifact_key = _job_artifact_key(
             job_id,
             "sections",
@@ -2869,7 +2595,7 @@ def create_app() -> FastAPI:
             f"{recording_id}{ext}",
         )
         file_path = artifact_store.write_bytes(artifact_key, payload)
-        audio_probe = _probe_audio_metadata(file_path)
+        audio_probe = media_runtime_service.probe_audio_metadata(file_path)
         meta = {
             "recording_id": recording_id,
             "section_id": section_id,
@@ -2954,7 +2680,7 @@ def create_app() -> FastAPI:
         }
         if image_id not in existing_ids and len(existing_ids) >= 5:
             raise HTTPException(status_code=400, detail="Maximum 5 images per job")
-        ext = _guess_extension(content_type, ".jpg")
+        ext = media_runtime_service.guess_extension(content_type, ".jpg")
         artifact_key = _job_artifact_key(
             job_id,
             "sections",
@@ -2970,7 +2696,7 @@ def create_app() -> FastAPI:
             "images",
             f"{image_id}.report.jpg",
         )
-        report_path, report_bytes = _build_report_image_variant(
+        report_path, report_bytes = media_runtime_service.build_report_image_variant(
             file_path,
             _materialize_artifact_path(report_key),
         )
@@ -3208,7 +2934,10 @@ def create_app() -> FastAPI:
                 and str(profile_payload.get("isa_number") or "").strip()
                 else None
             )
-            report_images = _load_job_report_images(job_id)
+            report_images = media_runtime_service.load_job_report_images(
+                job_id=job_id,
+                round_id=record.latest_round_id or "",
+            )
             report_letter.generate_report_letter_pdf(
                 letter_text,
                 str(report_path),
