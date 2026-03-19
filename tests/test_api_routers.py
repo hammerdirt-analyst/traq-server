@@ -17,6 +17,7 @@ from app.api.extraction_routes import build_extraction_router
 from app.api.job_read_routes import build_job_read_router
 from app.api.job_write_routes import build_job_write_router
 from app.api.round_manifest_routes import build_round_manifest_router
+from app.api.round_submit_routes import build_round_submit_router
 
 
 class ApiRouterTests(unittest.TestCase):
@@ -364,6 +365,67 @@ class ApiRouterTests(unittest.TestCase):
         )
         self.assertEqual(payload["manifest_count"], 1)
         self.assertEqual(round_record.manifest[0]["artifact_id"], "rec_1")
+
+    def test_round_submit_router_builds_expected_endpoint(self) -> None:
+        class DummyAuth:
+            is_admin = False
+            device_id = "device-1"
+
+        class DummyRound:
+            def __init__(self) -> None:
+                self.status = "DRAFT"
+                self.manifest = [{"artifact_id": "rec_1", "kind": "recording"}]
+                self.server_revision_id = None
+
+        class DummyJob:
+            def __init__(self) -> None:
+                self.job_name = "Job A"
+                self.job_address = "123 Oak"
+                self.job_phone = "555"
+                self.contact_preference = "text"
+                self.billing_name = "Billing"
+                self.billing_address = "123 Oak"
+                self.latest_round_status = "DRAFT"
+                self.status = "DRAFT"
+                self.tree_number = 7
+
+        record = DummyJob()
+        round_record = DummyRound()
+        saved_reviews: list[dict[str, object] | None] = []
+
+        router = build_round_submit_router(
+            require_api_key=lambda key: DummyAuth(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_round_record=lambda job_id, round_id: (record, round_record),
+            assert_round_editable=lambda record, round_id, auth, allow_correction=False: None,
+            save_job_record=lambda record: None,
+            save_round_record=lambda job_id, round_record, review_payload=None: saved_reviews.append(review_payload),
+            requested_tree_number_from_form=lambda form: 7,
+            resolve_server_tree_number=lambda record, requested_tree_number=None: requested_tree_number,
+            apply_tree_number_to_form=lambda form, tree_number: {**form, "tree_number": tree_number},
+            db_store=type(
+                "DbStore",
+                (),
+                {"get_job_round": lambda self, job_id, round_id: {}, "list_round_images": lambda self, job_id, round_id: []},
+            )(),
+            build_reprocess_manifest=lambda job_id, round_record, review: [],
+            load_latest_review=lambda job_id, exclude_round_id=None: {},
+            apply_form_patch=lambda draft_form, form_patch: {**draft_form, **form_patch},
+            normalize_form_schema=lambda form: form,
+            process_round=lambda job_id, round_id, record, review: {"transcription_failures": [], "draft_form": {"data": {}}, "form": {}, "tree_number": 7},
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
+        )
+
+        submit_round = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}/submit", "POST")
+        payload = submit_round(
+            "job_1",
+            "round_1",
+            self.main_module.SubmitRoundRequest(form={"risk": "low"}),
+            x_api_key="test-key",
+        )
+        self.assertTrue(payload["accepted"])
+        self.assertEqual(payload["processed_count"], 1)
+        self.assertEqual(record.status, "REVIEW_RETURNED")
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):

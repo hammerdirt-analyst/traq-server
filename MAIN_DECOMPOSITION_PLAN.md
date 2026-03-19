@@ -87,6 +87,7 @@ Current progress:
 - completed: `app/api/job_read_routes.py`
 - completed: `app/api/job_write_routes.py`
 - completed: `app/api/round_manifest_routes.py`
+- completed: `app/api/round_submit_routes.py`
 
 ### Phase 4: Move Core Runtime Routers
 
