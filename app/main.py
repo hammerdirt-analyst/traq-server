@@ -87,6 +87,7 @@ from .services.finalization_service import FinalizationService
 from .services.job_mutation_service import JobMutationService
 from .services.media_runtime_service import MediaRuntimeService
 from .services.review_payload_service import ReviewPayloadService
+from .services.runtime_state_service import RuntimeStateService
 
 JOB_PHOTOS_SECTION_ID = "job_photos"
 
@@ -219,6 +220,16 @@ def create_app() -> FastAPI:
         logger=logger,
     )
     review_payload_service = ReviewPayloadService()
+    runtime_state_service = RuntimeStateService(
+        storage_root=settings.storage_root,
+        db_store=db_store,
+        artifact_store=artifact_store,
+        logger=logger,
+        parse_tree_number=parse_tree_number,
+        job_record_factory=JobRecord,
+        round_record_factory=RoundRecord,
+        write_json=lambda path, payload: _write_json(path, payload),
+    )
     advertiser = ServiceDiscoveryAdvertiser(
         DiscoveryConfig(
             port=settings.discovery_port,
@@ -433,138 +444,43 @@ def create_app() -> FastAPI:
 
     def _job_dir(job_id: str) -> Path:
         """Return filesystem directory path for a job id."""
-        path = settings.storage_root / "jobs" / job_id
-        path.mkdir(parents=True, exist_ok=True)
-        return path
+        return runtime_state_service.job_dir(job_id)
 
     def _job_artifact_key(job_id: str, *parts: str) -> str:
         """Return artifact key rooted under one job."""
-        return _artifact_key("jobs", job_id, *parts)
-
-    def _is_correction_mode(job_id: str, record: JobRecord | None) -> bool:
-        """Return True when writes should target correction artifacts."""
-        if record and (record.status or "").strip().upper() == "ARCHIVED":
-            return True
-        return artifact_store.exists(_job_artifact_key(job_id, "final.json"))
+        return runtime_state_service.job_artifact_key(job_id, *parts)
 
     def _job_record_path(job_id: str) -> Path:
         """Return path to compatibility/debug job record JSON file."""
-        return _job_dir(job_id) / "job_record.json"
+        return runtime_state_service.job_record_path(job_id)
 
     def _save_job_record(record: JobRecord) -> None:
         """Persist authoritative job shell state to DB and export a file copy."""
-        payload = {
-            "job_id": record.job_id,
-            "job_number": record.job_number,
-            "status": record.status,
-            "customer_name": record.customer_name,
-            "tree_number": record.tree_number,
-            "address": record.address,
-            "tree_species": record.tree_species,
-            "reason": record.reason,
-            "job_name": record.job_name,
-            "job_address": record.job_address,
-            "job_phone": record.job_phone,
-            "contact_preference": record.contact_preference,
-            "billing_name": record.billing_name,
-            "billing_address": record.billing_address,
-            "billing_contact_name": record.billing_contact_name,
-            "location_notes": record.location_notes,
-            "latest_round_id": record.latest_round_id,
-            "latest_round_status": record.latest_round_status,
-        }
-        try:
-            db_store.upsert_job(
-                job_id=record.job_id,
-                job_number=record.job_number,
-                status=record.status,
-                latest_round_id=record.latest_round_id,
-                latest_round_status=record.latest_round_status,
-                details=payload,
-            )
-        except Exception:
-            logger.exception("DB job upsert failed for %s", record.job_id)
-        _write_json(_job_record_path(record.job_id), payload)
+        runtime_state_service.save_job_record(record)
 
     def _job_record_from_payload(payload: dict[str, Any], fallback_job_id: str) -> JobRecord:
         """Build JobRecord from normalized payload data."""
-        return JobRecord(
-            job_id=str(payload.get("job_id") or fallback_job_id),
-            job_number=str(payload.get("job_number") or fallback_job_id),
-            status=str(payload.get("status") or "DRAFT"),
-            customer_name=payload.get("customer_name"),
-            tree_number=parse_tree_number(payload.get("tree_number")),
-            address=payload.get("address"),
-            tree_species=payload.get("tree_species"),
-            reason=payload.get("reason"),
-            job_name=payload.get("job_name"),
-            job_address=payload.get("job_address"),
-            job_phone=payload.get("job_phone"),
-            contact_preference=payload.get("contact_preference"),
-            billing_name=payload.get("billing_name"),
-            billing_address=payload.get("billing_address"),
-            billing_contact_name=payload.get("billing_contact_name"),
-            location_notes=payload.get("location_notes"),
-            latest_round_id=payload.get("latest_round_id"),
-            latest_round_status=payload.get("latest_round_status"),
-        )
+        return runtime_state_service.job_record_from_payload(payload, fallback_job_id)
 
     def _load_rounds_from_db(job_id: str) -> dict[str, RoundRecord]:
         """Load persisted round metadata from the authoritative DB store."""
-        rounds: dict[str, RoundRecord] = {}
-        try:
-            for row in db_store.list_job_rounds(job_id):
-                round_id = str(row.get("round_id") or "")
-                if not round_id:
-                    continue
-                rounds[round_id] = RoundRecord(
-                    round_id=round_id,
-                    status=str(row.get("status") or "DRAFT"),
-                    manifest=list(row.get("manifest") or []),
-                    server_revision_id=row.get("server_revision_id"),
-                )
-        except Exception:
-            logger.exception("DB round listing failed for %s", job_id)
-        return rounds
+        return runtime_state_service.load_rounds_from_db(job_id)
 
     def _load_job_record_from_db(job_id: str) -> JobRecord | None:
         """Load a job record from the authoritative DB store."""
-        payload = db_store.get_job(job_id)
-        if not isinstance(payload, dict):
-            return None
-        return _job_record_from_payload(payload, job_id)
+        return runtime_state_service.load_job_record_from_db(job_id)
 
     def _load_job_record_from_disk(job_id: str) -> JobRecord | None:
         """Load compatibility/debug job record from disk."""
-        path = _job_record_path(job_id)
-        if not path.exists():
-            return None
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            return None
-        if not isinstance(payload, dict):
-            return None
-        return _job_record_from_payload(payload, job_id)
+        return runtime_state_service.load_job_record_from_disk(job_id)
 
     def _load_job_record(job_id: str) -> JobRecord | None:
         """Load a job record, preferring the DB and falling back to disk."""
-        persisted = _load_job_record_from_db(job_id)
-        if persisted is not None:
-            return persisted
-        return _load_job_record_from_disk(job_id)
+        return runtime_state_service.load_job_record(job_id)
 
     def _refresh_job_record_from_store(job_id: str) -> JobRecord | None:
         """Refresh cached runtime metadata from the authoritative store."""
-        persisted = _load_job_record(job_id)
-        if persisted is None:
-            return None
-        persisted.rounds = _load_rounds_from_db(job_id)
-        existing = jobs.get(job_id)
-        if existing is not None:
-            persisted.rounds.update(existing.rounds)
-        jobs[job_id] = persisted
-        return persisted
+        return runtime_state_service.refresh_job_record_from_store(job_id, jobs_cache=jobs)
 
     def _save_round_record(
         job_id: str,
@@ -573,73 +489,37 @@ def create_app() -> FastAPI:
         review_payload: dict[str, Any] | None = None,
     ) -> None:
         """Persist authoritative round state to DB and export compatibility files."""
-        try:
-            db_store.upsert_job_round(
-                job_id=job_id,
-                round_id=round_record.round_id,
-                status=round_record.status,
-                server_revision_id=round_record.server_revision_id,
-                manifest=list(round_record.manifest or []),
-                review_payload=review_payload,
-            )
-        except Exception:
-            logger.exception("DB round upsert failed for %s/%s", job_id, round_record.round_id)
-        _write_json(_round_manifest_path(job_id, round_record.round_id), round_record.manifest)
-        if review_payload is not None:
-            _write_json(_round_dir(job_id, round_record.round_id) / "review.json", review_payload)
+        runtime_state_service.save_round_record(job_id, round_record, review_payload=review_payload)
 
     def _next_job_number() -> str:
         """Allocate next unique human-readable job number from PostgreSQL."""
-        try:
-            return db_store.allocate_job_number()
-        except Exception as exc:
-            logger.exception("DB job number allocation failed")
-            raise HTTPException(
-                status_code=500,
-                detail="Job number allocation failed",
-            ) from exc
+        return runtime_state_service.next_job_number()
 
     def _round_dir(job_id: str, round_id: str) -> Path:
         """Return filesystem directory for a job round."""
-        path = _job_dir(job_id) / "rounds" / round_id
-        path.mkdir(parents=True, exist_ok=True)
-        return path
+        return runtime_state_service.round_dir(job_id, round_id)
 
     def _ensure_job_record(job_id: str) -> JobRecord | None:
         """Resolve job record from memory or storage."""
-        persisted = _refresh_job_record_from_store(job_id)
-        if persisted is not None:
-            return persisted
-        return jobs.get(job_id)
+        return runtime_state_service.ensure_job_record(job_id, jobs_cache=jobs)
 
     def _ensure_round_record(job_id: str, round_id: str) -> tuple[JobRecord, RoundRecord]:
         """Resolve a persisted round from authoritative storage."""
-        record = _ensure_job_record(job_id)
-        if record is None:
-            raise HTTPException(status_code=404, detail="Round not found")
-        round_record = record.rounds.get(round_id)
-        if round_record is None:
-            persisted_round = db_store.get_job_round(job_id, round_id)
-            if not isinstance(persisted_round, dict):
-                raise HTTPException(status_code=404, detail="Round not found")
-            round_record = RoundRecord(
-                round_id=round_id,
-                status=str(persisted_round.get("status") or "DRAFT"),
-                manifest=list(persisted_round.get("manifest") or []),
-                server_revision_id=persisted_round.get("server_revision_id"),
-            )
-            record.rounds[round_id] = round_record
-        return record, round_record
+        return runtime_state_service.ensure_round_record(job_id, round_id, jobs_cache=jobs)
 
     def _section_dir(job_id: str, section_id: str) -> Path:
         """Return filesystem directory for a section within a job."""
-        path = _job_dir(job_id) / "sections" / section_id
-        path.mkdir(parents=True, exist_ok=True)
-        return path
+        return runtime_state_service.section_dir(job_id, section_id)
 
     def _round_manifest_path(job_id: str, round_id: str) -> Path:
         """Return path to round manifest JSON file."""
-        return _round_dir(job_id, round_id) / "manifest.json"
+        return runtime_state_service.round_manifest_path(job_id, round_id)
+
+    def _is_correction_mode(job_id: str, record: JobRecord | None) -> bool:
+        """Return True when writes should target correction artifacts."""
+        if record and (record.status or "").strip().upper() == "ARCHIVED":
+            return True
+        return artifact_store.exists(_job_artifact_key(job_id, "final.json"))
 
     def _profile_dir() -> Path:
         """Return profile storage directory path."""
