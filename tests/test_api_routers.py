@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import asyncio
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -16,6 +17,7 @@ from app.api.core_routes import build_core_router
 from app.api.extraction_routes import build_extraction_router
 from app.api.job_read_routes import build_job_read_router
 from app.api.job_write_routes import build_job_write_router
+from app.api.recording_routes import build_recording_router
 from app.api.round_manifest_routes import build_round_manifest_router
 from app.api.round_reprocess_routes import build_round_reprocess_router
 from app.api.round_submit_routes import build_round_submit_router
@@ -464,6 +466,87 @@ class ApiRouterTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["manifest_count"], 1)
         self.assertEqual(record.status, "REVIEW_RETURNED")
+
+    def test_recording_router_builds_expected_endpoint(self) -> None:
+        class DummyAuth:
+            is_admin = False
+            device_id = "device-1"
+
+        class DummyJob:
+            latest_round_id = "round_1"
+
+        stored: dict[str, object] = {}
+        written_file = self.storage_root / "fake.wav"
+
+        class DummyArtifactStore:
+            def write_bytes(self, key, payload):
+                stored["artifact_key"] = key
+                stored["payload"] = payload
+                return written_file
+
+        class DummyDbStore:
+            def upsert_round_recording(self, **kwargs):
+                stored["db_kwargs"] = kwargs
+
+        class DummyMediaService:
+            def guess_extension(self, content_type, default_ext):
+                stored["content_type"] = content_type
+                return ".wav"
+
+            def probe_audio_metadata(self, file_path):
+                stored["probed_path"] = file_path
+                return {
+                    "duration_ms": 1000,
+                    "codec_name": "pcm_s16le",
+                    "sample_rate": 16000,
+                    "channels": 1,
+                    "duration": 1.0,
+                    "format_name": "wav",
+                    "ffprobe_error": None,
+                }
+
+        class DummyRequest:
+            async def body(self):
+                return b"audio-bytes"
+
+        router = build_recording_router(
+            require_api_key=lambda key: DummyAuth(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_job_record=lambda job_id: DummyJob(),
+            assert_job_editable=lambda record, auth, allow_correction=False: None,
+            media_runtime_service=DummyMediaService(),
+            job_artifact_key=lambda *parts: "/".join(parts),
+            artifact_store=DummyArtifactStore(),
+            db_store=DummyDbStore(),
+            write_json=lambda path, payload: stored.setdefault("meta", payload),
+            section_dir=lambda job_id, section_id: self.storage_root / job_id / section_id,
+            log_event=lambda *args, **kwargs: stored.setdefault("logged", True),
+        )
+
+        upload_recording = self._router_endpoint(
+            router,
+            "/v1/jobs/{job_id}/sections/{section_id}/recordings/{recording_id}",
+            "PUT",
+        )
+        payload = asyncio.run(
+            upload_recording(
+                "job_1",
+                "site_factors",
+                "rec_1",
+                DummyRequest(),
+                content_type="audio/wav",
+                x_api_key="test-key",
+            )
+        )
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["recording_id"], "rec_1")
+        self.assertEqual(
+            stored["artifact_key"],
+            "job_1/sections/site_factors/recordings/rec_1.wav",
+        )
+        self.assertEqual(stored["db_kwargs"]["round_id"], "round_1")
+        self.assertEqual(stored["meta"]["recording_id"], "rec_1")
+        self.assertTrue(stored["logged"])
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):

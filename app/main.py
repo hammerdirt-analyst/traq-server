@@ -45,6 +45,7 @@ from .api.core_routes import build_core_router
 from .api.extraction_routes import build_extraction_router
 from .api.job_read_routes import build_job_read_router
 from .api.job_write_routes import build_job_write_router
+from .api.recording_routes import build_recording_router
 from .api.round_manifest_routes import build_round_manifest_router
 from .api.round_reprocess_routes import build_round_reprocess_router
 from .api.round_submit_routes import build_round_submit_router
@@ -1799,84 +1800,21 @@ def create_app() -> FastAPI:
         )
     )
 
-    @app.put("/v1/jobs/{job_id}/sections/{section_id}/recordings/{recording_id}")
-    async def upload_recording(
-        job_id: str,
-        section_id: str,
-        recording_id: str,
-        request: Request,
-        content_type: str | None = Header(default=None, alias="Content-Type"),
-        x_api_key: str | None = Header(default=None),
-    ) -> dict[str, Any]:
-        auth = require_api_key(x_api_key)
-        _assert_job_assignment(job_id, auth)
-        record = _ensure_job_record(job_id)
-        if record is None:
-            raise HTTPException(status_code=404, detail="Job not found")
-        _assert_job_editable(record, auth, allow_correction=True)
-        payload = await request.body()
-        if not payload:
-            raise HTTPException(status_code=400, detail="Empty recording payload")
-        ext = media_runtime_service.guess_extension(content_type, ".m4a")
-        artifact_key = _job_artifact_key(
-            job_id,
-            "sections",
-            section_id,
-            "recordings",
-            f"{recording_id}{ext}",
+    app.include_router(
+        build_recording_router(
+            require_api_key=require_api_key,
+            assert_job_assignment=_assert_job_assignment,
+            ensure_job_record=_ensure_job_record,
+            assert_job_editable=_assert_job_editable,
+            media_runtime_service=media_runtime_service,
+            job_artifact_key=_job_artifact_key,
+            artifact_store=artifact_store,
+            db_store=db_store,
+            write_json=_write_json,
+            section_dir=_section_dir,
+            log_event=_log_event,
         )
-        file_path = artifact_store.write_bytes(artifact_key, payload)
-        audio_probe = media_runtime_service.probe_audio_metadata(file_path)
-        meta = {
-            "recording_id": recording_id,
-            "section_id": section_id,
-            "content_type": content_type,
-            "bytes": len(payload),
-            "stored_path": artifact_key,
-            "uploaded_at": datetime.utcnow().isoformat() + "Z",
-            "audio_probe": audio_probe,
-        }
-        round_id = record.latest_round_id
-        if not round_id:
-            raise HTTPException(status_code=400, detail="No active round for recording upload")
-        db_store.upsert_round_recording(
-            job_id=job_id,
-            round_id=round_id,
-            section_id=section_id,
-            recording_id=recording_id,
-            upload_status="uploaded",
-            content_type=content_type,
-            duration_ms=audio_probe.get("duration_ms"),
-            artifact_path=artifact_key,
-            metadata_json=meta,
-        )
-        _write_json(_section_dir(job_id, section_id) / "recordings" / f"{recording_id}.meta.json", meta)
-        _log_event(
-            "RECORDING",
-            (
-                "PUT /v1/jobs/%s/sections/%s/recordings/%s "
-                "content_type=%s bytes=%s codec=%s sr=%s ch=%s "
-                "duration=%s format=%s ffprobe_error=%s"
-            ),
-            job_id,
-            section_id,
-            recording_id,
-            content_type,
-            len(payload),
-            audio_probe.get("codec_name"),
-            audio_probe.get("sample_rate"),
-            audio_probe.get("channels"),
-            audio_probe.get("duration"),
-            audio_probe.get("format_name"),
-            audio_probe.get("ffprobe_error"),
-        )
-        return {
-            "ok": True,
-            "job_id": job_id,
-            "section_id": section_id,
-            "recording_id": recording_id,
-            "bytes": len(payload),
-        }
+    )
 
     @app.put("/v1/jobs/{job_id}/sections/{section_id}/images/{image_id}")
     async def upload_image(
