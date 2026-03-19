@@ -67,6 +67,8 @@ from .extractors.registry import run_extraction as _run_extraction_core
 from .runtime_context import RuntimeContext
 from .security_store import AuthContext
 from .services.assigned_job_service import AssignedJobService
+from .services.report_render_service import ReportRenderService
+from .services.review_state_service import ReviewStateService
 from .services.round_processing_service import RoundProcessingService
 from .services.tree_store import (
     apply_tree_number_to_form,
@@ -209,6 +211,8 @@ def create_app() -> FastAPI:
         normalize_form_schema=review_form_service.normalize_form_schema,
         assigned_job_factory=AssignedJob,
     )
+    review_state_service = ReviewStateService(db_store=db_store)
+    report_render_service = ReportRenderService()
     advertiser = runtime.advertiser
 
     def _log_event(tag: str, message: str, *args: Any) -> None:
@@ -423,40 +427,9 @@ def create_app() -> FastAPI:
     _load_runtime_profile = device_profile_service.load_runtime_profile
     _save_runtime_profile = device_profile_service.save_runtime_profile
 
-    def _load_round_manifest(job_id: str, round_id: str) -> list[dict[str, Any]]:
-        """Load one round manifest payload from the authoritative DB store."""
-        payload = (db_store.get_job_round(job_id, round_id) or {}).get("manifest")
-        if isinstance(payload, list):
-            return [item for item in payload if isinstance(item, dict)]
-        return []
-
-    def _load_all_manifests(job_id: str) -> list[dict[str, Any]]:
-        """Load manifests across all rounds for a job from the DB store."""
-        manifest_items: list[dict[str, Any]] = []
-        for row in db_store.list_job_rounds(job_id):
-            manifest_items.extend(list(row.get("manifest") or []))
-        seen: set[tuple[str, str, str]] = set()
-        deduped: list[dict[str, Any]] = []
-        for item in manifest_items:
-            artifact_id = item.get("artifact_id") or ""
-            section_id = item.get("section_id") or ""
-            kind = item.get("kind") or ""
-            key = (artifact_id, section_id, kind)
-            if key in seen:
-                continue
-            seen.add(key)
-            deduped.append(item)
-        return deduped
-
-    def _load_latest_review(job_id: str, exclude_round_id: str | None = None) -> dict[str, Any]:
-        """Load latest review payload for baseline merges from the DB store."""
-        for row in reversed(db_store.list_job_rounds(job_id)):
-            if exclude_round_id and row.get("round_id") == exclude_round_id:
-                continue
-            payload = row.get("review_payload")
-            if isinstance(payload, dict):
-                return dict(payload)
-        return {}
+    _load_round_manifest = review_state_service.load_round_manifest
+    _load_all_manifests = review_state_service.load_all_manifests
+    _load_latest_review = review_state_service.load_latest_review
 
     _recording_meta = media_runtime_service.recording_meta
 
@@ -500,28 +473,8 @@ def create_app() -> FastAPI:
         except json.JSONDecodeError:
             return None
 
-    def _generate_summary(
-        *,
-        form_data: dict[str, Any],
-        transcript: str,
-    ) -> str:
-        """Generate five-paragraph narrative summary from form+transcript."""
-        from . import report_letter
-
-        return report_letter.generate_summary(
-            form_data=form_data,
-            transcript=transcript,
-        )
-
-    def _generate_traq_pdf(
-        *,
-        form_data: dict[str, Any],
-        output_path: Path,
-    ) -> None:
-        """Render overlay-filled TRAQ PDF to `output_path`."""
-        from . import pdf_fill
-
-        pdf_fill.generate_traq_pdf(form_data=form_data, output_path=output_path, flatten=True)
+    _generate_summary = report_render_service.generate_summary
+    _generate_traq_pdf = report_render_service.generate_traq_pdf
 
     def _build_section_transcript(
         job_id: str,
