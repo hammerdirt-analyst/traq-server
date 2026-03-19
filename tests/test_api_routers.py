@@ -15,6 +15,7 @@ from app.api.admin_routes import build_admin_router
 from app.api.core_routes import build_core_router
 from app.api.extraction_routes import build_extraction_router
 from app.api.job_read_routes import build_job_read_router
+from app.api.job_write_routes import build_job_write_router
 
 
 class ApiRouterTests(unittest.TestCase):
@@ -244,6 +245,92 @@ class ApiRouterTests(unittest.TestCase):
         get_review = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}/review", "GET")
         review = get_review("job_1", "round_1", x_api_key="test-key")
         self.assertEqual(review["images"][0]["image_id"], "img_1")
+
+    def test_job_write_router_builds_expected_endpoints(self) -> None:
+        class DummyAuth:
+            def __init__(self) -> None:
+                self.device_id = "device-1"
+                self.is_admin = False
+
+        class DummyRound:
+            def __init__(self, round_id: str, status: str) -> None:
+                self.round_id = round_id
+                self.status = status
+
+        class DummyJob:
+            def __init__(self) -> None:
+                self.rounds = {}
+                self.latest_round_id = None
+                self.latest_round_status = None
+                self.status = "DRAFT"
+
+        jobs: dict[str, object] = {}
+        loaded_record = DummyJob()
+
+        class DummyCustomerService:
+            def get_or_create_customer(self, **kwargs):
+                return {"customer_id": "cust_1"}
+
+            def get_or_create_billing_profile(self, **kwargs):
+                return {"billing_profile_id": "bill_1"}
+
+        class DummyJobMutationService:
+            def create_job(self, **kwargs):
+                return {
+                    "customer_name": "Customer A",
+                    "tree_number": 7,
+                    "address": "123 Oak",
+                    "job_name": "Job A",
+                    "job_address": "123 Oak",
+                    "job_phone": "555",
+                    "contact_preference": "text",
+                    "billing_name": "Billing",
+                    "billing_address": "123 Oak",
+                    "billing_contact_name": "Alex",
+                    "location_notes": "Notes",
+                }
+
+        saved_rounds: list[tuple[str, object]] = []
+
+        router = build_job_write_router(
+            require_api_key=lambda key: DummyAuth(),
+            jobs=jobs,
+            next_job_number=lambda: "J0001",
+            customer_service=DummyCustomerService(),
+            job_mutation_service=DummyJobMutationService(),
+            load_job_record=lambda job_id: loaded_record,
+            assign_job_record=lambda **kwargs: {"job_id": kwargs["job_id"], "device_id": kwargs["device_id"]},
+            save_job_record=lambda record: None,
+            save_round_record=lambda job_id, round_record: saved_rounds.append((job_id, round_record)),
+            round_record_factory=DummyRound,
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
+            uuid_hex_supplier=lambda: "abc123def456",
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_job_record=lambda job_id: loaded_record,
+        )
+
+        create_job = self._router_endpoint(router, "/v1/jobs", "POST")
+        response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer A",
+                tree_number=7,
+                job_name="Job A",
+                job_address="123 Oak",
+                job_phone="555",
+                contact_preference="text",
+                billing_name="Billing",
+                billing_address="123 Oak",
+            ),
+            x_api_key="test-key",
+        )
+        self.assertEqual(response.job_id, "job_abc123def456")
+        self.assertIn(response.job_id, jobs)
+
+        create_round = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round("job_abc123def456", x_api_key="test-key")
+        self.assertEqual(round_response.round_id, "round_1")
+        self.assertEqual(loaded_record.latest_round_id, "round_1")
+        self.assertEqual(saved_rounds[0][0], "job_abc123def456")
 
     @staticmethod
     def _router_endpoint(router, path: str, method: str):
