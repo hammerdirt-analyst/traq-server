@@ -26,6 +26,7 @@ def build_round_submit_router(
     apply_form_patch: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
     normalize_form_schema: Callable[[dict[str, Any]], dict[str, Any]],
     process_round: Callable[[str, str, Any, dict[str, Any] | None], dict[str, Any]],
+    round_submit_service: Any,
     logger: Any,
 ) -> APIRouter:
     """Build the round submit route."""
@@ -79,37 +80,20 @@ def build_round_submit_router(
         save_round_record(job_id, round_record)
         logger.info("POST /v1/jobs/%s/rounds/%s/submit", job_id, round_id)
         round_record.server_revision_id = round_record.server_revision_id or f"rev_{round_id}"
-        existing_round_review: dict[str, Any] = {}
         persisted_round = db_store.get_job_round(job_id, round_id)
-        if isinstance((persisted_round or {}).get("review_payload"), dict):
-            existing_round_review = dict(persisted_round["review_payload"])
-
-        if not round_record.manifest:
-            persisted_manifest = list((persisted_round or {}).get("manifest") or [])
-            if persisted_manifest:
-                round_record.manifest = persisted_manifest
-                logger.info(
-                    "Recovered manifest from disk for %s/%s (%s items)",
-                    job_id,
-                    round_id,
-                    len(persisted_manifest),
-                )
-
-        if not round_record.manifest:
-            synthesized = build_reprocess_manifest(job_id, round_record, existing_round_review)
-            if synthesized:
-                round_record.manifest = synthesized
-                logger.info(
-                    "Synthesized manifest from server recordings for %s/%s (%s items)",
-                    job_id,
-                    round_id,
-                    len(synthesized),
-                )
+        existing_round_review = round_submit_service.load_existing_round_review(persisted_round)
+        round_submit_service.ensure_round_manifest(
+            job_id=job_id,
+            round_id=round_id,
+            round_record=round_record,
+            persisted_round=persisted_round,
+            existing_round_review=existing_round_review,
+            build_reprocess_manifest=build_reprocess_manifest,
+            logger=logger,
+        )
 
         has_manifest_items = bool(round_record.manifest)
-        has_client_patch = bool(
-            submit_payload and (submit_payload.form or submit_payload.narrative)
-        )
+        has_client_patch = round_submit_service.has_client_patch(submit_payload)
 
         if not has_manifest_items and not has_client_patch and existing_round_review:
             logger.info(
@@ -142,51 +126,27 @@ def build_round_submit_router(
                 "can_resubmit_failed": False,
             }
 
-        base_review_override = dict(existing_round_review) if existing_round_review else None
-        if has_client_patch:
-            base_review = dict(existing_round_review) if existing_round_review else {}
-            if not base_review:
-                base_review = load_latest_review(job_id, exclude_round_id=round_id)
-            draft_form = base_review.get("draft_form") or {}
-            if submit_payload and submit_payload.form:
-                form_patch = submit_payload.form
-                if isinstance(draft_form.get("data"), dict) and "data" not in form_patch:
-                    form_patch = {"data": form_patch}
-                draft_form = apply_form_patch(draft_form, form_patch)
-            draft_form_data = dict(draft_form.get("data") or {})
-            draft_form["data"] = normalize_form_schema(draft_form_data)
-            draft_narrative = base_review.get("draft_narrative") or ""
-            if submit_payload and submit_payload.narrative:
-                narrative_text = submit_payload.narrative.get("text")
-                if narrative_text is not None:
-                    draft_narrative = narrative_text
-            base_review_override = dict(base_review)
-            base_review_override["draft_form"] = draft_form
-            base_review_override["draft_narrative"] = draft_narrative
-            if submit_payload and submit_payload.client_revision_id:
-                base_review_override["client_revision_id"] = submit_payload.client_revision_id
+        base_review_override = round_submit_service.build_base_review_override(
+            job_id=job_id,
+            round_id=round_id,
+            existing_round_review=existing_round_review,
+            submit_payload=submit_payload,
+            load_latest_review=load_latest_review,
+            apply_form_patch=apply_form_patch,
+            normalize_form_schema=normalize_form_schema,
+        )
 
         review_payload: dict[str, Any] = {}
         try:
             review_payload = process_round(job_id, round_id, record, base_review_override)
             if has_client_patch and submit_payload:
-                updated_review = dict(review_payload)
-                draft_form = dict(updated_review.get("draft_form") or {})
-                if submit_payload.form:
-                    form_patch = submit_payload.form
-                    if isinstance(draft_form.get("data"), dict) and "data" not in form_patch:
-                        form_patch = {"data": form_patch}
-                    draft_form = apply_form_patch(draft_form, form_patch)
-                draft_data = normalize_form_schema(dict(draft_form.get("data") or {}))
-                draft_form["data"] = draft_data
-                updated_review["draft_form"] = draft_form
-                updated_review["form"] = draft_data
-                updated_review["tree_number"] = record.tree_number
-                if submit_payload.narrative:
-                    narrative_text = submit_payload.narrative.get("text")
-                    if narrative_text is not None:
-                        updated_review["draft_narrative"] = narrative_text
-                        updated_review["narrative"] = narrative_text
+                updated_review = round_submit_service.apply_post_process_client_patch(
+                    review_payload=review_payload,
+                    submit_payload=submit_payload,
+                    tree_number=record.tree_number,
+                    apply_form_patch=apply_form_patch,
+                    normalize_form_schema=normalize_form_schema,
+                )
                 save_round_record(job_id, round_record, review_payload=updated_review)
                 review_payload = updated_review
             round_record.status = "REVIEW_RETURNED"

@@ -322,6 +322,79 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertIn("draft_form", assigned.review_payload)
         self.assertEqual(assigned.review_payload.get("tree_number"), 3)
 
+    def test_submit_round_preserves_extracted_fields_when_client_patch_contains_nulls(self) -> None:
+        token = self._register_and_approve_device("device-submit-merge")
+        create_job = self._endpoint("/v1/jobs", "POST")
+        create_response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Merge",
+                tree_number=1,
+                job_name="Job Merge",
+                job_address="123 Merge St",
+                job_phone="555-0201",
+                contact_preference="text",
+                billing_name="Customer Merge",
+                billing_address="123 Merge St",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(create_response.job_id, x_api_key=token)
+
+        store = DatabaseStore()
+        store.upsert_round_recording(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            section_id="client_tree_details",
+            recording_id="rec_1",
+            upload_status="uploaded",
+            content_type="audio/wav",
+            duration_ms=1000,
+            artifact_path="jobs/demo.wav",
+            metadata_json={"transcript_text": "demo transcript"},
+        )
+
+        self.main_module._run_extraction_core = lambda section_id, transcript: type(
+            "ExtractionResult",
+            (),
+            {
+                "model_dump": lambda self: {
+                    "section_id": "client_tree_details",
+                    "client": "Software Test",
+                    "tree_species": "apple tree",
+                    "dbh": 22,
+                    "height": 18,
+                }
+            },
+        )()
+        self.main_module._generate_summary = lambda **kwargs: "Generated summary"
+
+        submit_round = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/submit", "POST")
+        submit_round(
+            create_response.job_id,
+            round_response.round_id,
+            self.main_module.SubmitRoundRequest(
+                form={
+                    "client_tree_details": {
+                        "client": "Software Test",
+                        "tree_species": None,
+                        "dbh": None,
+                        "height": None,
+                    }
+                },
+                narrative={"text": "Narrative"},
+            ),
+            x_api_key=token,
+        )
+
+        get_review = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/review", "GET")
+        payload = get_review(create_response.job_id, round_response.round_id, x_api_key=token)
+        details = payload["draft_form"]["data"]["client_tree_details"]
+        self.assertEqual(details["client"], "Software Test")
+        self.assertEqual(details["tree_species"], "apple tree")
+        self.assertEqual(details["dbh"], 22)
+        self.assertEqual(details["height"], 18)
+
     def test_assigned_jobs_include_hydrated_review_images_from_db_state(self) -> None:
         token = self._register_and_approve_device("device-images-assigned")
         create_job = self._endpoint("/v1/jobs", "POST")

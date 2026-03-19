@@ -23,6 +23,7 @@ from app.api.recording_routes import build_recording_router
 from app.api.round_manifest_routes import build_round_manifest_router
 from app.api.round_reprocess_routes import build_round_reprocess_router
 from app.api.round_submit_routes import build_round_submit_router
+from app.services.round_submit_service import RoundSubmitService
 
 
 class ApiRouterTests(unittest.TestCase):
@@ -418,6 +419,7 @@ class ApiRouterTests(unittest.TestCase):
             apply_form_patch=lambda draft_form, form_patch: {**draft_form, **form_patch},
             normalize_form_schema=lambda form: form,
             process_round=lambda job_id, round_id, record, review: {"transcription_failures": [], "draft_form": {"data": {}}, "form": {}, "tree_number": 7},
+            round_submit_service=RoundSubmitService(),
             logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
         )
 

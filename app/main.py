@@ -213,6 +213,7 @@ def create_app() -> FastAPI:
     job_mutation_service = runtime.job_mutation_service
     media_runtime_service = runtime.media_runtime_service
     review_payload_service = runtime.review_payload_service
+    round_submit_service = runtime.round_submit_service
     runtime_state_service = runtime.runtime_state_service
     advertiser = runtime.advertiser
 
@@ -1770,6 +1771,7 @@ def create_app() -> FastAPI:
             apply_form_patch=_apply_form_patch,
             normalize_form_schema=_normalize_form_schema,
             process_round=_process_round,
+            round_submit_service=round_submit_service,
             logger=logger,
         )
     )
