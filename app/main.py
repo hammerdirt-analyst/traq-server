@@ -87,6 +87,7 @@ from .services.tree_store import (
 from .services.customer_service import CustomerService
 from .services.access_control_service import AccessControlService
 from .services.final_mutation_service import FinalMutationService
+from .services.finalization_service import FinalizationService
 from .services.job_mutation_service import JobMutationService
 from .services.review_payload_service import ReviewPayloadService
 
@@ -213,6 +214,7 @@ def create_app() -> FastAPI:
         artifact_store = LocalArtifactStore(settings.storage_root)
     customer_service = CustomerService()
     final_mutation_service = FinalMutationService()
+    finalization_service = FinalizationService()
     job_mutation_service = JobMutationService()
     review_payload_service = ReviewPayloadService()
     advertiser = ServiceDiscoveryAdvertiser(
@@ -3146,63 +3148,37 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=404, detail="Job not found")
         correction_mode = _is_correction_mode(job_id, record)
         logger.info("POST /v1/jobs/%s/final correction_mode=%s", job_id, correction_mode)
-        def _ensure_risk_defaults(form: dict[str, Any]) -> dict[str, Any]:
-            data = _normalize_form_schema(dict(form.get("data") or {}))
-            rows = list(data.get("risk_categorization") or [])
-            data["risk_categorization"] = rows
-            notes_section = data.get("notes_explanations_descriptions")
-            if isinstance(notes_section, dict):
-                notes_val = notes_section.get("notes")
-                if isinstance(notes_val, str):
-                    notes_clean = " ".join(notes_val.split())
-                    if len(notes_clean) > 230:
-                        trimmed = notes_clean[:230].rstrip()
-                        if " " in trimmed:
-                            trimmed = trimmed.rsplit(" ", 1)[0]
-                        notes_section["notes"] = trimmed
-            form["data"] = data
-            return form
-        transcript = ""
         persisted_round = db_store.get_job_round(job_id, payload.round_id)
         review_payload = (persisted_round or {}).get("review_payload")
-        if isinstance(review_payload, dict):
-            transcript = review_payload.get("transcript", "") or ""
-        pdf_name = "final_traq_page1_correction.pdf" if correction_mode else "final_traq_page1.pdf"
-        report_name = "final_report_letter_correction.pdf" if correction_mode else "final_report_letter.pdf"
-        report_docx_name = "final_report_letter_correction.docx" if correction_mode else "final_report_letter.docx"
-        final_json_name = "final_correction.json" if correction_mode else "final.json"
-        geojson_name = "final_correction.geojson" if correction_mode else "final.geojson"
-        pdf_key = _job_artifact_key(job_id, pdf_name)
+        transcript = finalization_service.transcript_from_review_payload(review_payload)
+        artifact_names = finalization_service.artifact_names(correction_mode)
+        pdf_key = _job_artifact_key(job_id, artifact_names.pdf_name)
         pdf_path = artifact_store.stage_output(pdf_key)
         requested_tree_number = requested_tree_number_from_form(payload.form)
         record.tree_number = _resolve_server_tree_number(
             record,
             requested_tree_number=requested_tree_number,
         )
-        payload.form = _ensure_risk_defaults(payload.form)
+        payload.form = finalization_service.ensure_risk_defaults(
+            payload.form,
+            normalize_form_schema=_normalize_form_schema,
+        )
         payload.form = apply_tree_number_to_form(payload.form, record.tree_number)
         _save_job_record(record)
         try:
             from . import report_letter
 
-            job_info = {
-                "job_address": record.job_address,
-                "address": record.address,
-                "billing_name": record.billing_name,
-                "billing_address": record.billing_address,
-                "billing_contact_name": record.billing_contact_name,
-            }
+            job_info = finalization_service.build_job_info(record)
             narrative_text = ""
             if isinstance(payload.narrative, dict):
                 narrative_text = payload.narrative.get("text") or ""
             else:
                 narrative_text = str(payload.narrative or "")
             profile_payload = payload.profile.model_dump() if payload.profile else None
-            if not profile_payload:
-                try:
-                    profile_payload = _load_runtime_profile(_identity_key(auth, x_api_key))
-                except Exception:
-                    profile_payload = None
+            profile_payload = finalization_service.resolve_profile_payload(
+                profile_payload,
+                fallback_loader=lambda: _load_runtime_profile(_identity_key(auth, x_api_key)),
+            )
             polished_summary = report_letter.polish_summary(
                 narrative_text,
                 form_data=payload.form,
@@ -3214,8 +3190,8 @@ def create_app() -> FastAPI:
                 summary=polished_summary,
                 form_data=payload.form,
             )
-            report_key = _job_artifact_key(job_id, report_name)
-            report_docx_key = _job_artifact_key(job_id, report_docx_name)
+            report_key = _job_artifact_key(job_id, artifact_names.report_name)
+            report_docx_key = _job_artifact_key(job_id, artifact_names.report_docx_name)
             report_path = artifact_store.stage_output(report_key)
             report_docx_path = artifact_store.stage_output(report_docx_key)
             sender_name = ""
@@ -3262,19 +3238,19 @@ def create_app() -> FastAPI:
             if isinstance(profile_payload, dict)
             else None
         ) or None
-        final_payload = {
-            "job_id": job_id,
-            "round_id": payload.round_id,
-            "server_revision_id": payload.server_revision_id,
-            "client_revision_id": payload.client_revision_id,
-            "archived_at": archived_at,
-            "transcript": transcript,
-            "form": payload.form,
-            "narrative": payload.narrative,
-            "user_name": user_name,
-            "report_images": report_images,
-        }
-        final_json_key = _job_artifact_key(job_id, final_json_name)
+        final_payload = finalization_service.build_final_payload(
+            job_id=job_id,
+            round_id=payload.round_id,
+            server_revision_id=payload.server_revision_id,
+            client_revision_id=payload.client_revision_id,
+            archived_at=archived_at,
+            transcript=transcript,
+            form=payload.form,
+            narrative=payload.narrative,
+            user_name=user_name,
+            report_images=report_images,
+        )
+        final_json_key = _job_artifact_key(job_id, artifact_names.final_json_name)
         final_json_path = artifact_store.stage_output(final_json_key)
         _write_json(final_json_path, final_payload)
         # Generate the TRAQ PDF from the persisted final payload to keep
@@ -3286,7 +3262,7 @@ def create_app() -> FastAPI:
             form_data = payload.form.get("data") if isinstance(payload.form.get("data"), dict) else payload.form
             if not isinstance(form_data, dict):
                 form_data = {}
-            geojson_key = _job_artifact_key(job_id, geojson_name)
+            geojson_key = _job_artifact_key(job_id, artifact_names.geojson_name)
             geojson_path = artifact_store.stage_output(geojson_key)
             geojson_export.write_final_geojson(
                 output_path=geojson_path,
