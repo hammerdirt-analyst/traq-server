@@ -11,6 +11,7 @@ from .security_store import SecurityStore
 from .service_discovery import DiscoveryConfig, ServiceDiscoveryAdvertiser
 from .services.access_control_service import AccessControlService
 from .services.customer_service import CustomerService
+from .services.device_profile_service import DeviceProfileService
 from .services.final_mutation_service import FinalMutationService
 from .services.finalization_service import FinalizationService
 from .services.job_mutation_service import JobMutationService
@@ -36,6 +37,7 @@ class RuntimeContext:
     security: SecurityStore = field(init=False)
     access_control_service: AccessControlService = field(init=False)
     customer_service: CustomerService = field(init=False)
+    device_profile_service: DeviceProfileService = field(init=False)
     final_mutation_service: FinalMutationService = field(init=False)
     finalization_service: FinalizationService = field(init=False)
     job_mutation_service: JobMutationService = field(init=False)
@@ -94,4 +96,10 @@ class RuntimeContext:
             job_record_factory=job_record_factory,
             round_record_factory=round_record_factory,
             write_json=write_json,
+        )
+        self.device_profile_service = DeviceProfileService(
+            storage_root=self.settings.storage_root,
+            db_store=self.db_store,
+            write_json=write_json,
+            logger=self.logger,
         )

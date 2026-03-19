@@ -35,7 +35,6 @@ import os
 from pathlib import Path
 from typing import Any
 import re
-import hashlib
 import uuid
 
 from fastapi import Body, FastAPI, Header, HTTPException, Request
@@ -208,6 +207,7 @@ def create_app() -> FastAPI:
     artifact_store = runtime.artifact_store
     access_control_service = runtime.access_control_service
     customer_service = runtime.customer_service
+    device_profile_service = runtime.device_profile_service
     final_mutation_service = runtime.final_mutation_service
     finalization_service = runtime.finalization_service
     job_mutation_service = runtime.job_mutation_service
@@ -291,40 +291,9 @@ def create_app() -> FastAPI:
             return _to_assigned_job(record)
         return None
 
-    def _register_device_record(
-        *,
-        device_id: str,
-        device_name: str | None,
-        app_version: str | None,
-        profile_summary: dict[str, Any] | None,
-    ) -> dict[str, Any]:
-        """Write device registration to the DB store only."""
-        try:
-            return db_store.register_device(
-                device_id=device_id,
-                device_name=device_name,
-                app_version=app_version,
-                profile_summary=profile_summary,
-            )
-        except Exception as exc:
-            logger.exception("DB device registration failed for %s", device_id)
-            raise HTTPException(status_code=500, detail="Device registration failed") from exc
-
-    def _get_device_record(device_id: str) -> dict[str, Any] | None:
-        """Read device record from the DB store only."""
-        try:
-            return db_store.get_device(device_id)
-        except Exception:
-            logger.exception("DB device lookup failed for %s", device_id)
-            return None
-
-    def _issue_device_token_record(device_id: str, ttl_seconds: int) -> dict[str, Any]:
-        """Issue device token from the DB store only."""
-        try:
-            return db_store.issue_token(device_id=device_id, ttl_seconds=ttl_seconds)
-        except Exception:
-            logger.exception("DB token issuance failed for %s", device_id)
-            raise
+    _register_device_record = device_profile_service.register_device_record
+    _get_device_record = device_profile_service.get_device_record
+    _issue_device_token_record = device_profile_service.issue_device_token_record
 
     def _list_job_assignments() -> list[dict[str, Any]]:
         """List DB-backed job assignments only."""
@@ -501,32 +470,8 @@ def create_app() -> FastAPI:
             return True
         return artifact_store.exists(_job_artifact_key(job_id, "final.json"))
 
-    def _profile_dir() -> Path:
-        """Return profile storage directory path."""
-        path = settings.storage_root / "profiles"
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    def _profile_path(identity_key: str) -> Path:
-        """Return the exported debug profile path for one identity."""
-        digest = hashlib.sha256(identity_key.encode("utf-8")).hexdigest()
-        return _profile_dir() / f"{digest}.json"
-
-    def _load_runtime_profile(identity_key: str) -> dict[str, Any] | None:
-        """Load runtime profile payload from the authoritative DB store."""
-        payload = db_store.get_runtime_profile(identity_key)
-        if isinstance(payload, dict):
-            return dict(payload)
-        return None
-
-    def _save_runtime_profile(identity_key: str, payload: dict[str, Any]) -> dict[str, Any]:
-        """Persist runtime profile payload to DB and export a debug copy."""
-        stored = db_store.upsert_runtime_profile(
-            identity_key=identity_key,
-            profile_payload=dict(payload or {}),
-        )
-        _write_json(_profile_path(identity_key), stored)
-        return stored
+    _load_runtime_profile = device_profile_service.load_runtime_profile
+    _save_runtime_profile = device_profile_service.save_runtime_profile
 
     def _load_round_manifest(job_id: str, round_id: str) -> list[dict[str, Any]]:
         """Load one round manifest payload from the authoritative DB store."""
