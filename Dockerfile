@@ -21,6 +21,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md admin_cli.py alembic.ini ./
 COPY app ./app
 COPY alembic ./alembic
+COPY references ./references
 
 RUN uv sync --frozen
 

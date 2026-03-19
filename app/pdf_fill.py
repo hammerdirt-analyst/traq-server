@@ -374,7 +374,7 @@ def generate_traq_pdf(
         template_path: Optional TRAQ template path override.
         flatten: Reserved compatibility parameter (current path is overlay-only).
     """
-    template = template_path or (Path(__file__).resolve().parents[2] / "references" / "basic_traq_example.pdf")
+    template = template_path or (Path(__file__).resolve().parents[1] / "references" / "basic_traq_example.pdf")
     if not template.exists():
         raise RuntimeError(f"TRAQ template not found at {template}")
     reader = PdfReader(str(template))

@@ -87,6 +87,10 @@ Run the image locally:
   `-e OPENAI_API_KEY=<key> \`
   `traq-server:local`
 
+For local smoke testing with values loaded from `.env`:
+
+- `./scripts/run_local_container.sh`
+
 Cloud-oriented defaults baked into the image:
 
 - `TRAQ_ENABLE_DISCOVERY=false`

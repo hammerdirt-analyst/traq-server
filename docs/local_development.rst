@@ -189,6 +189,10 @@ Run against local PostgreSQL on Linux::
      -e TRAQ_STORAGE_ROOT='/tmp/traq-local-data' \
      traq-server:local
 
+If local `.env` already contains the required values, use the helper script::
+
+   ./scripts/run_local_container.sh
+
 Then verify::
 
    curl -H 'X-API-Key: demo-key' http://127.0.0.1:8000/health
