@@ -21,6 +21,8 @@ class ReviewPayloadService:
                 gps["longitude"] = longitude
             image_id = str(row.get("image_id") or metadata.get("image_id") or "").strip()
             section_id = str(row.get("section_id") or metadata.get("section_id") or "").strip()
+            if not image_id:
+                continue
             image_payload: dict[str, Any] = {
                 "id": image_id,
                 "image_id": image_id,

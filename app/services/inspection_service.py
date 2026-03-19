@@ -22,6 +22,7 @@ class InspectionService:
     """Read-only inspection service for CLI/operator workflows."""
 
     def __init__(self, *, settings: Settings, db_store: DatabaseStore) -> None:
+        """Bind storage-root and DB dependencies for inspection commands."""
         self._settings = settings
         self._db_store = db_store
 
@@ -128,6 +129,7 @@ class InspectionService:
         prefix: str,
         payload: Any,
     ) -> dict[str, Any]:
+        """Summarize one final or correction artifact set for CLI display."""
         is_correction = prefix == "final_correction"
         report_pdf = "final_report_letter_correction.pdf" if is_correction else "final_report_letter.pdf"
         report_docx = "final_report_letter_correction.docx" if is_correction else "final_report_letter.docx"
@@ -147,13 +149,15 @@ class InspectionService:
         }
 
     def _job_dir(self, job_id: str) -> Path:
+        """Return the on-disk job directory for one authoritative job id."""
         return self._settings.storage_root / "jobs" / job_id
 
     @staticmethod
     def _read_json(path: Path) -> Any:
+        """Load JSON from disk and return ``None`` for missing or invalid files."""
         if not path.exists():
             return None
         try:
             return json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, OSError):
             return None

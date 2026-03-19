@@ -26,6 +26,7 @@ class MediaRuntimeService:
         artifact_store: ArtifactStore,
         logger: logging.Logger,
     ) -> None:
+        """Bind storage, DB, and logger dependencies for media operations."""
         self._db_store = db_store
         self._artifact_store = artifact_store
         self._logger = logger

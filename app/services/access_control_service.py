@@ -13,6 +13,7 @@ class AccessControlService:
     """Encapsulate auth and job-access checks used across route handlers."""
 
     def __init__(self, *, api_key: str, db_store: DatabaseStore, logger: logging.Logger) -> None:
+        """Store operator auth config and DB-backed access dependencies."""
         self._api_key = api_key
         self._db_store = db_store
         self._logger = logger

@@ -27,6 +27,7 @@ class RuntimeStateService:
         round_record_factory: Callable[..., Any],
         write_json: Callable[[Path, dict[str, Any]], None],
     ) -> None:
+        """Store the persistence collaborators used by runtime route handlers."""
         self._storage_root = storage_root
         self._db_store = db_store
         self._artifact_store = artifact_store
