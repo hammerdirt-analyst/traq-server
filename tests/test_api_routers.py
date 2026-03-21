@@ -25,6 +25,7 @@ from app.api.recording_routes import build_recording_router
 from app.api.round_manifest_routes import build_round_manifest_router
 from app.api.round_reprocess_routes import build_round_reprocess_router
 from app.api.round_submit_routes import build_round_submit_router
+from app.api.tree_identification_routes import build_tree_identification_router
 from app.services.round_submit_service import RoundSubmitService
 
 
@@ -152,6 +153,28 @@ class ApiRouterTests(unittest.TestCase):
                 self.latest_round_id = "round_1"
                 self.latest_round_status = "REVIEW_RETURNED"
 
+        class DummyDbStore:
+            def get_job_round(self, job_id, round_id):
+                return None
+
+            def list_devices(self, status=None):
+                rows = [
+                    {"device_id": "device-1", "status": "pending", "role": "arborist"},
+                    {"device_id": "device-2", "status": "approved", "role": "admin"},
+                ]
+                if status:
+                    rows = [row for row in rows if row["status"] == status]
+                return rows
+
+            def approve_device(self, device_id, role="arborist"):
+                return {"device_id": device_id, "status": "approved", "role": role}
+
+            def revoke_device(self, device_id):
+                return {"device_id": device_id, "status": "revoked", "role": "arborist"}
+
+            def issue_token(self, device_id, ttl_seconds=604800):
+                return {"access_token": "token", "device_id": device_id, "ttl_seconds": ttl_seconds}
+
         record = DummyJob()
         saved: list[DummyJob] = []
 
@@ -162,10 +185,28 @@ class ApiRouterTests(unittest.TestCase):
             unassign_job_record=lambda job_id: {"job_id": job_id},
             list_job_assignments=lambda: [{"job_id": "job_1", "device_id": "device-1"}],
             save_job_record=lambda job: saved.append(job),
-            db_store=type("DbStore", (), {"get_job_round": lambda self, job_id, round_id: None})(),
+            db_store=DummyDbStore(),
             round_record_factory=lambda **kwargs: DummyRound(status=kwargs["status"]),
             logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
         )
+
+        list_devices = self._router_endpoint(router, "/v1/admin/devices", "GET")
+        self.assertEqual(len(list_devices(x_api_key="test-key")["devices"]), 2)
+
+        pending_devices = self._router_endpoint(router, "/v1/admin/devices/pending", "GET")
+        self.assertEqual(len(pending_devices(x_api_key="test-key")["devices"]), 1)
+
+        approve_device = self._router_endpoint(router, "/v1/admin/devices/{device_id}/approve", "POST")
+        approved = approve_device("device-1", type("Payload", (), {"role": "admin"})(), x_api_key="test-key")
+        self.assertEqual(approved["device"]["role"], "admin")
+
+        revoke_device = self._router_endpoint(router, "/v1/admin/devices/{device_id}/revoke", "POST")
+        revoked = revoke_device("device-1", x_api_key="test-key")
+        self.assertEqual(revoked["device"]["status"], "revoked")
+
+        issue_token = self._router_endpoint(router, "/v1/admin/devices/{device_id}/issue-token", "POST")
+        token = issue_token("device-2", type("Payload", (), {"ttl_seconds": 900})(), x_api_key="test-key")
+        self.assertEqual(token["access_token"], "token")
 
         assignments = self._router_endpoint(router, "/v1/admin/jobs/assignments", "GET")
         self.assertEqual(assignments(x_api_key="test-key")["assignments"][0]["job_id"], "job_1")
@@ -185,6 +226,53 @@ class ApiRouterTests(unittest.TestCase):
         )
         self.assertTrue(response["ok"])
         self.assertEqual(response["assignment"]["device_id"], "device-1")
+
+    def test_tree_identification_router_builds_expected_endpoint(self) -> None:
+        router = build_tree_identification_router(
+            require_api_key=lambda key: {"api_key": key},
+            tree_identification_service=type(
+                "TreeIdentificationService",
+                (),
+                {
+                    "identify": lambda self, **kwargs: {
+                        "query": {"project": kwargs.get("project") or "all"},
+                        "predictedOrgans": [{"organ": "leaf"}],
+                        "bestMatch": "Ajuga genevensis L.",
+                        "results": [{"score": 0.9}],
+                        "otherResults": [],
+                        "version": "2025-01-17 (7.3)",
+                        "remainingIdentificationRequests": 498,
+                    }
+                },
+            )(),
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
+        )
+        identify = self._router_endpoint(router, "/v1/trees/identify", "POST")
+
+        class DummyUpload:
+            filename = "leaf.jpg"
+            content_type = "image/jpeg"
+
+            async def read(self) -> bytes:
+                return b"jpeg"
+
+        async def invoke():
+            return await identify(
+                images=[
+                    DummyUpload(),
+                ],
+                organs=["leaf"],
+                project="all",
+                include_related_images=False,
+                no_reject=False,
+                nb_results=3,
+                lang="en",
+                x_api_key="test-key",
+            )
+
+        result = asyncio.run(invoke())
+        self.assertEqual(result["bestMatch"], "Ajuga genevensis L.")
+        self.assertEqual(result["remainingIdentificationRequests"], 498)
 
     def test_job_read_router_builds_expected_endpoints(self) -> None:
         class DummyRound:

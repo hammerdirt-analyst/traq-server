@@ -12,7 +12,8 @@ except ImportError:  # pragma: no cover
 import shlex
 import sys
 from typing import Any
-from urllib import error, request
+import uuid
+from urllib import error, parse, request
 
 from app.cli.device_commands import (
     cmd_device_approve as _cmd_device_approve,
@@ -72,6 +73,10 @@ from app.cli.net_commands import (
     cmd_net_ipv4 as _cmd_net_ipv4,
     cmd_net_ipv6 as _cmd_net_ipv6,
     register_net_commands,
+)
+from app.cli.tree_commands import (
+    cmd_tree_identify as _cmd_tree_identify,
+    register_tree_commands,
 )
 from app.artifact_storage import create_artifact_store
 from app.config import load_settings
@@ -146,11 +151,15 @@ def _http(
     *,
     api_key: str,
     payload: dict[str, Any] | None = None,
+    files: list[tuple[str, str, bytes, str]] | None = None,
     timeout: int = 20,
 ) -> tuple[int, Any]:
     data = None
     headers = {"x-api-key": api_key}
-    if payload is not None:
+    if files:
+        data, content_type = _encode_multipart(payload or {}, files)
+        headers["Content-Type"] = content_type
+    elif payload is not None:
         data = json.dumps(payload).encode("utf-8")
         headers["Content-Type"] = "application/json"
     req = request.Request(url, method=method, headers=headers, data=data)
@@ -165,6 +174,52 @@ def _http(
         except json.JSONDecodeError:
             body = {"detail": raw}
         return int(exc.code), body
+
+
+def _encode_multipart(
+    fields: dict[str, Any],
+    files: list[tuple[str, str, bytes, str]],
+) -> tuple[bytes, str]:
+    boundary = f"----traq-cli-{uuid.uuid4().hex}"
+    body: list[bytes] = []
+
+    def add_field(name: str, value: str) -> None:
+        body.extend(
+            [
+                f"--{boundary}\r\n".encode("utf-8"),
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode("utf-8"),
+                value.encode("utf-8"),
+                b"\r\n",
+            ]
+        )
+
+    for key, value in fields.items():
+        if value is None:
+            continue
+        if isinstance(value, list):
+            for item in value:
+                add_field(key, str(item))
+            continue
+        if isinstance(value, bool):
+            add_field(key, "true" if value else "false")
+            continue
+        add_field(key, str(value))
+
+    for field_name, filename, content, content_type in files:
+        body.extend(
+            [
+                f"--{boundary}\r\n".encode("utf-8"),
+                (
+                    f'Content-Disposition: form-data; name="{field_name}"; filename="{filename}"\r\n'
+                ).encode("utf-8"),
+                f"Content-Type: {content_type}\r\n\r\n".encode("utf-8"),
+                content,
+                b"\r\n",
+            ]
+        )
+
+    body.append(f"--{boundary}--\r\n".encode("utf-8"))
+    return b"".join(body), f"multipart/form-data; boundary={boundary}"
 
 
 def _resolve_job_id(host: str, api_key: str, job_ref: str) -> str:
@@ -193,6 +248,18 @@ def _resolve_device_id(device_ref: str) -> str:
     raise RuntimeError(f"Device id prefix is ambiguous: {device_ref}")
 
 
+def _should_use_remote_device_api(args: argparse.Namespace) -> bool:
+    return bool(getattr(args, "host", None) and getattr(args, "api_key", None))
+
+
+def _list_remote_devices(*, host: str, api_key: str, status: str | None = None) -> tuple[int, Any]:
+    suffix = "/v1/admin/devices/pending" if status == "pending" else "/v1/admin/devices"
+    query = ""
+    if status and status != "pending":
+        query = f"?status={parse.quote(status)}"
+    return _http("GET", f"{host.rstrip('/')}{suffix}{query}", api_key=api_key)
+
+
 def _pending_devices() -> list[dict[str, Any]]:
     rows = _store().list_devices(status="pending")
     rows.sort(key=lambda r: str(r.get("updated_at") or r.get("created_at") or ""))
@@ -200,14 +267,56 @@ def _pending_devices() -> list[dict[str, Any]]:
 
 
 def cmd_device_list(args: argparse.Namespace) -> int:
+    if _should_use_remote_device_api(args):
+        code, body = _list_remote_devices(host=args.host, api_key=args.api_key, status=args.status)
+        if code != 200:
+            print(f"HTTP {code}: {body}")
+            return 1
+        devices = body.get("devices", []) if isinstance(body, dict) else []
+        _print_json(devices if args.json else body)
+        return 0
     return _cmd_device_list(args, store_factory=_store, print_json=_print_json)
 
 
 def cmd_device_pending(args: argparse.Namespace) -> int:
+    if _should_use_remote_device_api(args):
+        code, body = _list_remote_devices(host=args.host, api_key=args.api_key, status="pending")
+        if code != 200:
+            print(f"HTTP {code}: {body}")
+            return 1
+        devices = body.get("devices", []) if isinstance(body, dict) else []
+        _print_json(devices if args.json else body)
+        return 0
     return _cmd_device_pending(args, pending_devices=_pending_devices, print_json=_print_json)
 
 
 def cmd_device_validate(args: argparse.Namespace) -> int:
+    if _should_use_remote_device_api(args):
+        code, body = _list_remote_devices(host=args.host, api_key=args.api_key, status="pending")
+        if code != 200:
+            print(f"HTTP {code}: {body}")
+            return 1
+        rows = body.get("devices", []) if isinstance(body, dict) else []
+        if not rows:
+            print("No pending devices.")
+            return 1
+        index = max(1, int(args.index))
+        if index > len(rows):
+            print(f"Invalid index {index}; pending count={len(rows)}")
+            return 1
+        device_id = str(rows[index - 1].get("device_id") or "")
+        code, body = _http(
+            "POST",
+            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(device_id)}/approve",
+            api_key=args.api_key,
+            payload={"role": args.role},
+        )
+        if code != 200:
+            print(f"HTTP {code}: {body}")
+            return 1
+        print(f"Validated device {device_id[:8]} as role={args.role}")
+        _print_json(body)
+        return 0
     return _cmd_device_validate(
         args,
         pending_devices=_pending_devices,
@@ -217,6 +326,18 @@ def cmd_device_validate(args: argparse.Namespace) -> int:
 
 
 def cmd_device_approve(args: argparse.Namespace) -> int:
+    if _should_use_remote_device_api(args):
+        code, body = _http(
+            "POST",
+            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(args.device_id)}/approve",
+            api_key=args.api_key,
+            payload={"role": args.role},
+        )
+        if code != 200:
+            print(f"HTTP {code}: {body}")
+            return 1
+        _print_json(body)
+        return 0
     try:
         args.device_id = _resolve_device_id(args.device_id)
     except Exception as exc:
@@ -226,6 +347,18 @@ def cmd_device_approve(args: argparse.Namespace) -> int:
 
 
 def cmd_device_revoke(args: argparse.Namespace) -> int:
+    if _should_use_remote_device_api(args):
+        code, body = _http(
+            "POST",
+            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(args.device_id)}/revoke",
+            api_key=args.api_key,
+            payload={},
+        )
+        if code != 200:
+            print(f"HTTP {code}: {body}")
+            return 1
+        _print_json(body)
+        return 0
     try:
         args.device_id = _resolve_device_id(args.device_id)
     except Exception as exc:
@@ -235,12 +368,28 @@ def cmd_device_revoke(args: argparse.Namespace) -> int:
 
 
 def cmd_device_issue_token(args: argparse.Namespace) -> int:
+    if _should_use_remote_device_api(args):
+        code, body = _http(
+            "POST",
+            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(args.device_id)}/issue-token",
+            api_key=args.api_key,
+            payload={"ttl_seconds": args.ttl},
+        )
+        if code != 200:
+            print(f"HTTP {code}: {body}")
+            return 1
+        _print_json(body)
+        return 0
     try:
         args.device_id = _resolve_device_id(args.device_id)
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1
     return _cmd_device_issue_token(args, store_factory=_store, print_json=_print_json)
+
+
+def cmd_tree_identify(args: argparse.Namespace) -> int:
+    return _cmd_tree_identify(args, http=_http, print_json=_print_json)
 
 
 def cmd_customer_list(args: argparse.Namespace) -> int:
@@ -456,6 +605,14 @@ def build_parser() -> argparse.ArgumentParser:
             "ipv6": cmd_net_ipv6,
         },
     )
+    register_tree_commands(
+        sub,
+        {
+            "identify": cmd_tree_identify,
+        },
+        default_host=settings.admin_base_url,
+        default_api_key=settings.api_key,
+    )
     register_artifact_commands(
         sub,
         {
@@ -482,6 +639,7 @@ def _inject_repl_defaults(tokens: list[str], *, host: str, api_key: str) -> list
         (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status"})
         or (top == "job" and sub == "unlock")
         or (top == "round" and sub == "reopen")
+        or (top == "tree" and sub == "identify")
     )
     if needs_http_defaults:
         if "--host" not in augmented:
@@ -529,6 +687,7 @@ def _repl_command_catalog() -> list[str]:
             "final set-final",
             "final set-correction",
             "artifact fetch",
+            "tree identify",
             "net ipv4",
             "net ipv6",
             "show",
@@ -611,6 +770,7 @@ def _run_repl(parser: argparse.ArgumentParser) -> int:
             print("  /job list-assignments")
             print("  /job set-status --job J0001 --status DRAFT")
             print("  /artifact fetch --job J0001 --kind report-pdf")
+            print("  /tree identify --image ./leaf.jpg")
             print("  /round reopen --job-id job_1 --round-id round_1")
             continue
         if raw == "show":

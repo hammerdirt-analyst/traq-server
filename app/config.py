@@ -58,6 +58,9 @@ class Settings:
     enable_file_logging: bool
     database_url: str
     admin_base_url: str
+    plantnet_api_key: str | None
+    plantnet_base_url: str
+    plantnet_project: str
     discovery_port: int
     discovery_name: str
 
@@ -79,6 +82,12 @@ def load_settings() -> Settings:
       the required deployment target
     - `TRAQ_ADMIN_BASE_URL`: default server base URL for admin CLI HTTP
       commands; defaults to `http://127.0.0.1:<TRAQ_DISCOVERY_PORT>`
+    - `TRAQ_PLANTNET_API_KEY`: optional Pl@ntNet API key for tree
+      identification requests
+    - `TRAQ_PLANTNET_BASE_URL`: upstream Pl@ntNet API base URL; defaults to
+      `https://my-api.plantnet.org`
+    - `TRAQ_PLANTNET_PROJECT`: default Pl@ntNet flora project; defaults to
+      `all`
     - `TRAQ_DISCOVERY_PORT` / `TRAQ_DISCOVERY_NAME`: mDNS advertisement config
     """
 
@@ -113,6 +122,12 @@ def load_settings() -> Settings:
         "TRAQ_ADMIN_BASE_URL",
         f"http://127.0.0.1:{discovery_port}",
     ).rstrip("/")
+    plantnet_api_key = (os.environ.get("TRAQ_PLANTNET_API_KEY") or "").strip() or None
+    plantnet_base_url = (
+        os.environ.get("TRAQ_PLANTNET_BASE_URL")
+        or "https://my-api.plantnet.org"
+    ).strip().rstrip("/")
+    plantnet_project = (os.environ.get("TRAQ_PLANTNET_PROJECT") or "all").strip() or "all"
     storage_root.mkdir(parents=True, exist_ok=True)
     return Settings(
         api_key=api_key,
@@ -125,6 +140,9 @@ def load_settings() -> Settings:
         enable_file_logging=enable_file_logging,
         database_url=database_url,
         admin_base_url=admin_base_url,
+        plantnet_api_key=plantnet_api_key,
+        plantnet_base_url=plantnet_base_url,
+        plantnet_project=plantnet_project,
         discovery_port=discovery_port,
         discovery_name=discovery_name,
     )

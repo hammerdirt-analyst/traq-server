@@ -140,10 +140,14 @@ def register_device_commands(subparsers, handlers: dict[str, Callable[[argparse.
     list_cmd = device_sub.add_parser("list", help="List devices")
     list_cmd.add_argument("--status", choices=["pending", "approved", "revoked"], default=None)
     list_cmd.add_argument("--json", action="store_true")
+    list_cmd.add_argument("--host")
+    list_cmd.add_argument("--api-key")
     list_cmd.set_defaults(func=handlers["list"])
 
     pending_cmd = device_sub.add_parser("pending", help="List pending devices")
     pending_cmd.add_argument("--json", action="store_true")
+    pending_cmd.add_argument("--host")
+    pending_cmd.add_argument("--api-key")
     pending_cmd.set_defaults(func=handlers["pending"])
 
     validate_cmd = device_sub.add_parser(
@@ -152,18 +156,26 @@ def register_device_commands(subparsers, handlers: dict[str, Callable[[argparse.
     )
     validate_cmd.add_argument("--index", type=int, default=1)
     validate_cmd.add_argument("--role", choices=["arborist", "admin"], default="arborist")
+    validate_cmd.add_argument("--host")
+    validate_cmd.add_argument("--api-key")
     validate_cmd.set_defaults(func=handlers["validate"])
 
     approve_cmd = device_sub.add_parser("approve", help="Approve a specific device id")
     approve_cmd.add_argument("device_id")
     approve_cmd.add_argument("--role", choices=["arborist", "admin"], default="arborist")
+    approve_cmd.add_argument("--host")
+    approve_cmd.add_argument("--api-key")
     approve_cmd.set_defaults(func=handlers["approve"])
 
     revoke_cmd = device_sub.add_parser("revoke", help="Revoke a specific device id")
     revoke_cmd.add_argument("device_id")
+    revoke_cmd.add_argument("--host")
+    revoke_cmd.add_argument("--api-key")
     revoke_cmd.set_defaults(func=handlers["revoke"])
 
     token_cmd = device_sub.add_parser("issue-token", help="Issue access token for approved device")
     token_cmd.add_argument("device_id")
     token_cmd.add_argument("--ttl", type=int, default=604800)
+    token_cmd.add_argument("--host")
+    token_cmd.add_argument("--api-key")
     token_cmd.set_defaults(func=handlers["issue_token"])

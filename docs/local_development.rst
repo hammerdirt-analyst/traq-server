@@ -63,6 +63,12 @@ Common local values:
 - ``TRAQ_ENABLE_DISCOVERY=true``
 - ``TRAQ_AUTO_CREATE_SCHEMA=true``
 - ``TRAQ_ENABLE_FILE_LOGGING=true``
+- ``TRAQ_PLANTNET_BASE_URL=https://my-api.plantnet.org``
+- ``TRAQ_PLANTNET_PROJECT=all``
+
+Optional local secret:
+
+- ``TRAQ_PLANTNET_API_KEY`` for real tree-identification requests
 
 The server loads ``.env`` automatically unless variables are already set in the
 shell.

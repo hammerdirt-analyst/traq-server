@@ -4,213 +4,270 @@ GCP Deployment Runbook
 Purpose
 -------
 
-This runbook defines the first controlled beta deployment path for the TRAQ
-server on GCP.
+This document records the verified Cloud Run deployment path for the TRAQ
+server.
 
 Deployment model
 ----------------
 
-Target services:
+Verified runtime components:
 
-- Cloud Run for the API container
+- Cloud Run service for the API
+- Cloud Run job for Alembic migrations
 - Cloud SQL for PostgreSQL
-- Cloud Storage for artifact bytes
-- Artifact Registry for container images
 - Secret Manager for runtime secrets
+- Artifact Registry for container images
+- Cloud Storage for artifact bytes
 
-The current beta security model is operator-only for admin actions.
+Working network model:
 
-Prerequisites
--------------
+- Cloud SQL uses private IP
+- Cloud Run service uses a Serverless VPC Access connector
+- Cloud Run migration job uses the same VPC connector
+- both the service and the job route only private IP ranges into the VPC
 
-Before starting:
+Verified GCP resources
+----------------------
 
-- Docker image builds and runs locally
-- Alembic migrations are clean
-- docs build cleanly
-- a GCP project exists
-- billing is enabled
-- ``gcloud`` is installed and authenticated
+- Project ID: ``traq-server-cloud``
+- Region: ``us-west1``
+- Cloud Run service: ``traq-server``
+- Cloud Run job: ``traq-migrate``
+- Cloud SQL instance: ``traq-postgres``
+- PostgreSQL database: ``traq``
+- PostgreSQL role: ``traq_run``
+- VPC connector: ``traq-run-connector``
+- Cloud SQL private IP: ``10.0.16.3``
 
-Required local tools:
+Runtime secrets
+---------------
 
-- ``gcloud``
-- ``docker``
-- ``uv``
+The database URL is stored as one complete Secret Manager value. Do not build
+it from separate password variables in the job or service definition.
 
-Suggested environment variables
+Working DSN format::
+
+   postgresql+psycopg://<db_user>:<db_password>@<private_ip>:5432/traq
+
+Do not record the live password in docs. Read the current value from Secret
+Manager.
+
+Required Secret Manager secrets:
+
+- ``TRAQ_API_KEY``
+- ``OPENAI_API_KEY``
+- ``TRAQ_DATABASE_URL``
+- ``TRAQ_PLANTNET_API_KEY``
+
+Cloud Run service configuration
 -------------------------------
 
-Set these locally before running the commands in this document::
+Required env vars:
 
-   export GCP_PROJECT_ID=<project-id>
-   export GCP_REGION=us-central1
-   export GCP_REPOSITORY=traq-server
-   export GCP_SERVICE=traq-server
-   export GCP_BUCKET=<artifact-bucket-name>
-   export GCP_SQL_INSTANCE=traq-postgres
-   export GCP_DB_NAME=traq_demo
-   export GCP_DB_USER=traq_app
+- ``TRAQ_ARTIFACT_BACKEND=gcs``
+- ``TRAQ_GCS_BUCKET=<artifact bucket>``
+- optional ``TRAQ_GCS_PREFIX=<prefix>``
+- ``TRAQ_ENABLE_DISCOVERY=false``
+- ``TRAQ_AUTO_CREATE_SCHEMA=false``
+- ``TRAQ_ENABLE_FILE_LOGGING=false``
 
-Project bootstrap
------------------
+Required secret env vars:
 
-Select the project and enable the required APIs::
+- ``TRAQ_API_KEY``
+- ``OPENAI_API_KEY``
+- ``TRAQ_DATABASE_URL``
+- ``TRAQ_PLANTNET_API_KEY``
 
-   gcloud config set project "$GCP_PROJECT_ID"
-   gcloud services enable \
-     run.googleapis.com \
-     sqladmin.googleapis.com \
-     artifactregistry.googleapis.com \
-     secretmanager.googleapis.com \
-     storage.googleapis.com
+Required network settings:
 
-Provision Artifact Registry
----------------------------
+- VPC connector: ``traq-run-connector``
+- VPC egress: ``private-ranges-only``
 
-Create the Docker repository once::
+Cloud Run migration job configuration
+-------------------------------------
 
-   gcloud artifacts repositories create "$GCP_REPOSITORY" \
-     --repository-format=docker \
-     --location="$GCP_REGION"
+Command::
 
-Configure Docker auth::
+   uv
 
-   gcloud auth configure-docker "$GCP_REGION-docker.pkg.dev"
+Arguments::
 
-Provision Cloud Storage
------------------------
+   run
+   alembic
+   upgrade
+   head
 
-Create the artifact bucket once::
+Required env vars:
 
-   gcloud storage buckets create "gs://$GCP_BUCKET" \
-     --location="$GCP_REGION"
+- ``TRAQ_ENABLE_DISCOVERY=false``
+- ``TRAQ_AUTO_CREATE_SCHEMA=false``
+- ``TRAQ_ENABLE_FILE_LOGGING=false``
 
-Provision Cloud SQL
--------------------
+Required secret env vars:
 
-Create a PostgreSQL instance, database, and application user::
+- ``TRAQ_DATABASE_URL``
 
-   gcloud sql instances create "$GCP_SQL_INSTANCE" \
-     --database-version=POSTGRES_16 \
-     --region="$GCP_REGION"
+Required network settings:
 
-   gcloud sql databases create "$GCP_DB_NAME" \
-     --instance="$GCP_SQL_INSTANCE"
+- VPC connector: ``traq-run-connector``
+- VPC egress: ``private-ranges-only``
 
-   gcloud sql users create "$GCP_DB_USER" \
-     --instance="$GCP_SQL_INSTANCE" \
-     --password='<set-a-db-password>'
+Important:
 
-You will then need the Cloud SQL connection name::
+- the migration job is configured separately from the service
+- fixing the service network path does not fix the job
+- the typo ``fasle`` in ``TRAQ_ENABLE_FILE_LOGGING`` will break migrations
 
-   gcloud sql instances describe "$GCP_SQL_INSTANCE" \
-     --format='value(connectionName)'
+PostgreSQL bootstrap
+--------------------
 
-Record that value for the Cloud Run deploy step.
+Use Cloud SQL Studio to create the application database and role access.
 
-Create runtime secrets
-----------------------
+Create the application database::
 
-Create or update the runtime secrets in Secret Manager::
+   CREATE DATABASE traq;
 
-   printf '%s' '<set-a-strong-admin-api-key>' | \
-     gcloud secrets create traq-api-key --data-file=- || \
-     printf '%s' '<set-a-strong-admin-api-key>' | \
-     gcloud secrets versions add traq-api-key --data-file=-
+Grant the application role access::
 
-   printf '%s' '<set-your-openai-api-key>' | \
-     gcloud secrets create traq-openai-api-key --data-file=- || \
-     printf '%s' '<set-your-openai-api-key>' | \
-     gcloud secrets versions add traq-openai-api-key --data-file=-
+   ALTER ROLE traq_run WITH LOGIN PASSWORD '<db_password>';
+   GRANT CONNECT ON DATABASE traq TO traq_run;
 
-   printf '%s' 'postgresql+psycopg://<user>:<password>@/<db>?host=/cloudsql/<connection-name>' | \
-     gcloud secrets create traq-database-url --data-file=- || \
-     printf '%s' 'postgresql+psycopg://<user>:<password>@/<db>?host=/cloudsql/<connection-name>' | \
-     gcloud secrets versions add traq-database-url --data-file=-
+Then, against database ``traq``, grant schema privileges::
 
-Build and push the image
+   GRANT USAGE ON SCHEMA public TO traq_run;
+   GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO traq_run;
+   GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO traq_run;
+   ALTER DEFAULT PRIVILEGES IN SCHEMA public
+     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO traq_run;
+   ALTER DEFAULT PRIVILEGES IN SCHEMA public
+     GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO traq_run;
+
+Manual deployment sequence
+--------------------------
+
+Build and push the image::
+
+   gcloud auth configure-docker us-west1-docker.pkg.dev
+   cd /home/roger/projects/codex_trial/agent_client/server
+   docker build -t us-west1-docker.pkg.dev/traq-server-cloud/traq-images/traq-server:initial .
+   docker push us-west1-docker.pkg.dev/traq-server-cloud/traq-images/traq-server:initial
+
+Then:
+
+1. confirm database ``traq`` exists
+2. confirm role ``traq_run`` can log in
+3. execute ``traq-migrate`` and wait for success
+4. deploy the new ``traq-server`` revision
+
+Remote operator workflow
 ------------------------
 
-Build and push the image to Artifact Registry::
+Cloud operator actions are now performed over admin HTTP endpoints.
 
-   export IMAGE_URI="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_REPOSITORY/traq-server:$(git rev-parse --short HEAD)"
+Examples from a laptop::
 
-   docker build -t "$IMAGE_URI" .
-   docker push "$IMAGE_URI"
+   cd /home/roger/projects/codex_trial/agent_client/server
+   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin device pending \
+     --host https://traq-server-589591848994.us-west1.run.app \
+     --api-key '<TRAQ_API_KEY>'
 
-Run migrations
---------------
+   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin device approve <device_id> --role arborist \
+     --host https://traq-server-589591848994.us-west1.run.app \
+     --api-key '<TRAQ_API_KEY>'
 
-Run Alembic against Cloud SQL before deploying the new revision.
+   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin device issue-token <device_id> --ttl 604800 \
+     --host https://traq-server-589591848994.us-west1.run.app \
+     --api-key '<TRAQ_API_KEY>'
 
-For the first controlled beta, the simplest operator path is to run the
-migration from a trusted operator environment using the production
-``TRAQ_DATABASE_URL``::
+Important:
 
-   TRAQ_DATABASE_URL='postgresql+psycopg://<user>:<password>@/<db>?host=/cloudsql/<connection-name>' \
-   UV_CACHE_DIR=/tmp/uv-cache \
-   uv run alembic upgrade head
+- ``traq-admin`` does not accept global ``--host`` / ``--api-key``
+- pass those flags on the specific subcommand
 
-This step must succeed before deploying the new Cloud Run revision.
+Verified local tree-identification smoke test::
 
-Deploy Cloud Run
-----------------
+   cd /home/roger/projects/codex_trial/agent_client/server
+   uv run traq-admin tree identify \
+     --image ./bark.jpg \
+     --organ bark \
+     --host http://127.0.0.1:8000 \
+     --api-key demo-key
 
-Deploy the service with cloud-safe runtime flags::
+Observed successful response characteristics:
 
-   gcloud run deploy "$GCP_SERVICE" \
-     --image "$IMAGE_URI" \
-     --region "$GCP_REGION" \
-     --platform managed \
-     --allow-unauthenticated \
-     --add-cloudsql-instances <connection-name> \
-     --set-env-vars TRAQ_ARTIFACT_BACKEND=gcs,TRAQ_GCS_BUCKET="$GCP_BUCKET",TRAQ_ENABLE_DISCOVERY=false,TRAQ_AUTO_CREATE_SCHEMA=false,TRAQ_ENABLE_FILE_LOGGING=false \
-     --set-secrets TRAQ_API_KEY=traq-api-key:latest,OPENAI_API_KEY=traq-openai-api-key:latest,TRAQ_DATABASE_URL=traq-database-url:latest
+- canonical top-level keys were returned
+- ``bestMatch`` resolved to ``Castanopsis sieboldii (Makino) Hatus.``
+- ``version`` resolved to ``2026-02-17 (7.4)``
+- ``remainingIdentificationRequests`` resolved to ``499``
 
-Notes:
+Lessons from the successful smoke test:
 
-- ``--allow-unauthenticated`` is acceptable because the app enforces its own
-  device/bootstrap/auth model.
-- admin actions remain operator-only because the admin credential is not shared
-  with field devices.
+- CLI ``--api-key`` is the TRAQ server admin key, not the Pl@ntNet key
+- ``TRAQ_PLANTNET_API_KEY`` must be present in the server process environment
+- Pl@ntNet upstream IP restrictions must allow the caller public IP
+- optional false-valued multipart flags must be omitted from the upstream request
 
-Post-deploy validation
-----------------------
+GitHub Actions automation
+-------------------------
 
-After deploy, verify:
+Workflow file:
 
-1. health endpoint responds
-2. device registration works
-3. approved device can get token
-4. assigned jobs endpoint works with device token
-5. upload / submit / final flow works
-6. artifacts land in Cloud Storage
+- ``.github/workflows/server-cloudrun.yml``
 
-Recommended checks::
+Required GitHub repository secrets:
 
-   curl https://<service-url>/health
+- ``GCP_WORKLOAD_IDENTITY_PROVIDER``
+- ``GCP_DEPLOYER_SERVICE_ACCOUNT``
 
-   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin \
-     --host https://<service-url> \
-     --api-key '<operator-api-key>' \
-     device list
+Required GitHub repository variables:
 
-Rollback
---------
+- ``GCP_PROJECT_ID``
+- ``GCP_REGION``
+- ``GCP_ARTIFACT_REPOSITORY``
+- ``GCP_IMAGE_NAME``
+- ``GCP_CLOUD_RUN_SERVICE``
+- ``GCP_CLOUD_RUN_JOB``
+- ``GCP_RUNTIME_SERVICE_ACCOUNT``
+- ``GCP_VPC_CONNECTOR``
+- ``GCP_GCS_BUCKET``
+- optional ``GCP_GCS_PREFIX``
 
-If deploy validation fails:
+Workflow behavior:
 
-1. roll Cloud Run back to the previous revision
-2. inspect logs
-3. inspect Cloud SQL connectivity
-4. verify secrets and bucket config
-5. only roll forward again after the failure is understood
+1. run server unit tests
+2. build and push the server image
+3. deploy the migration job with the new image
+4. execute the migration job and wait for success
+5. deploy the Cloud Run service
 
-Operator notes
---------------
+Verification
+------------
 
-- keep ``TRAQ_API_KEY`` only in trusted operator environments
-- do not enter the admin key on field devices
-- do not use the admin key as a registration bootstrap secret
-- treat ``traq-admin`` as the operator interface for beta
+Health check::
+
+   curl https://traq-server-589591848994.us-west1.run.app/health
+
+Device registration smoke test::
+
+   curl -X POST "https://traq-server-589591848994.us-west1.run.app/v1/auth/register-device" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "device_id": "gcp-test-device-1",
+       "device_name": "GCP Test Device",
+       "app_version": "0.1.0",
+       "profile_summary": {
+         "name": "Test Operator"
+       }
+     }'
+
+Current verified state:
+
+- health works
+- device registration works
+- migration job succeeds
+- schema exists in database ``traq``
+
+Tree identification note:
+
+- the standalone route ``POST /v1/trees/identify`` requires ``TRAQ_PLANTNET_API_KEY``
+- until that secret exists in Cloud Run, the route will return an upstream configuration error

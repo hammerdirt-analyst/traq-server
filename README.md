@@ -144,6 +144,10 @@ Examples:
 
 - `traq-admin device pending`
 - `traq-admin device validate --index 1 --role arborist`
+- `traq-admin device pending --host https://<service-url> --api-key <admin_key>`
+- `traq-admin device approve <device_id> --role arborist --host https://<service-url> --api-key <admin_key>`
+- `traq-admin device issue-token <device_id> --ttl 900 --host https://<service-url> --api-key <admin_key>`
+- `traq-admin tree identify --image ./leaf.jpg --image ./bark.jpg --organ leaf --organ bark --host http://127.0.0.1:8000 --api-key <admin_key>`
 - `traq-admin customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
 - `traq-admin customer duplicates`
 - `traq-admin customer usage C0001`
@@ -168,6 +172,11 @@ Full CLI reference:
 - `app/README.md`
 - `docs/cli_operations_model.rst`
 - `docs/deployment_operations.rst`
+
+Remote device admin note:
+
+- `traq-admin` does not accept global `--host` / `--api-key`
+- for cloud operator workflows, put `--host` and `--api-key` on the specific `device`, `job`, or `round` subcommand
 
 ## Local Discovery
 
@@ -257,6 +266,11 @@ token is used for normal authenticated requests.
 - `GET /v1/jobs/{job_id}/final/report`
   - Returns the current report PDF for the job.
 
+### Standalone tree identification
+
+- `POST /v1/trees/identify`
+  - Accepts up to five JPEG/PNG images outside the job lifecycle and returns the canonical normalized identification payload.
+
 ### Admin endpoints
 
 - `GET /v1/admin/jobs/assignments`
@@ -297,6 +311,9 @@ Environment variables:
 - `TRAQ_ENABLE_FILE_LOGGING` (default: `true`; set to `false` in cloud to use stdout/stderr only)
 - `TRAQ_DATABASE_URL` (required: `postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo`)
 - `TRAQ_ADMIN_BASE_URL` (default: `http://127.0.0.1:<TRAQ_DISCOVERY_PORT>`)
+- `TRAQ_PLANTNET_API_KEY` (required for real tree-identification requests)
+- `TRAQ_PLANTNET_BASE_URL` (default: `https://my-api.plantnet.org`)
+- `TRAQ_PLANTNET_PROJECT` (default: `all`)
 - `TRAQ_DISCOVERY_PORT` (default: 8000)
 - `TRAQ_DISCOVERY_NAME` (default: TRAQ Server)
 - `OPENAI_API_KEY` (required for extractor calls)

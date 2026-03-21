@@ -36,6 +36,7 @@ Required runtime values:
 - ``TRAQ_DATABASE_URL``
 - ``TRAQ_API_KEY``
 - ``OPENAI_API_KEY``
+- ``TRAQ_PLANTNET_API_KEY`` when standalone tree identification is enabled
 - ``TRAQ_ARTIFACT_BACKEND``
 - ``TRAQ_GCS_BUCKET`` when using GCS
 

@@ -142,6 +142,89 @@ class AdminCliTests(unittest.TestCase):
         self.assertIn("Invalid index", output)
 
     @patch("admin_cli._http")
+    def test_remote_device_commands(self, http_mock) -> None:
+        http_mock.side_effect = [
+            (200, {"ok": True, "devices": [{"device_id": "device-1", "status": "pending", "role": "arborist"}]}),
+            (200, {"ok": True, "devices": [{"device_id": "device-1", "status": "pending", "role": "arborist"}]}),
+            (200, {"ok": True, "device": {"device_id": "device-1", "status": "approved", "role": "admin"}}),
+            (200, {"ok": True, "device": {"device_id": "device-1", "status": "approved", "role": "admin"}}),
+            (200, {"ok": True, "device": {"device_id": "device-1", "status": "revoked", "role": "admin"}}),
+            (200, {"ok": True, "access_token": "token", "device_id": "device-1"}),
+        ]
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_device_pending,
+            argparse.Namespace(json=True, host="https://example.test", api_key="demo-key"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"device_id": "device-1"', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_device_validate,
+            argparse.Namespace(index=1, role="admin", host="https://example.test", api_key="demo-key"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn("Validated device", output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_device_approve,
+            argparse.Namespace(device_id="device-1", role="admin", host="https://example.test", api_key="demo-key"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"status": "approved"', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_device_revoke,
+            argparse.Namespace(device_id="device-1", host="https://example.test", api_key="demo-key"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"status": "revoked"', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_device_issue_token,
+            argparse.Namespace(device_id="device-1", ttl=600, host="https://example.test", api_key="demo-key"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"access_token": "token"', output)
+
+    @patch("admin_cli._http")
+    def test_tree_identify_command(self, http_mock) -> None:
+        leaf = self.storage_root / "leaf.jpg"
+        leaf.write_bytes(b"jpeg")
+        bark = self.storage_root / "bark.jpg"
+        bark.write_bytes(b"jpeg")
+        http_mock.return_value = (
+            200,
+            {
+                "query": {},
+                "predictedOrgans": [{"organ": "leaf"}],
+                "bestMatch": "Ajuga genevensis L.",
+                "results": [{"score": 0.9}],
+                "otherResults": [],
+                "version": "2025-01-17 (7.3)",
+                "remainingIdentificationRequests": 498,
+            },
+        )
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_tree_identify,
+            argparse.Namespace(
+                image=[str(leaf), str(bark)],
+                organ=["leaf", "bark"],
+                project="all",
+                include_related_images=False,
+                no_reject=False,
+                nb_results=3,
+                lang="en",
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"bestMatch": "Ajuga genevensis L."', output)
+        http_mock.assert_called_once()
+
+    @patch("admin_cli._http")
     def test_job_list_assignments(self, http_mock) -> None:
         http_mock.return_value = (
             200,
@@ -786,6 +869,23 @@ class AdminCliTests(unittest.TestCase):
                 "unlock",
                 "--job",
                 "J0001",
+                "--host",
+                "http://127.0.0.1:8000",
+                "--api-key",
+                "demo-key",
+            ],
+        )
+        self.assertEqual(
+            admin_cli._inject_repl_defaults(
+                ["tree", "identify", "--image", "./leaf.jpg"],
+                host="http://127.0.0.1:8000",
+                api_key="demo-key",
+            ),
+            [
+                "tree",
+                "identify",
+                "--image",
+                "./leaf.jpg",
                 "--host",
                 "http://127.0.0.1:8000",
                 "--api-key",

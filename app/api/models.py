@@ -202,6 +202,18 @@ class AdminJobUnlockRequest(BaseModel):
     device_id: str | None = None
 
 
+class AdminDeviceApproveRequest(BaseModel):
+    """Admin payload used to approve one registered device."""
+
+    role: str = "arborist"
+
+
+class AdminDeviceTokenRequest(BaseModel):
+    """Admin payload used to issue a token for one approved device."""
+
+    ttl_seconds: int | None = 604800
+
+
 class SiteFactorsRequest(BaseModel):
     """Transcript payload for the site-factors extractor."""
 

@@ -35,6 +35,7 @@ from .api.recording_routes import build_recording_router
 from .api.round_manifest_routes import build_round_manifest_router
 from .api.round_reprocess_routes import build_round_reprocess_router
 from .api.round_submit_routes import build_round_submit_router
+from .api.tree_identification_routes import build_tree_identification_router
 from .api.models import (
     AdminJobStatusRequest,
     AssignJobRequest,
@@ -70,6 +71,7 @@ from .services.assigned_job_service import AssignedJobService
 from .services.report_render_service import ReportRenderService
 from .services.review_state_service import ReviewStateService
 from .services.round_processing_service import RoundProcessingService
+from .services.tree_identification_service import TreeIdentificationService
 from .services.tree_store import (
     apply_tree_number_to_form,
     get_or_create_customer,
@@ -213,6 +215,11 @@ def create_app() -> FastAPI:
     )
     review_state_service = ReviewStateService(db_store=db_store)
     report_render_service = ReportRenderService()
+    tree_identification_service = TreeIdentificationService(
+        api_key=settings.plantnet_api_key,
+        base_url=settings.plantnet_base_url,
+        default_project=settings.plantnet_project,
+    )
     advertiser = runtime.advertiser
 
     def _log_event(tag: str, message: str, *args: Any) -> None:
@@ -625,6 +632,13 @@ def create_app() -> FastAPI:
             save_job_record=_save_job_record,
             db_store=db_store,
             round_record_factory=RoundRecord,
+            logger=logger,
+        )
+    )
+    app.include_router(
+        build_tree_identification_router(
+            require_api_key=access_control_service.require_api_key,
+            tree_identification_service=tree_identification_service,
             logger=logger,
         )
     )

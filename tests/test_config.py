@@ -40,6 +40,9 @@ class ConfigTests(unittest.TestCase):
             "TRAQ_AUTO_CREATE_SCHEMA",
             "TRAQ_ENABLE_FILE_LOGGING",
             "TRAQ_API_KEY",
+            "TRAQ_PLANTNET_API_KEY",
+            "TRAQ_PLANTNET_BASE_URL",
+            "TRAQ_PLANTNET_PROJECT",
         )
 
     def _restore_env(self) -> None:
@@ -79,6 +82,12 @@ class ConfigTests(unittest.TestCase):
         os.environ["TRAQ_ENABLE_FILE_LOGGING"] = "false"
         settings = load_settings()
         self.assertFalse(settings.enable_file_logging)
+
+    def test_plantnet_settings_load_with_defaults(self) -> None:
+        settings = load_settings()
+        self.assertIsNone(settings.plantnet_api_key)
+        self.assertEqual(settings.plantnet_base_url, "https://my-api.plantnet.org")
+        self.assertEqual(settings.plantnet_project, "all")
 
     def test_app_startup_can_skip_schema_creation(self) -> None:
         os.environ["TRAQ_API_KEY"] = "test-key"

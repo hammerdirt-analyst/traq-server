@@ -102,6 +102,11 @@ Auth endpoints:
 - `POST /v1/auth/token`
 
 Admin endpoints:
+- `GET /v1/admin/devices`
+- `GET /v1/admin/devices/pending`
+- `POST /v1/admin/devices/{device_id}/approve`
+- `POST /v1/admin/devices/{device_id}/revoke`
+- `POST /v1/admin/devices/{device_id}/issue-token`
 - `POST /v1/admin/jobs/{job_id}/rounds/{round_id}/reopen`
 - `GET /v1/admin/jobs/assignments`
 - `POST /v1/admin/jobs/{job_id}/assign`
@@ -113,6 +118,11 @@ Credential transport:
   - server admin API key (`TRAQ_API_KEY`)
   - issued device token
 
+Standalone tree identification:
+- `POST /v1/trees/identify`
+- independent of jobs and rounds
+- authenticated through the normal server auth path
+
 Admin CLI (host machine):
 - `export TRAQ_DATABASE_URL='postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo'`
 - `uv run traq-admin device pending`
@@ -120,6 +130,10 @@ Admin CLI (host machine):
 - `uv run traq-admin device approve <device_id> --role arborist`
 - `uv run traq-admin device revoke <device_id>`
 - `uv run traq-admin device issue-token <device_id> --ttl 900`
+- `uv run traq-admin device pending --host https://<service-url> --api-key <admin_key>`
+- `uv run traq-admin device approve <device_id> --role arborist --host https://<service-url> --api-key <admin_key>`
+- `uv run traq-admin device issue-token <device_id> --ttl 900 --host https://<service-url> --api-key <admin_key>`
+- `uv run traq-admin tree identify --image ./leaf.jpg --image ./bark.jpg --organ leaf --organ bark --host http://127.0.0.1:8000 --api-key <admin_key>`
 - `uv run traq-admin customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
 - `uv run traq-admin customer list --search Arboretum`
 - `uv run traq-admin customer update C0001 --phone "555-3434"`
@@ -174,10 +188,8 @@ For local operator workflows, `.env` is loaded automatically by
 `app/config.py`. Shell exports still win if both are present.
 
 The CLI now fails fast if ``TRAQ_DATABASE_URL`` is not set. There is no silent
-SQLite fallback. HTTP-backed CLI commands now default to
-``TRAQ_ADMIN_BASE_URL`` and ``TRAQ_API_KEY`` from settings, so ``--host`` and
-``--api-key`` are optional unless you need to override them for a specific
-command.
+SQLite fallback. Remote admin commands use explicit ``--host`` and
+``--api-key`` on the command that makes the HTTP request.
 
 ### Admin CLI Command Reference (all commands)
 
@@ -191,6 +203,30 @@ uv run traq-admin device approve <device_id> [--role arborist|admin]
 uv run traq-admin device revoke <device_id>
 uv run traq-admin device issue-token <device_id> [--ttl 900]
 ```
+
+Standalone tree-identification command:
+
+```bash
+uv run traq-admin tree identify --image ./leaf.jpg [--image ./bark.jpg] [--organ leaf] [--organ bark] [--host <admin_base_url>] [--api-key <admin_key>]
+```
+
+Standalone identification route:
+
+- `POST /v1/trees/identify`
+- auth: any valid `x-api-key` accepted by `require_api_key`
+- scope: independent of jobs and rounds
+- inputs:
+  - `images` multipart files, max 5
+  - optional `organs`
+  - optional `project`, `nb_results`, `lang`, `include_related_images`, `no_reject`
+- canonical response keys:
+  - `query`
+  - `predictedOrgans`
+  - `bestMatch`
+  - `results`
+  - `otherResults`
+  - `version`
+  - `remainingIdentificationRequests`
 
 Customer commands:
 

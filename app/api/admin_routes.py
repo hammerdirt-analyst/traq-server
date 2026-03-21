@@ -6,7 +6,13 @@ from typing import Any, Callable
 
 from fastapi import APIRouter, Body, Header, HTTPException
 
-from .models import AdminJobStatusRequest, AdminJobUnlockRequest, AssignJobRequest
+from .models import (
+    AdminDeviceApproveRequest,
+    AdminDeviceTokenRequest,
+    AdminJobStatusRequest,
+    AdminJobUnlockRequest,
+    AssignJobRequest,
+)
 
 
 def build_admin_router(
@@ -24,6 +30,73 @@ def build_admin_router(
     """Build admin-only assignment and status mutation routes."""
 
     router = APIRouter()
+
+    @router.get("/v1/admin/devices")
+    def admin_list_devices(
+        status: str | None = None,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint listing registered devices."""
+        require_api_key(x_api_key, required_role="admin")
+        rows = db_store.list_devices(status=(status or "").strip() or None)
+        return {"ok": True, "devices": rows}
+
+    @router.get("/v1/admin/devices/pending")
+    def admin_list_pending_devices(
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint listing pending devices."""
+        require_api_key(x_api_key, required_role="admin")
+        rows = db_store.list_devices(status="pending")
+        return {"ok": True, "devices": rows}
+
+    @router.post("/v1/admin/devices/{device_id}/approve")
+    def admin_approve_device(
+        device_id: str,
+        payload: AdminDeviceApproveRequest = Body(default_factory=AdminDeviceApproveRequest),
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint approving one device by id."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            row = db_store.approve_device(device_id.strip(), role=(payload.role or "arborist").strip() or "arborist")
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        logger.info("POST /v1/admin/devices/%s/approve -> role=%s", device_id, row.get("role"))
+        return {"ok": True, "device": row}
+
+    @router.post("/v1/admin/devices/{device_id}/revoke")
+    def admin_revoke_device(
+        device_id: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint revoking one device by id."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            row = db_store.revoke_device(device_id.strip())
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        logger.info("POST /v1/admin/devices/%s/revoke", device_id)
+        return {"ok": True, "device": row}
+
+    @router.post("/v1/admin/devices/{device_id}/issue-token")
+    def admin_issue_device_token(
+        device_id: str,
+        payload: AdminDeviceTokenRequest = Body(default_factory=AdminDeviceTokenRequest),
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint issuing a device token."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            issued = db_store.issue_token(device_id.strip(), ttl_seconds=payload.ttl_seconds or 604800)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        logger.info("POST /v1/admin/devices/%s/issue-token", device_id)
+        return {"ok": True, **issued}
 
     @router.post("/v1/admin/jobs/{job_id}/rounds/{round_id}/reopen")
     def admin_reopen_round(
