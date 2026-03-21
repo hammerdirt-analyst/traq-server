@@ -13,6 +13,7 @@ from fastapi import HTTPException
 from fastapi.routing import APIRoute
 
 from app import db as db_module
+from app.db import create_schema
 from app.api.admin_routes import build_admin_router
 from app.api.core_routes import build_core_router
 from app.api.extraction_routes import build_extraction_router
@@ -50,6 +51,7 @@ class ApiRouterTests(unittest.TestCase):
         discovery_module.ServiceDiscoveryAdvertiser.start_in_background = lambda self: None
         discovery_module.ServiceDiscoveryAdvertiser.stop = lambda self: None
         self.main_module = importlib.reload(main_module)
+        create_schema()
         self.app = self.main_module.app
 
     @staticmethod
