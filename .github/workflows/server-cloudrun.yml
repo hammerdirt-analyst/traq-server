@@ -1,0 +1,112 @@
+name: Deploy Server To Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**"
+      - ".github/workflows/server-cloudrun.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ vars.GCP_REGION }}
+  GCP_ARTIFACT_REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY }}
+  GCP_IMAGE_NAME: ${{ vars.GCP_IMAGE_NAME }}
+  GCP_CLOUD_RUN_SERVICE: ${{ vars.GCP_CLOUD_RUN_SERVICE }}
+  GCP_CLOUD_RUN_JOB: ${{ vars.GCP_CLOUD_RUN_JOB }}
+  GCP_RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+  GCP_VPC_CONNECTOR: ${{ vars.GCP_VPC_CONNECTOR }}
+  GCP_GCS_BUCKET: ${{ vars.GCP_GCS_BUCKET }}
+  GCP_GCS_PREFIX: ${{ vars.GCP_GCS_PREFIX }}
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync server environment
+        run: uv sync --frozen
+
+      - name: Run server unit tests
+        env:
+          TRAQ_DATABASE_URL: "sqlite+pysqlite:///:memory:"
+          TRAQ_ENABLE_DISCOVERY: "false"
+          TRAQ_AUTO_CREATE_SCHEMA: "false"
+          TRAQ_ENABLE_FILE_LOGGING: "false"
+        run: uv run python -m unittest tests.test_api_routers tests.test_admin_cli tests.test_config tests.test_tree_identification_service
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Configure Docker auth for Artifact Registry
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Compute image URI
+        run: |
+          echo "IMAGE_URI=${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPOSITORY}/${GCP_IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_ENV"
+
+      - name: Build and push server image
+        run: |
+          docker build -t "${IMAGE_URI}" .
+          docker push "${IMAGE_URI}"
+
+      - name: Update migration job
+        run: |
+          gcloud run jobs deploy "${GCP_CLOUD_RUN_JOB}" \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --image "${IMAGE_URI}" \
+            --service-account "${GCP_RUNTIME_SERVICE_ACCOUNT}" \
+            --vpc-connector "${GCP_VPC_CONNECTOR}" \
+            --vpc-egress private-ranges-only \
+            --command uv \
+            --args run,alembic,upgrade,head \
+            --set-env-vars "TRAQ_ENABLE_DISCOVERY=false,TRAQ_AUTO_CREATE_SCHEMA=false,TRAQ_ENABLE_FILE_LOGGING=false" \
+            --set-secrets "TRAQ_DATABASE_URL=TRAQ_DATABASE_URL:latest"
+
+      - name: Run migration job
+        run: |
+          gcloud run jobs execute "${GCP_CLOUD_RUN_JOB}" \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --wait
+
+      - name: Deploy Cloud Run service
+        run: |
+          env_vars="TRAQ_ARTIFACT_BACKEND=gcs,TRAQ_GCS_BUCKET=${GCP_GCS_BUCKET},TRAQ_ENABLE_DISCOVERY=false,TRAQ_AUTO_CREATE_SCHEMA=false,TRAQ_ENABLE_FILE_LOGGING=false"
+          if [ -n "${GCP_GCS_PREFIX}" ]; then
+            env_vars="${env_vars},TRAQ_GCS_PREFIX=${GCP_GCS_PREFIX}"
+          fi
+          gcloud run deploy "${GCP_CLOUD_RUN_SERVICE}" \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --image "${IMAGE_URI}" \
+            --service-account "${GCP_RUNTIME_SERVICE_ACCOUNT}" \
+            --allow-unauthenticated \
+            --vpc-connector "${GCP_VPC_CONNECTOR}" \
+            --vpc-egress private-ranges-only \
+            --set-env-vars "${env_vars}" \
+            --set-secrets "TRAQ_API_KEY=TRAQ_API_KEY:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,TRAQ_DATABASE_URL=TRAQ_DATABASE_URL:latest,TRAQ_PLANTNET_API_KEY=TRAQ_PLANTNET_API_KEY:latest"
