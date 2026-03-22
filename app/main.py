@@ -472,7 +472,7 @@ def create_app() -> FastAPI:
 
     def _write_json(path: Path, payload: dict[str, Any]) -> None:
         """Write JSON payload to disk with UTF-8 encoding."""
-        path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        write_json_file(path, payload)
 
     def _read_json(path: Path) -> Any:
         """Read JSON payload from disk, returning `None` on decode or existence errors."""
