@@ -16,7 +16,6 @@ def build_image_router(
     assert_job_editable: Callable[[Any, Any], None],
     media_runtime_service: Any,
     job_artifact_key: Callable[..., str],
-    materialize_artifact_path: Callable[[str], Any],
     artifact_store: Any,
     db_store: Any,
     write_json: Callable[[Any, dict[str, Any]], None],
@@ -78,10 +77,13 @@ def build_image_router(
             "images",
             f"{image_id}.report.jpg",
         )
-        _report_path, report_bytes = media_runtime_service.build_report_image_variant(
+        staged_report_path = artifact_store.stage_output(report_key)
+        media_runtime_service.build_report_image_variant(
             file_path,
-            materialize_artifact_path(report_key),
+            staged_report_path,
         )
+        committed_report_path = artifact_store.commit_output(report_key, staged_report_path)
+        report_bytes = committed_report_path.stat().st_size
         meta = {
             "image_id": image_id,
             "section_id": section_id,
