@@ -294,9 +294,15 @@ def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list
     augmented = list(tokens)
     needs_http_defaults = (
         (top == "device" and sub in {"list", "pending", "validate", "approve", "revoke", "issue-token"})
+        or (top == "customer" and sub in {"list", "duplicates", "create", "update", "usage", "merge", "delete", "billing"})
         or (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status", "unlock"})
+        or (top == "job" and sub in {"create", "update", "inspect"})
         or (top == "round" and sub == "reopen")
+        or (top == "round" and sub == "inspect")
+        or (top == "review" and sub == "inspect")
+        or (top == "final" and sub == "inspect")
         or (top == "tree" and sub == "identify")
+        or (top == "artifact" and sub == "fetch")
     )
     if needs_http_defaults:
         if "--host" not in augmented:
@@ -564,6 +570,8 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
             "billing_merge": handlers["billing_merge"],
             "billing_delete": handlers["billing_delete"],
         },
+        default_host=settings.admin_base_url,
+        default_api_key=settings.api_key,
     )
     register_job_commands(
         sub,
@@ -593,6 +601,8 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
             "review_inspect": handlers["review_inspect"],
             "final_inspect": handlers["final_inspect"],
         },
+        default_host=settings.admin_base_url,
+        default_api_key=settings.api_key,
     )
     register_final_commands(
         sub,
@@ -614,7 +624,12 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
         default_host=settings.admin_base_url,
         default_api_key=settings.api_key,
     )
-    register_artifact_commands(sub, {"fetch": handlers["artifact_fetch"]})
+    register_artifact_commands(
+        sub,
+        {"fetch": handlers["artifact_fetch"]},
+        default_host=settings.admin_base_url,
+        default_api_key=settings.api_key,
+    )
     return parser
 
 

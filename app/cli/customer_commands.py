@@ -138,22 +138,34 @@ def cmd_billing_delete(args: argparse.Namespace, *, backend: CliBackendBundle, p
     return _wrap(lambda: backend.billing.delete(args.billing_profile_id), print_json)
 
 
-def register_customer_commands(subparsers, handlers: dict[str, Callable[[argparse.Namespace], int]]) -> None:
+def register_customer_commands(
+    subparsers,
+    handlers: dict[str, Callable[[argparse.Namespace], int]],
+    *,
+    default_host: str,
+    default_api_key: str,
+) -> None:
     """Register customer and billing command groups."""
     customer = subparsers.add_parser("customer", help="Customer and billing operations")
     customer_sub = customer.add_subparsers(dest="customer_cmd", required=True)
 
     list_cmd = customer_sub.add_parser("list", help="List reusable customers")
     list_cmd.add_argument("--search")
+    list_cmd.add_argument("--host", default=default_host)
+    list_cmd.add_argument("--api-key", default=default_api_key)
     list_cmd.set_defaults(func=handlers["customer_list"])
 
     dup_cmd = customer_sub.add_parser("duplicates", help="List duplicate customer-name candidates")
+    dup_cmd.add_argument("--host", default=default_host)
+    dup_cmd.add_argument("--api-key", default=default_api_key)
     dup_cmd.set_defaults(func=handlers["customer_duplicates"])
 
     create_cmd = customer_sub.add_parser("create", help="Create a reusable customer")
     create_cmd.add_argument("--name", required=True)
     create_cmd.add_argument("--phone")
     create_cmd.add_argument("--address")
+    create_cmd.add_argument("--host", default=default_host)
+    create_cmd.add_argument("--api-key", default=default_api_key)
     create_cmd.set_defaults(func=handlers["customer_create"])
 
     update_cmd = customer_sub.add_parser("update", help="Update a reusable customer")
@@ -161,19 +173,27 @@ def register_customer_commands(subparsers, handlers: dict[str, Callable[[argpars
     update_cmd.add_argument("--name")
     update_cmd.add_argument("--phone")
     update_cmd.add_argument("--address")
+    update_cmd.add_argument("--host", default=default_host)
+    update_cmd.add_argument("--api-key", default=default_api_key)
     update_cmd.set_defaults(func=handlers["customer_update"])
 
     usage_cmd = customer_sub.add_parser("usage", help="Show jobs and trees linked to a customer")
     usage_cmd.add_argument("customer_id")
+    usage_cmd.add_argument("--host", default=default_host)
+    usage_cmd.add_argument("--api-key", default=default_api_key)
     usage_cmd.set_defaults(func=handlers["customer_usage"])
 
     merge_cmd = customer_sub.add_parser("merge", help="Merge one customer into another")
     merge_cmd.add_argument("customer_id", help="source customer_id")
     merge_cmd.add_argument("--into", required=True, help="target customer_id")
+    merge_cmd.add_argument("--host", default=default_host)
+    merge_cmd.add_argument("--api-key", default=default_api_key)
     merge_cmd.set_defaults(func=handlers["customer_merge"])
 
     delete_cmd = customer_sub.add_parser("delete", help="Delete an unused customer")
     delete_cmd.add_argument("customer_id", help="customer_id or customer_code")
+    delete_cmd.add_argument("--host", default=default_host)
+    delete_cmd.add_argument("--api-key", default=default_api_key)
     delete_cmd.set_defaults(func=handlers["customer_delete"])
 
     billing_cmd = customer_sub.add_parser("billing", help="Billing profile operations")
@@ -181,9 +201,13 @@ def register_customer_commands(subparsers, handlers: dict[str, Callable[[argpars
 
     billing_list_cmd = billing_sub.add_parser("list", help="List billing profiles")
     billing_list_cmd.add_argument("--search")
+    billing_list_cmd.add_argument("--host", default=default_host)
+    billing_list_cmd.add_argument("--api-key", default=default_api_key)
     billing_list_cmd.set_defaults(func=handlers["billing_list"])
 
     billing_dup_cmd = billing_sub.add_parser("duplicates", help="List duplicate billing-name candidates")
+    billing_dup_cmd.add_argument("--host", default=default_host)
+    billing_dup_cmd.add_argument("--api-key", default=default_api_key)
     billing_dup_cmd.set_defaults(func=handlers["billing_duplicates"])
 
     billing_create_cmd = billing_sub.add_parser("create", help="Create a billing profile")
@@ -191,6 +215,8 @@ def register_customer_commands(subparsers, handlers: dict[str, Callable[[argpars
     billing_create_cmd.add_argument("--billing-contact-name")
     billing_create_cmd.add_argument("--billing-address")
     billing_create_cmd.add_argument("--contact-preference")
+    billing_create_cmd.add_argument("--host", default=default_host)
+    billing_create_cmd.add_argument("--api-key", default=default_api_key)
     billing_create_cmd.set_defaults(func=handlers["billing_create"])
 
     billing_update_cmd = billing_sub.add_parser("update", help="Update a billing profile")
@@ -199,17 +225,25 @@ def register_customer_commands(subparsers, handlers: dict[str, Callable[[argpars
     billing_update_cmd.add_argument("--billing-contact-name")
     billing_update_cmd.add_argument("--billing-address")
     billing_update_cmd.add_argument("--contact-preference")
+    billing_update_cmd.add_argument("--host", default=default_host)
+    billing_update_cmd.add_argument("--api-key", default=default_api_key)
     billing_update_cmd.set_defaults(func=handlers["billing_update"])
 
     billing_usage_cmd = billing_sub.add_parser("usage", help="Show jobs linked to a billing profile")
     billing_usage_cmd.add_argument("billing_profile_id")
+    billing_usage_cmd.add_argument("--host", default=default_host)
+    billing_usage_cmd.add_argument("--api-key", default=default_api_key)
     billing_usage_cmd.set_defaults(func=handlers["billing_usage"])
 
     billing_merge_cmd = billing_sub.add_parser("merge", help="Merge one billing profile into another")
     billing_merge_cmd.add_argument("billing_profile_id", help="source billing_profile_id")
     billing_merge_cmd.add_argument("--into", required=True, help="target billing_profile_id")
+    billing_merge_cmd.add_argument("--host", default=default_host)
+    billing_merge_cmd.add_argument("--api-key", default=default_api_key)
     billing_merge_cmd.set_defaults(func=handlers["billing_merge"])
 
     billing_delete_cmd = billing_sub.add_parser("delete", help="Delete an unused billing profile")
     billing_delete_cmd.add_argument("billing_profile_id", help="billing_profile_id or billing_code")
+    billing_delete_cmd.add_argument("--host", default=default_host)
+    billing_delete_cmd.add_argument("--api-key", default=default_api_key)
     billing_delete_cmd.set_defaults(func=handlers["billing_delete"])

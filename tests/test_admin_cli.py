@@ -194,6 +194,80 @@ class AdminCliTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn('"access_token": "token"', output)
 
+    @patch("admin_cli._http")
+    def test_remote_customer_billing_and_job_mutation_commands(self, http_mock) -> None:
+        http_mock.side_effect = [
+            (200, {"ok": True, "customers": [{"customer_id": "cust_1", "customer_code": "C0001"}]}),
+            (200, {"ok": True, "billing_profile": {"billing_profile_id": "bill_1", "billing_code": "B0001"}}),
+            (200, {"ok": True, "job": {"job_id": "job_1", "job_number": "J0001", "status": "DRAFT"}}),
+            (200, {"ok": True, "job": {"job_id": "job_1", "job_number": "J0001", "job_name": "Updated"}}),
+        ]
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_customer_list,
+            argparse.Namespace(search=None, json=True, host="https://example.test", api_key="demo-key"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"customer_code": "C0001"', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_billing_create,
+            argparse.Namespace(
+                billing_name="Billing A",
+                billing_contact_name=None,
+                billing_address=None,
+                contact_preference=None,
+                json=True,
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"billing_code": "B0001"', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_job_create,
+            argparse.Namespace(
+                job_id="job_1",
+                job_number="J0001",
+                status="DRAFT",
+                customer_id=None,
+                billing_profile_id=None,
+                tree_number=None,
+                job_name=None,
+                job_address=None,
+                reason=None,
+                location_notes=None,
+                tree_species=None,
+                json=True,
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"job_number": "J0001"', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_job_update,
+            argparse.Namespace(
+                job="J0001",
+                customer_id=None,
+                billing_profile_id=None,
+                tree_number=None,
+                job_name="Updated",
+                job_address=None,
+                reason=None,
+                location_notes=None,
+                tree_species=None,
+                status=None,
+                json=True,
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"job_name": "Updated"', output)
+
     def test_context_defaults_select_local_and_cloud(self) -> None:
         os.environ["TRAQ_ADMIN_BASE_URL"] = "http://127.0.0.1:8000"
         os.environ["TRAQ_API_KEY"] = "demo-key"
@@ -897,14 +971,23 @@ class AdminCliTests(unittest.TestCase):
             ["job", "inspect", "--job", "J0001"],
         )
 
-    def test_repl_http_defaults_apply_only_to_http_commands(self) -> None:
+    def test_repl_http_defaults_cover_remote_admin_commands(self) -> None:
         self.assertEqual(
             admin_cli._inject_http_defaults(
                 ["job", "inspect", "--job", "J0001"],
                 host="http://127.0.0.1:8000",
                 api_key="demo-key",
             ),
-            ["job", "inspect", "--job", "J0001"],
+            [
+                "job",
+                "inspect",
+                "--job",
+                "J0001",
+                "--host",
+                "http://127.0.0.1:8000",
+                "--api-key",
+                "demo-key",
+            ],
         )
         self.assertEqual(
             admin_cli._inject_http_defaults(

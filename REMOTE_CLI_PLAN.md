@@ -238,6 +238,86 @@ Architecture Notes
 The repo already has the right precedent for this work:
 
 - ``admin_cli.py`` should be a composition/parser shell
+- command handlers should remain thin
+- services remain the authority for business logic
+- admin routers should expose remote operator parity one domain at a time
+
+
+Phase 3: Remaining Remote Mutation Parity
+=========================================
+
+Goal
+----
+
+Complete the remaining remote admin command set that still depended on missing
+server endpoints after inspection parity.
+
+Checklist
+---------
+
+1. Customer admin parity
+
+   - ``customer list``
+   - ``customer duplicates``
+   - ``customer create``
+   - ``customer update``
+   - ``customer usage``
+   - ``customer merge``
+   - ``customer delete``
+
+   Server work:
+
+   - add admin customer endpoints backed by ``CustomerService``
+
+   CLI work:
+
+   - implement ``RemoteCustomerBackend`` methods
+   - ensure cloud one-shot and REPL commands inject remote host/api key defaults
+
+2. Billing admin parity
+
+   - ``customer billing list``
+   - ``customer billing duplicates``
+   - ``customer billing create``
+   - ``customer billing update``
+   - ``customer billing usage``
+   - ``customer billing merge``
+   - ``customer billing delete``
+
+   Server work:
+
+   - add admin billing endpoints backed by ``CustomerService``
+
+   CLI work:
+
+   - implement ``RemoteBillingBackend`` methods
+   - keep payload shapes aligned with local billing service responses
+
+3. Job mutation parity
+
+   - ``job create``
+   - ``job update``
+
+   Server work:
+
+   - add admin job mutation endpoints backed by ``JobMutationService``
+
+   CLI work:
+
+   - implement ``RemoteJobBackend.create`` and ``RemoteJobBackend.update``
+   - allow cloud mode to route these commands remotely without local fallback
+
+4. Deferred for separate discussion
+
+   - ``final set-final``
+   - ``final set-correction``
+
+Verification
+------------
+
+- add focused router tests for the new admin customer, billing, and job routes
+- add CLI tests covering remote customer/billing/job mutation commands
+- smoke test from ``traq-admin cloud`` after deployment
 - ``app/cli/*.py`` should stay thin
 - services own business rules
 - routers expose remote contracts

@@ -26,7 +26,13 @@ def cmd_artifact_fetch(
     return 0
 
 
-def register_artifact_commands(subparsers, handlers: dict[str, Callable[[argparse.Namespace], int]]) -> None:
+def register_artifact_commands(
+    subparsers,
+    handlers: dict[str, Callable[[argparse.Namespace], int]],
+    *,
+    default_host: str,
+    default_api_key: str,
+) -> None:
     """Register the artifact command group."""
     artifact = subparsers.add_parser("artifact", help="Artifact retrieval operations")
     artifact_sub = artifact.add_subparsers(dest="artifact_cmd", required=True)
@@ -38,4 +44,6 @@ def register_artifact_commands(subparsers, handlers: dict[str, Callable[[argpars
         required=True,
         choices=["report-pdf", "traq-pdf", "transcript", "final-json"],
     )
+    fetch_cmd.add_argument("--host", default=default_host)
+    fetch_cmd.add_argument("--api-key", default=default_api_key)
     fetch_cmd.set_defaults(func=handlers["fetch"])

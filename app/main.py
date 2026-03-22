@@ -639,6 +639,8 @@ def create_app() -> FastAPI:
             list_job_assignments=_list_job_assignments,
             save_job_record=_save_job_record,
             db_store=db_store,
+            customer_service=customer_service,
+            job_mutation_service=job_mutation_service,
             inspection_service=InspectionService(settings=settings, db_store=db_store),
             artifact_fetch_service=artifact_fetch_service,
             round_record_factory=RoundRecord,

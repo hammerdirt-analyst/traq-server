@@ -8,9 +8,17 @@ from fastapi import APIRouter, Body, Header, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
 from .models import (
+    AdminBillingCreateRequest,
+    AdminBillingMergeRequest,
+    AdminBillingUpdateRequest,
+    AdminCustomerCreateRequest,
+    AdminCustomerMergeRequest,
+    AdminCustomerUpdateRequest,
     AdminDeviceApproveRequest,
     AdminDeviceTokenRequest,
+    AdminJobCreateRequest,
     AdminJobStatusRequest,
+    AdminJobUpdateRequest,
     AdminJobUnlockRequest,
     AssignJobRequest,
 )
@@ -25,6 +33,8 @@ def build_admin_router(
     list_job_assignments: Callable[[], list[dict[str, Any]]],
     save_job_record: Callable[[Any], None],
     db_store: Any,
+    customer_service: Any | None = None,
+    job_mutation_service: Any | None = None,
     inspection_service: Any | None = None,
     artifact_fetch_service: Any | None = None,
     round_record_factory: Callable[..., Any],
@@ -196,6 +206,290 @@ def build_admin_router(
             "job_number": payload.get("job_number"),
             "status": payload.get("status"),
         }
+
+    @router.get("/v1/admin/customers")
+    def admin_list_customers(
+        search: str | None = None,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint listing reusable customers."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        return {"ok": True, "customers": customer_service.list_customers(search=search)}
+
+    @router.get("/v1/admin/customers/duplicates")
+    def admin_customer_duplicates(
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint listing duplicate customer candidates."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        return {"ok": True, "duplicates": customer_service.customer_duplicates()}
+
+    @router.post("/v1/admin/customers")
+    def admin_create_customer(
+        payload: AdminCustomerCreateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint creating one reusable customer."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            customer = customer_service.create_customer(
+                name=payload.name,
+                phone=payload.phone,
+                address=payload.address,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, "customer": customer}
+
+    @router.patch("/v1/admin/customers/{customer_ref}")
+    def admin_update_customer(
+        customer_ref: str,
+        payload: AdminCustomerUpdateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint updating one reusable customer."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            customer = customer_service.update_customer(
+                customer_ref,
+                name=payload.name,
+                phone=payload.phone,
+                address=payload.address,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, "customer": customer}
+
+    @router.get("/v1/admin/customers/{customer_ref}/usage")
+    def admin_customer_usage(
+        customer_ref: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint summarizing customer-linked jobs and trees."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            payload = customer_service.customer_usage(customer_ref)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return {"ok": True, **payload}
+
+    @router.post("/v1/admin/customers/{customer_ref}/merge")
+    def admin_merge_customer(
+        customer_ref: str,
+        payload: AdminCustomerMergeRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint merging one customer into another."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            result = customer_service.merge_customer(customer_ref, target_customer_id=payload.into)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, **result}
+
+    @router.delete("/v1/admin/customers/{customer_ref}")
+    def admin_delete_customer(
+        customer_ref: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint deleting one unused customer."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            payload = customer_service.delete_customer(customer_ref)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, **payload}
+
+    @router.get("/v1/admin/billing-profiles")
+    def admin_list_billing_profiles(
+        search: str | None = None,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint listing reusable billing profiles."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        return {"ok": True, "billing_profiles": customer_service.list_billing_profiles(search=search)}
+
+    @router.get("/v1/admin/billing-profiles/duplicates")
+    def admin_billing_duplicates(
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint listing duplicate billing candidates."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        return {"ok": True, "duplicates": customer_service.billing_duplicates()}
+
+    @router.post("/v1/admin/billing-profiles")
+    def admin_create_billing_profile(
+        payload: AdminBillingCreateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint creating one reusable billing profile."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        billing_profile = customer_service.create_billing_profile(
+            billing_name=payload.billing_name,
+            billing_contact_name=payload.billing_contact_name,
+            billing_address=payload.billing_address,
+            contact_preference=payload.contact_preference,
+        )
+        return {"ok": True, "billing_profile": billing_profile}
+
+    @router.patch("/v1/admin/billing-profiles/{billing_ref}")
+    def admin_update_billing_profile(
+        billing_ref: str,
+        payload: AdminBillingUpdateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint updating one reusable billing profile."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            billing_profile = customer_service.update_billing_profile(
+                billing_ref,
+                billing_name=payload.billing_name,
+                billing_contact_name=payload.billing_contact_name,
+                billing_address=payload.billing_address,
+                contact_preference=payload.contact_preference,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return {"ok": True, "billing_profile": billing_profile}
+
+    @router.get("/v1/admin/billing-profiles/{billing_ref}/usage")
+    def admin_billing_usage(
+        billing_ref: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint summarizing billing-linked jobs."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            payload = customer_service.billing_usage(billing_ref)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return {"ok": True, **payload}
+
+    @router.post("/v1/admin/billing-profiles/{billing_ref}/merge")
+    def admin_merge_billing_profile(
+        billing_ref: str,
+        payload: AdminBillingMergeRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint merging one billing profile into another."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            result = customer_service.merge_billing_profile(
+                billing_ref,
+                target_billing_profile_id=payload.into,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, **result}
+
+    @router.delete("/v1/admin/billing-profiles/{billing_ref}")
+    def admin_delete_billing_profile(
+        billing_ref: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint deleting one unused billing profile."""
+        require_api_key(x_api_key, required_role="admin")
+        if customer_service is None:
+            raise HTTPException(status_code=501, detail="Customer service not configured")
+        try:
+            payload = customer_service.delete_billing_profile(billing_ref)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, **payload}
+
+    @router.post("/v1/admin/jobs")
+    def admin_create_job(
+        payload: AdminJobCreateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint creating one operational job record."""
+        require_api_key(x_api_key, required_role="admin")
+        if job_mutation_service is None:
+            raise HTTPException(status_code=501, detail="Job mutation service not configured")
+        try:
+            job = job_mutation_service.create_job(
+                job_id=payload.job_id,
+                job_number=payload.job_number,
+                status=payload.status,
+                customer_id=payload.customer_id,
+                billing_profile_id=payload.billing_profile_id,
+                tree_number=payload.tree_number,
+                job_name=payload.job_name,
+                job_address=payload.job_address,
+                reason=payload.reason,
+                location_notes=payload.location_notes,
+                tree_species=payload.tree_species,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, "job": job}
+
+    @router.patch("/v1/admin/jobs/{job_ref}")
+    def admin_update_job(
+        job_ref: str,
+        payload: AdminJobUpdateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint updating one operational job record."""
+        require_api_key(x_api_key, required_role="admin")
+        if job_mutation_service is None:
+            raise HTTPException(status_code=501, detail="Job mutation service not configured")
+        try:
+            job = job_mutation_service.update_job(
+                job_ref,
+                customer_id=payload.customer_id,
+                billing_profile_id=payload.billing_profile_id,
+                tree_number=payload.tree_number,
+                job_name=payload.job_name,
+                job_address=payload.job_address,
+                reason=payload.reason,
+                location_notes=payload.location_notes,
+                tree_species=payload.tree_species,
+                status=payload.status,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, "job": job}
 
     @router.get("/v1/admin/jobs/{job_id}/inspect")
     def admin_inspect_job(

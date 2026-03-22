@@ -214,6 +214,82 @@ class AdminDeviceTokenRequest(BaseModel):
     ttl_seconds: int | None = 604800
 
 
+class AdminCustomerCreateRequest(BaseModel):
+    """Admin payload used to create one reusable customer."""
+
+    name: str
+    phone: str | None = None
+    address: str | None = None
+
+
+class AdminCustomerUpdateRequest(BaseModel):
+    """Admin payload used to update one reusable customer."""
+
+    name: str | None = None
+    phone: str | None = None
+    address: str | None = None
+
+
+class AdminCustomerMergeRequest(BaseModel):
+    """Admin payload used to merge one customer into another."""
+
+    into: str
+
+
+class AdminBillingCreateRequest(BaseModel):
+    """Admin payload used to create one reusable billing profile."""
+
+    billing_name: str | None = None
+    billing_contact_name: str | None = None
+    billing_address: str | None = None
+    contact_preference: str | None = None
+
+
+class AdminBillingUpdateRequest(BaseModel):
+    """Admin payload used to update one reusable billing profile."""
+
+    billing_name: str | None = None
+    billing_contact_name: str | None = None
+    billing_address: str | None = None
+    contact_preference: str | None = None
+
+
+class AdminBillingMergeRequest(BaseModel):
+    """Admin payload used to merge one billing profile into another."""
+
+    into: str
+
+
+class AdminJobCreateRequest(BaseModel):
+    """Admin payload used to create one operational job record."""
+
+    job_id: str
+    job_number: str
+    status: str = "DRAFT"
+    customer_id: str | None = None
+    billing_profile_id: str | None = None
+    tree_number: int | str | None = None
+    job_name: str | None = None
+    job_address: str | None = None
+    reason: str | None = None
+    location_notes: str | None = None
+    tree_species: str | None = None
+
+
+class AdminJobUpdateRequest(BaseModel):
+    """Admin payload used to update one operational job record."""
+
+    customer_id: str | None = None
+    billing_profile_id: str | None = None
+    tree_number: int | str | None = None
+    job_name: str | None = None
+    job_address: str | None = None
+    reason: str | None = None
+    location_notes: str | None = None
+    tree_species: str | None = None
+    status: str | None = None
+
+
 class SiteFactorsRequest(BaseModel):
     """Transcript payload for the site-factors extractor."""
 

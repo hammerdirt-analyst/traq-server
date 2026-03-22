@@ -167,6 +167,8 @@ def register_job_commands(
     create_cmd.add_argument("--reason")
     create_cmd.add_argument("--location-notes")
     create_cmd.add_argument("--tree-species")
+    create_cmd.add_argument("--host", default=default_host)
+    create_cmd.add_argument("--api-key", default=default_api_key)
     create_cmd.add_argument(
         "--status",
         default="DRAFT",
@@ -191,6 +193,8 @@ def register_job_commands(
     update_cmd.add_argument("--reason")
     update_cmd.add_argument("--location-notes")
     update_cmd.add_argument("--tree-species")
+    update_cmd.add_argument("--host", default=default_host)
+    update_cmd.add_argument("--api-key", default=default_api_key)
     update_cmd.add_argument(
         "--status",
         choices=[

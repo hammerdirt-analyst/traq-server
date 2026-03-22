@@ -168,6 +168,16 @@ class ApiRouterTests(unittest.TestCase):
             def get_job_round(self, job_id, round_id):
                 return None
 
+            def get_job(self, job_ref):
+                if job_ref == "job_1":
+                    return {"job_id": "job_1", "job_number": "J0001", "status": "DRAFT"}
+                return None
+
+            def get_job_by_number(self, job_ref):
+                if job_ref == "J0001":
+                    return {"job_id": "job_1", "job_number": "J0001", "status": "DRAFT"}
+                return None
+
             def list_devices(self, status=None):
                 rows = [
                     {"device_id": "device-1", "status": "pending", "role": "arborist"},
@@ -188,6 +198,61 @@ class ApiRouterTests(unittest.TestCase):
 
         record = DummyJob()
         saved: list[DummyJob] = []
+        created_jobs: list[dict[str, object]] = []
+
+        class DummyCustomerService:
+            def list_customers(self, search=None):
+                return [{"customer_id": "cust_1", "customer_code": "C0001", "name": "Client A"}]
+
+            def customer_duplicates(self):
+                return [{"normalized_name": "client a", "count": 2}]
+
+            def create_customer(self, **kwargs):
+                return {"customer_id": "cust_2", "customer_code": "C0002", **kwargs}
+
+            def update_customer(self, customer_ref, **kwargs):
+                return {"customer_id": customer_ref, "customer_code": "C0001", **kwargs}
+
+            def customer_usage(self, customer_ref):
+                return {"customer": {"customer_id": customer_ref}, "job_count": 1, "tree_count": 1}
+
+            def merge_customer(self, customer_ref, *, target_customer_id):
+                return {"source_customer": {"customer_id": customer_ref}, "target_customer": {"customer_id": target_customer_id}}
+
+            def delete_customer(self, customer_ref):
+                return {"deleted": True, "customer": {"customer_id": customer_ref}}
+
+            def list_billing_profiles(self, search=None):
+                return [{"billing_profile_id": "bill_1", "billing_code": "B0001"}]
+
+            def billing_duplicates(self):
+                return [{"normalized_billing_name": "billing a", "count": 2}]
+
+            def create_billing_profile(self, **kwargs):
+                return {"billing_profile_id": "bill_2", "billing_code": "B0002", **kwargs}
+
+            def update_billing_profile(self, billing_ref, **kwargs):
+                return {"billing_profile_id": billing_ref, "billing_code": "B0001", **kwargs}
+
+            def billing_usage(self, billing_ref):
+                return {"billing_profile": {"billing_profile_id": billing_ref}, "job_count": 1}
+
+            def merge_billing_profile(self, billing_ref, *, target_billing_profile_id):
+                return {
+                    "source_billing_profile": {"billing_profile_id": billing_ref},
+                    "target_billing_profile": {"billing_profile_id": target_billing_profile_id},
+                }
+
+            def delete_billing_profile(self, billing_ref):
+                return {"deleted": True, "billing_profile": {"billing_profile_id": billing_ref}}
+
+        class DummyJobMutationService:
+            def create_job(self, **kwargs):
+                created_jobs.append(kwargs)
+                return {"job_id": kwargs["job_id"], "job_number": kwargs["job_number"], "status": kwargs["status"]}
+
+            def update_job(self, job_ref, **kwargs):
+                return {"job_id": job_ref, "job_number": "J0001", **kwargs}
 
         router = build_admin_router(
             require_api_key=lambda key, required_role=None: {"api_key": key, "role": required_role},
@@ -197,6 +262,8 @@ class ApiRouterTests(unittest.TestCase):
             list_job_assignments=lambda: [{"job_id": "job_1", "device_id": "device-1"}],
             save_job_record=lambda job: saved.append(job),
             db_store=DummyDbStore(),
+            customer_service=DummyCustomerService(),
+            job_mutation_service=DummyJobMutationService(),
             round_record_factory=lambda **kwargs: DummyRound(status=kwargs["status"]),
             logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
         )
@@ -221,6 +288,80 @@ class ApiRouterTests(unittest.TestCase):
 
         assignments = self._router_endpoint(router, "/v1/admin/jobs/assignments", "GET")
         self.assertEqual(assignments(x_api_key="test-key")["assignments"][0]["job_id"], "job_1")
+
+        resolve = self._router_endpoint(router, "/v1/admin/jobs/resolve", "GET")
+        self.assertEqual(resolve("J0001", x_api_key="test-key")["job_id"], "job_1")
+
+        customer_list = self._router_endpoint(router, "/v1/admin/customers", "GET")
+        self.assertEqual(customer_list(x_api_key="test-key")["customers"][0]["customer_code"], "C0001")
+
+        customer_create = self._router_endpoint(router, "/v1/admin/customers", "POST")
+        created_customer = customer_create(
+            type("Payload", (), {"name": "Client B", "phone": "555", "address": "Oak"})(),
+            x_api_key="test-key",
+        )
+        self.assertEqual(created_customer["customer"]["customer_code"], "C0002")
+
+        billing_create = self._router_endpoint(router, "/v1/admin/billing-profiles", "POST")
+        created_billing = billing_create(
+            type(
+                "Payload",
+                (),
+                {
+                    "billing_name": "Billing B",
+                    "billing_contact_name": "Alex",
+                    "billing_address": "Maple",
+                    "contact_preference": "email",
+                },
+            )(),
+            x_api_key="test-key",
+        )
+        self.assertEqual(created_billing["billing_profile"]["billing_code"], "B0002")
+
+        job_create = self._router_endpoint(router, "/v1/admin/jobs", "POST")
+        created_job = job_create(
+            type(
+                "Payload",
+                (),
+                {
+                    "job_id": "job_2",
+                    "job_number": "J0002",
+                    "status": "DRAFT",
+                    "customer_id": None,
+                    "billing_profile_id": None,
+                    "tree_number": None,
+                    "job_name": None,
+                    "job_address": None,
+                    "reason": None,
+                    "location_notes": None,
+                    "tree_species": None,
+                },
+            )(),
+            x_api_key="test-key",
+        )
+        self.assertEqual(created_job["job"]["job_number"], "J0002")
+
+        job_update = self._router_endpoint(router, "/v1/admin/jobs/{job_ref}", "PATCH")
+        updated_job = job_update(
+            "J0001",
+            type(
+                "Payload",
+                (),
+                {
+                    "customer_id": None,
+                    "billing_profile_id": None,
+                    "tree_number": None,
+                    "job_name": "Updated Job",
+                    "job_address": None,
+                    "reason": None,
+                    "location_notes": None,
+                    "tree_species": None,
+                    "status": "DRAFT",
+                },
+            )(),
+            x_api_key="test-key",
+        )
+        self.assertEqual(updated_job["job"]["job_name"], "Updated Job")
 
         reopen = self._router_endpoint(router, "/v1/admin/jobs/{job_id}/rounds/{round_id}/reopen", "POST")
         response = reopen("job_1", "round_1", x_api_key="test-key")

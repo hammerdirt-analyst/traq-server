@@ -113,36 +113,138 @@ class RemoteDeviceBackend(_RemoteBase):
 
 class RemoteCustomerBackend(_RemoteBase):
     def list(self, *, search: str | None = None) -> Any:
-        raise _unsupported("customer list")
+        query = f"?search={parse.quote(search)}" if search else ""
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/admin/customers{query}",
+            api_key=self._api_key,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("customers", [])
+        return payload
     def duplicates(self) -> Any:
-        raise _unsupported("customer duplicates")
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/admin/customers/duplicates",
+            api_key=self._api_key,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("duplicates", [])
+        return payload
     def create(self, **kwargs: Any) -> Any:
-        raise _unsupported("customer create")
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/admin/customers",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("customer", payload)
+        return payload
     def update(self, customer_id: str, **kwargs: Any) -> Any:
-        raise _unsupported("customer update")
+        code, body = self._http(
+            "PATCH",
+            f"{self._host}/v1/admin/customers/{parse.quote(customer_id)}",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("customer", payload)
+        return payload
     def usage(self, customer_id: str) -> Any:
-        raise _unsupported("customer usage")
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/admin/customers/{parse.quote(customer_id)}/usage",
+            api_key=self._api_key,
+        )
+        return self._expect_ok(code, body)
     def merge(self, customer_id: str, *, into: str) -> Any:
-        raise _unsupported("customer merge")
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/admin/customers/{parse.quote(customer_id)}/merge",
+            api_key=self._api_key,
+            payload={"into": into},
+        )
+        return self._expect_ok(code, body)
     def delete(self, customer_id: str) -> Any:
-        raise _unsupported("customer delete")
+        code, body = self._http(
+            "DELETE",
+            f"{self._host}/v1/admin/customers/{parse.quote(customer_id)}",
+            api_key=self._api_key,
+        )
+        return self._expect_ok(code, body)
 
 
 class RemoteBillingBackend(_RemoteBase):
     def list(self, *, search: str | None = None) -> Any:
-        raise _unsupported("customer billing list")
+        query = f"?search={parse.quote(search)}" if search else ""
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/admin/billing-profiles{query}",
+            api_key=self._api_key,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("billing_profiles", [])
+        return payload
     def duplicates(self) -> Any:
-        raise _unsupported("customer billing duplicates")
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/admin/billing-profiles/duplicates",
+            api_key=self._api_key,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("duplicates", [])
+        return payload
     def create(self, **kwargs: Any) -> Any:
-        raise _unsupported("customer billing create")
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/admin/billing-profiles",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("billing_profile", payload)
+        return payload
     def update(self, billing_profile_id: str, **kwargs: Any) -> Any:
-        raise _unsupported("customer billing update")
+        code, body = self._http(
+            "PATCH",
+            f"{self._host}/v1/admin/billing-profiles/{parse.quote(billing_profile_id)}",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("billing_profile", payload)
+        return payload
     def usage(self, billing_profile_id: str) -> Any:
-        raise _unsupported("customer billing usage")
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/admin/billing-profiles/{parse.quote(billing_profile_id)}/usage",
+            api_key=self._api_key,
+        )
+        return self._expect_ok(code, body)
     def merge(self, billing_profile_id: str, *, into: str) -> Any:
-        raise _unsupported("customer billing merge")
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/admin/billing-profiles/{parse.quote(billing_profile_id)}/merge",
+            api_key=self._api_key,
+            payload={"into": into},
+        )
+        return self._expect_ok(code, body)
     def delete(self, billing_profile_id: str) -> Any:
-        raise _unsupported("customer billing delete")
+        code, body = self._http(
+            "DELETE",
+            f"{self._host}/v1/admin/billing-profiles/{parse.quote(billing_profile_id)}",
+            api_key=self._api_key,
+        )
+        return self._expect_ok(code, body)
 
 
 class RemoteJobBackend(_RemoteBase):
@@ -164,10 +266,28 @@ class RemoteJobBackend(_RemoteBase):
         return job_id
 
     def create(self, **kwargs: Any) -> Any:
-        raise _unsupported("job create")
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/admin/jobs",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("job", payload)
+        return payload
 
     def update(self, job_ref: str, **kwargs: Any) -> Any:
-        raise _unsupported("job update")
+        code, body = self._http(
+            "PATCH",
+            f"{self._host}/v1/admin/jobs/{parse.quote(job_ref)}",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("job", payload)
+        return payload
 
     def inspect(self, *, job_ref: str) -> Any:
         job_id = self._resolve_job_id(job_ref)
