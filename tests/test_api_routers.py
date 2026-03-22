@@ -629,7 +629,7 @@ class ApiRouterTests(unittest.TestCase):
             ensure_job_record=lambda job_id: DummyJob(),
             assert_job_editable=lambda record, auth, allow_correction=False: None,
             media_runtime_service=DummyMediaService(),
-            job_artifact_key=lambda *parts: "/".join(parts),
+            job_artifact_key=lambda job_id, *parts: "/".join(("jobs", job_id, *parts)),
             artifact_store=DummyArtifactStore(),
             db_store=DummyDbStore(),
             write_json=lambda path, payload: stored.setdefault("meta", payload),
@@ -656,7 +656,7 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(payload["recording_id"], "rec_1")
         self.assertEqual(
             stored["artifact_key"],
-            "job_1/sections/site_factors/recordings/rec_1.wav",
+            "jobs/job_1/sections/site_factors/recordings/rec_1.wav",
         )
         self.assertEqual(stored["db_kwargs"]["round_id"], "round_1")
         self.assertEqual(stored["meta"]["recording_id"], "rec_1")
@@ -731,7 +731,7 @@ class ApiRouterTests(unittest.TestCase):
             ensure_job_record=lambda job_id: DummyJob(),
             assert_job_editable=lambda record, auth, allow_correction=False: None,
             media_runtime_service=DummyMediaService(),
-            job_artifact_key=lambda *parts: "/".join(parts),
+            job_artifact_key=lambda job_id, *parts: "/".join(("jobs", job_id, *parts)),
             artifact_store=DummyArtifactStore(),
             db_store=db_store,
             write_json=lambda path, payload: stored.setdefault("meta", payload),
@@ -759,15 +759,15 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(upload_payload["image_id"], "img_1")
         self.assertEqual(
             stored["artifact_key"],
-            "job_1/sections/job_photos/images/img_1.jpg",
+            "jobs/job_1/sections/job_photos/images/img_1.jpg",
         )
         self.assertEqual(
             stored["staged_report_key"],
-            "job_1/sections/job_photos/images/img_1.report.jpg",
+            "jobs/job_1/sections/job_photos/images/img_1.report.jpg",
         )
         self.assertEqual(
             stored["committed_report_key"],
-            "job_1/sections/job_photos/images/img_1.report.jpg",
+            "jobs/job_1/sections/job_photos/images/img_1.report.jpg",
         )
         self.assertEqual(stored["upserts"][0]["round_id"], "round_1")
         self.assertEqual(stored["meta"]["report_bytes"], 42)
@@ -830,6 +830,12 @@ class ApiRouterTests(unittest.TestCase):
             def commit_output(self, key, path):
                 return path
 
+            def exists(self, key):
+                return (self.root / key).exists()
+
+            def materialize_path(self, key):
+                return self.root / key
+
         class DummyDbStore:
             def get_job_round(self, job_id, round_id):
                 return {"review_payload": {"transcript": "Transcript text"}}
@@ -885,7 +891,7 @@ class ApiRouterTests(unittest.TestCase):
                 },
             )(),
             artifact_store=artifact_store,
-            job_artifact_key=lambda *parts: "/".join(parts),
+            job_artifact_key=lambda job_id, *parts: "/".join(("jobs", job_id, *parts)),
             requested_tree_number_from_form=lambda form: 7,
             resolve_server_tree_number=lambda record, requested_tree_number=None: requested_tree_number,
             normalize_form_schema=lambda form: form,
@@ -899,7 +905,6 @@ class ApiRouterTests(unittest.TestCase):
             read_json=lambda path: {"type": "FeatureCollection"},
             final_mutation_service=DummyFinalMutationService(),
             unassign_job_record=lambda job_id: calls.setdefault("unassigned", job_id),
-            materialize_artifact_path=lambda key: self.storage_root / key,
         )
 
         from app import geojson_export, report_letter
@@ -930,6 +935,64 @@ class ApiRouterTests(unittest.TestCase):
         get_report = self._router_endpoint(router, "/v1/jobs/{job_id}/final/report", "GET")
         report_response = get_report("job_1", x_api_key="test-key")
         self.assertEqual(report_response.filename, "report_letter.pdf")
+
+    def test_final_report_route_falls_back_to_final_pdf_when_correction_missing(self) -> None:
+        class DummyAuth:
+            is_admin = False
+            device_id = "device-1"
+
+        class DummyArtifactStore:
+            def __init__(self, root: Path) -> None:
+                self.root = root
+                self.materialized: list[str] = []
+
+            def exists(self, key):
+                return (self.root / key).exists()
+
+            def materialize_path(self, key):
+                self.materialized.append(key)
+                return self.root / key
+
+        report_path = self.storage_root / "jobs" / "job_1" / "final_report_letter.pdf"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_bytes(b"%PDF-1.4")
+        artifact_store = DummyArtifactStore(self.storage_root)
+
+        router = build_final_router(
+            require_api_key=lambda key: DummyAuth(),
+            assert_job_assignment=lambda job_id, auth: None,
+            ensure_job_record=lambda job_id: object(),
+            job_record_factory=lambda **kwargs: None,
+            jobs={},
+            db_store=None,
+            is_correction_mode=lambda job_id, record: False,
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
+            finalization_service=None,
+            artifact_store=artifact_store,
+            job_artifact_key=lambda job_id, *parts: "/".join(("jobs", job_id, *parts)),
+            requested_tree_number_from_form=lambda form: None,
+            resolve_server_tree_number=lambda *args, **kwargs: None,
+            normalize_form_schema=lambda form: form,
+            apply_tree_number_to_form=lambda form, tree_number: form,
+            save_job_record=lambda record: None,
+            identity_key=lambda auth, key: "identity",
+            load_runtime_profile=lambda key: None,
+            media_runtime_service=None,
+            generate_traq_pdf=lambda form_data, output_path: None,
+            write_json=lambda path, payload: None,
+            read_json=lambda path: None,
+            final_mutation_service=None,
+            unassign_job_record=lambda job_id: None,
+        )
+
+        get_report = self._router_endpoint(router, "/v1/jobs/{job_id}/final/report", "GET")
+        response = get_report("job_1", x_api_key="test-key")
+
+        self.assertEqual(response.path, str(report_path))
+        self.assertEqual(
+            artifact_store.materialized,
+            ["jobs/job_1/final_report_letter.pdf"],
+        )
 
     def test_final_router_returns_conflict_for_duplicate_final(self) -> None:
         class DummyAuth:
@@ -970,6 +1033,12 @@ class ApiRouterTests(unittest.TestCase):
 
             def commit_output(self, key, path):
                 return path
+
+            def exists(self, key):
+                return (self.root / key).exists()
+
+            def materialize_path(self, key):
+                return self.root / key
 
         class DummyDbStore:
             def get_job_round(self, job_id, round_id):
@@ -1029,7 +1098,6 @@ class ApiRouterTests(unittest.TestCase):
                 },
             )(),
             unassign_job_record=lambda job_id: None,
-            materialize_artifact_path=lambda key: self.storage_root / key,
         )
 
         from app import geojson_export, report_letter
@@ -1082,7 +1150,6 @@ class ApiRouterTests(unittest.TestCase):
             read_json=lambda path: None,
             final_mutation_service=None,
             unassign_job_record=lambda job_id: None,
-            materialize_artifact_path=lambda key: self.storage_root / key,
         )
 
         route = next(
