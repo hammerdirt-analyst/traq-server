@@ -66,6 +66,7 @@ from .config import load_settings
 from .db import create_schema, init_database, session_scope
 from .extractors.registry import run_extraction as _run_extraction_core
 from .runtime_context import RuntimeContext
+from .fs_utils import write_json_file
 from .security_store import AuthContext
 from .services.assigned_job_service import AssignedJobService
 from .services.report_render_service import ReportRenderService
