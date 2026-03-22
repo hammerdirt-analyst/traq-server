@@ -37,7 +37,6 @@ def build_final_router(
     read_json: Callable[[Any], Any],
     final_mutation_service: Any,
     unassign_job_record: Callable[[str], Any],
-    materialize_artifact_path: Callable[[str], Any],
 ) -> APIRouter:
     """Build final submission and final report download routes."""
 
@@ -246,16 +245,16 @@ def build_final_router(
         """Download the generated report letter PDF for a job."""
         auth = require_api_key(x_api_key)
         assert_job_assignment(job_id, auth)
-        correction_path = materialize_artifact_path(
-            job_artifact_key(job_id, "final_report_letter_correction.pdf")
-        )
-        report_path = (
-            correction_path
-            if correction_path.exists()
-            else materialize_artifact_path(job_artifact_key(job_id, "final_report_letter.pdf"))
-        )
-        if not report_path.exists():
+        correction_key = job_artifact_key(job_id, "final_report_letter_correction.pdf")
+        final_key = job_artifact_key(job_id, "final_report_letter.pdf")
+        selected_key = None
+        if artifact_store.exists(correction_key):
+            selected_key = correction_key
+        elif artifact_store.exists(final_key):
+            selected_key = final_key
+        if not selected_key:
             raise HTTPException(status_code=404, detail="Report letter not found")
+        report_path = artifact_store.materialize_path(selected_key)
         return FileResponse(
             path=str(report_path),
             media_type="application/pdf",

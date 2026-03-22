@@ -701,7 +701,6 @@ def create_app() -> FastAPI:
             read_json=_read_json,
             final_mutation_service=final_mutation_service,
             unassign_job_record=_unassign_job_record,
-            materialize_artifact_path=_materialize_artifact_path,
         )
     )
 
