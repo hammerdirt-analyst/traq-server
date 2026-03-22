@@ -118,6 +118,50 @@ class RoundSubmitServiceTests(unittest.TestCase):
         self.assertEqual(details["tree_species"], "apple tree")
         self.assertEqual(override["client_revision_id"], "client-rev-1")
 
+    def test_ensure_round_manifest_supplements_recordings_when_manifest_already_has_items(self) -> None:
+        class RoundRecord:
+            manifest = [
+                {
+                    "artifact_id": "gps_1",
+                    "section_id": "site_factors",
+                    "kind": "point",
+                    "client_order": 1,
+                    "issue_id": None,
+                }
+            ]
+
+        class Logger:
+            def __init__(self) -> None:
+                self.messages: list[tuple[tuple, dict]] = []
+
+            def info(self, *args, **kwargs) -> None:
+                self.messages.append((args, kwargs))
+
+        round_record = RoundRecord()
+        logger = Logger()
+
+        self.service.ensure_round_manifest(
+            job_id="job_1",
+            round_id="round_1",
+            round_record=round_record,
+            persisted_round=None,
+            existing_round_review={},
+            build_reprocess_manifest=lambda *_args: [
+                {
+                    "artifact_id": "rec_1",
+                    "section_id": "site_factors",
+                    "kind": "recording",
+                    "client_order": 2,
+                    "issue_id": None,
+                }
+            ],
+            logger=logger,
+        )
+
+        self.assertEqual(len(round_record.manifest), 2)
+        self.assertEqual(round_record.manifest[1]["artifact_id"], "rec_1")
+        self.assertTrue(any("Supplemented manifest" in args[0] for args, _ in logger.messages))
+
     @staticmethod
     def _apply_form_patch(base_form: dict, patch: dict) -> dict:
         merged = dict(base_form or {})

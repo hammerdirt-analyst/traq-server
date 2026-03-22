@@ -9,6 +9,16 @@ class RoundSubmitService:
     """Own submit-time merge rules so routes do not mutate review payloads directly."""
 
     @staticmethod
+    def _manifest_item_key(item: dict[str, Any]) -> tuple[str, str, str, str]:
+        """Build a stable key for de-duplicating manifest entries."""
+        return (
+            str(item.get("kind") or ""),
+            str(item.get("section_id") or ""),
+            str(item.get("artifact_id") or ""),
+            str(item.get("issue_id") or ""),
+        )
+
+    @staticmethod
     def _prune_empty_patch(value: Any) -> Any:
         """Drop null/blank placeholders so client defaults do not wipe extracted data."""
         if isinstance(value, dict):
@@ -132,6 +142,28 @@ class RoundSubmitService:
                     round_id,
                     len(synthesized),
                 )
+            return
+        synthesized = build_reprocess_manifest(job_id, round_record, existing_round_review)
+        if not synthesized:
+            return
+        existing_keys = {
+            RoundSubmitService._manifest_item_key(item)
+            for item in round_record.manifest
+            if isinstance(item, dict)
+        }
+        missing = [
+            item
+            for item in synthesized
+            if RoundSubmitService._manifest_item_key(item) not in existing_keys
+        ]
+        if missing:
+            round_record.manifest = list(round_record.manifest) + missing
+            logger.info(
+                "Supplemented manifest from server recordings for %s/%s (%s items added)",
+                job_id,
+                round_id,
+                len(missing),
+            )
 
     def apply_post_process_client_patch(
         self,

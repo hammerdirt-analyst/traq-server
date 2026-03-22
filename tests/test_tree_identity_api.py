@@ -1094,6 +1094,111 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertIn("DB TRANSCRIPT", payload["transcript"])
         self.assertNotIn("WRONG FILE TRANSCRIPT", payload["transcript"])
 
+    def test_submit_supplements_recordings_missing_from_nonempty_manifest(self) -> None:
+        token = self._register_and_approve_device("device-transcript-manifest")
+        create_job = self._endpoint("/v1/jobs", "POST")
+        create_response = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Transcript Manifest",
+                job_name="Job Transcript Manifest",
+                job_address="123 Transcript St",
+                job_phone="555-0999",
+                contact_preference="text",
+                billing_name="Customer Transcript Manifest",
+                billing_address="123 Transcript St",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(create_response.job_id, x_api_key=token)
+
+        async def receive() -> dict[str, object]:
+            return {
+                "type": "http.request",
+                "body": b"fake audio bytes",
+                "more_body": False,
+            }
+
+        request = Request(
+            {
+                "type": "http",
+                "method": "PUT",
+                "path": f"/v1/jobs/{create_response.job_id}/sections/site_factors/recordings/rec_1",
+                "headers": [],
+            },
+            receive,
+        )
+        upload_recording = self._endpoint(
+            "/v1/jobs/{job_id}/sections/{section_id}/recordings/{recording_id}",
+            "PUT",
+        )
+        asyncio.run(
+            upload_recording(
+                create_response.job_id,
+                "site_factors",
+                "rec_1",
+                request,
+                content_type="audio/wav",
+                x_api_key=token,
+            )
+        )
+
+        set_manifest = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/manifest", "PUT")
+        set_manifest(
+            create_response.job_id,
+            round_response.round_id,
+            [
+                self.main_module.ManifestItem(
+                    artifact_id="gps_1",
+                    section_id="site_factors",
+                    kind="point",
+                )
+            ],
+            x_api_key=token,
+        )
+
+        store = DatabaseStore()
+        existing = store.get_round_recording(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            section_id="site_factors",
+            recording_id="rec_1",
+        )
+        updated_meta = dict(existing["metadata_json"])
+        updated_meta["transcript_text"] = "DB TRANSCRIPT"
+        updated_meta["processed"] = True
+        store.upsert_round_recording(
+            job_id=create_response.job_id,
+            round_id=round_response.round_id,
+            section_id="site_factors",
+            recording_id="rec_1",
+            upload_status=existing["upload_status"],
+            content_type=existing["content_type"],
+            duration_ms=existing["duration_ms"],
+            artifact_path=existing["artifact_path"],
+            metadata_json=updated_meta,
+        )
+
+        self.main_module._run_extraction_core = lambda section_id, transcript: type(
+            "ExtractionResult",
+            (),
+            {"model_dump": lambda self: {}},
+        )()
+        self.main_module._generate_summary = lambda **kwargs: "Generated summary"
+
+        submit_round = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/submit", "POST")
+        submit_round(
+            create_response.job_id,
+            round_response.round_id,
+            None,
+            x_api_key=token,
+        )
+
+        get_review = self._endpoint("/v1/jobs/{job_id}/rounds/{round_id}/review", "GET")
+        payload = get_review(create_response.job_id, round_response.round_id, x_api_key=token)
+        self.assertIn("DB TRANSCRIPT", payload["transcript"])
+        self.assertEqual(payload["section_recordings"]["site_factors"], ["rec_1"])
+
 
 if __name__ == "__main__":
     unittest.main()
