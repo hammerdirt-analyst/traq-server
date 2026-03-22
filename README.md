@@ -68,12 +68,21 @@ uv run traq-admin local
 ## Admin CLI contexts
 
 - `uv run traq-admin local`
-  - uses local operator defaults
+  - local mode
+  - uses local services/store for operator workflows
 - `uv run traq-admin cloud`
+  - remote mode
   - uses `TRAQ_CLOUD_ADMIN_BASE_URL` and `TRAQ_CLOUD_API_KEY`
+  - talks to the live server over HTTP only
 - one-shot commands can also be context-prefixed:
   - `uv run traq-admin cloud device pending`
   - `uv run traq-admin local tree identify --image ./leaf.jpg --organ leaf`
+
+Mode rule:
+
+- local mode must not silently use remote HTTP as its execution boundary
+- remote mode must not silently use local DB/service/file inspection as its execution boundary
+- if a remote command is unsupported because the server endpoint does not exist, the CLI should fail explicitly
 
 ## Key docs
 
@@ -93,6 +102,15 @@ uv run traq-admin local
 
 - Cloud end-to-end workflow is now verified on Cloud Run.
 - Remote operator path is in place for device approval and token issuance.
+- Admin CLI mode selection is now explicit:
+  - local mode uses local service/store access
+  - remote mode uses HTTP only
+- Remote admin inspection/download endpoints now exist for:
+  - job inspect
+  - round inspect
+  - review inspect
+  - final inspect
+  - artifact fetch
 - Round submit now supplements non-empty manifests with DB-backed recordings so uploaded audio is not dropped from processing.
 - Generated cloud artifacts follow the backend contract:
   - direct payloads use `write_bytes` / `write_text`

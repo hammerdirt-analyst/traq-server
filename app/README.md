@@ -109,9 +109,15 @@ Admin endpoints:
 - `POST /v1/admin/devices/{device_id}/issue-token`
 - `POST /v1/admin/jobs/{job_id}/rounds/{round_id}/reopen`
 - `GET /v1/admin/jobs/assignments`
+- `GET /v1/admin/jobs/resolve`
 - `POST /v1/admin/jobs/{job_id}/assign`
 - `POST /v1/admin/jobs/{job_id}/unassign`
 - `POST /v1/admin/jobs/{job_id}/status`
+- `GET /v1/admin/jobs/{job_id}/inspect`
+- `GET /v1/admin/jobs/{job_id}/rounds/{round_id}/inspect`
+- `GET /v1/admin/jobs/{job_id}/rounds/{round_id}/review/inspect`
+- `GET /v1/admin/jobs/{job_id}/final/inspect`
+- `GET /v1/admin/jobs/{job_id}/artifacts/{kind}`
 
 Credential transport:
 - Existing `x-api-key` header now accepts either:
@@ -133,6 +139,11 @@ Admin CLI (host machine):
 - `uv run traq-admin cloud device pending`
 - `uv run traq-admin cloud device approve <device_id> --role arborist`
 - `uv run traq-admin cloud device issue-token <device_id> --ttl 900`
+- `uv run traq-admin cloud job inspect --job J0001`
+- `uv run traq-admin cloud round inspect --job J0001 --round-id round_1`
+- `uv run traq-admin cloud review inspect --job J0001 --round-id round_1`
+- `uv run traq-admin cloud final inspect --job J0001`
+- `uv run traq-admin cloud artifact fetch --job J0001 --kind final-json`
 - `uv run traq-admin local tree identify --image ./leaf.jpg --image ./bark.jpg --organ leaf --organ bark`
 - `uv run traq-admin customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
 - `uv run traq-admin customer list --search Arboretum`
@@ -191,6 +202,12 @@ For local operator workflows, `.env` is loaded automatically by
 
 The CLI now fails fast if ``TRAQ_DATABASE_URL`` is not set. There is no silent
 SQLite fallback. Use ``uv run traq-admin local`` and ``uv run traq-admin cloud`` to start the CLI with explicit operator contexts. Context-prefixed one-shot commands such as ``uv run traq-admin cloud device pending`` inject the configured host and admin key automatically.
+
+CLI mode contract:
+
+- ``local`` mode uses local services/store access for operator workflows
+- ``cloud`` mode is remote mode and uses HTTP only against the configured server
+- unsupported remote commands must fail explicitly rather than falling back to local DB/service/file inspection
 
 ### Admin CLI Command Reference (all commands)
 
@@ -283,6 +300,11 @@ uv run traq-admin artifact fetch --job <job_id_or_job_number> --kind final-json
 uv run traq-admin final set-final --job <job_id_or_job_number> --from-json <final_json_path> [--geojson-json <geojson_path>]
 uv run traq-admin final set-correction --job <job_id_or_job_number> --from-json <correction_json_path> [--geojson-json <geojson_path>]
 ```
+
+Remote inspection/download support:
+
+- remote mode now supports server-backed ``job inspect``, ``round inspect``, ``review inspect``, ``final inspect``, and ``artifact fetch`` through admin endpoints
+- these commands require the corresponding server revision to be deployed before ``uv run traq-admin cloud ...`` can use them
 
 Network command:
 

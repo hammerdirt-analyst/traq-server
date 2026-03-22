@@ -60,6 +60,26 @@ The intended server layering is:
 
 Business rules should live in services, not in the CLI.
 
+Mode purity rule
+----------------
+
+The CLI execution boundary must be explicit and mode-pure.
+
+``local`` mode
+  Uses only local services, local database access, and local artifact access.
+
+``remote`` mode
+  Uses only HTTP against the live server.
+
+Operational consequence:
+
+- no command may silently fall back from remote mode to local DB/service/file
+  access
+- no command may silently fall back from local mode to remote HTTP as its
+  execution boundary
+- unsupported remote commands should fail explicitly until the server endpoint
+  exists
+
 Current CLI command set
 -----------------------
 
@@ -96,107 +116,46 @@ Implemented command groups:
 
 Current command-to-boundary map
 -------------------------------
+The correct mapping is now by mode, not by individual command fallback.
 
-``device list`` / ``device pending``
-  Service boundary:
-    ``DatabaseStore.list_devices()``
+Local mode:
 
-  Persistence touched:
-    ``devices``
+- device commands use local store/service boundaries
+- customer and billing commands use ``CustomerService``
+- job create/update use ``JobMutationService``
+- inspect commands use ``InspectionService``
+- final mutation commands use ``FinalMutationService``
+- artifact fetch uses ``ArtifactFetchService``
+- net commands are local utility commands
 
-``device validate`` / ``device approve``
-  Service boundary:
-    ``DatabaseStore.approve_device()``
+Remote mode:
 
-  Persistence touched:
-    ``devices``
+- device commands use HTTP admin endpoints
+- job assignment/status/unlock commands use HTTP admin endpoints
+- round reopen uses HTTP admin endpoint
+- job inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/inspect``
+- round inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/rounds/{round_id}/inspect``
+- review inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/rounds/{round_id}/review/inspect``
+- final inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/final/inspect``
+- artifact fetch uses HTTP ``GET /v1/admin/jobs/{job_id}/artifacts/{kind}``
+- tree identify uses HTTP ``POST /v1/trees/identify``
 
-``device revoke``
-  Service boundary:
-    ``DatabaseStore.revoke_device()``
+Remote helper endpoint:
 
-  Persistence touched:
-    ``devices``, ``device_tokens``
-
-``device issue-token``
-  Service boundary:
-    ``DatabaseStore.issue_token()``
-
-  Persistence touched:
-    ``device_tokens`` and ``devices.last_seen_at``
-
-``job list-assignments``
-  Contract boundary:
-    HTTP ``GET /v1/admin/jobs/assignments``
-
-  Current runtime backing:
-    DB-backed assignment listing
-
-``job assign`` / ``job unassign``
-  Contract boundary:
-    HTTP admin endpoints
-
-  Current runtime backing:
-    DB-backed assignment service
-
-  Job reference resolution:
-    official ``job_id`` passes through directly; official ``job_number`` is
-    resolved through the database-backed operational store.
-
-``job set-status``
-  Contract boundary:
-    HTTP admin status endpoint
-
-  Current runtime backing:
-    job record + round status mutation in server runtime
-
-``job inspect``
-  Service boundary:
-    ``InspectionService.inspect_job()``
-
-  Persistence touched:
-    DB-backed job/assignment metadata plus filesystem job root inspection
-
-``round reopen``
-  Contract boundary:
-    HTTP admin reopen endpoint
-
-  Current runtime backing:
-    round/job status mutation in server runtime
-
-``round inspect``
-  Service boundary:
-    ``InspectionService.inspect_round()``
-
-  Persistence touched:
-    DB-backed round state plus local artifact/debug file inspection
-
-``review inspect``
-  Service boundary:
-    ``InspectionService.inspect_review()``
-
-  Persistence touched:
-    DB-backed review payload plus exported debug file inspection
-
-``final inspect``
-  Service boundary:
-    ``InspectionService.inspect_final()``
-
-  Persistence touched:
-    filesystem final/correction outputs plus DB-backed job resolution
-
-``net ipv4`` / ``net ipv6``
-  Local utility only; not part of the client/server state contract.
+- job reference resolution uses HTTP ``GET /v1/admin/jobs/resolve`` so remote
+  CLI commands do not depend on local database lookup
 
 What is structurally sound already
 ----------------------------------
 
-- Device approval and token issuance are now DB-backed in the CLI.
+- Mode selection now defines the execution boundary instead of individual
+  commands making ad hoc local/remote decisions.
 - Assignment administration has a clear contract surface via admin endpoints.
-- Job reference resolution now uses the operational store rather than reading
-  exported ``local_data/jobs/*/job_record.json`` files directly.
+- Remote job reference resolution now has an explicit admin endpoint rather
+  than depending on local database lookup.
 - Lifecycle inspection for jobs, rounds, reviews, and final/correction outputs
-  now lives behind ``InspectionService`` instead of ad hoc CLI file reads.
+  now exists both as local ``InspectionService`` behavior and as remote admin
+  read endpoints backed by that service.
 - The tree identity contract is now live in the FastAPI job/create/status/review
   paths.
 - Import/query tooling exists to validate the schema against real job data.
@@ -268,7 +227,8 @@ Use HTTP-backed CLI calls when the goal is:
 - verifying the live client contract
 - confirming payload shapes and endpoint behavior
 
-This distinction should be explicit per command.
+This distinction should now be explicit per mode rather than hidden inside
+individual command implementations.
 
 Reference operational example
 -----------------------------
