@@ -73,6 +73,15 @@ class ApiRouterTests(unittest.TestCase):
                 return route.endpoint
         raise AssertionError(f"Endpoint not found: {method} {path}")
 
+    def test_all_client_facing_routes_default_to_http_200_success(self) -> None:
+        non_200 = []
+        for route in self.app.router.routes:
+            if not isinstance(route, APIRoute):
+                continue
+            if route.status_code not in (None, 200):
+                non_200.append((route.path, sorted(route.methods), route.status_code))
+        self.assertEqual(non_200, [])
+
     def test_health_route_survives_router_extraction(self) -> None:
         health = self._endpoint("/health", "GET")
         payload = health()
@@ -670,6 +679,17 @@ class ApiRouterTests(unittest.TestCase):
                 stored["payload"] = payload
                 return written_file
 
+            def stage_output(self, key):
+                stored["staged_report_key"] = key
+                path = self_storage / key
+                path.parent.mkdir(parents=True, exist_ok=True)
+                return path
+
+            def commit_output(self, key, path):
+                stored["committed_report_key"] = key
+                stored["committed_report_path"] = path
+                return path
+
         class DummyDbStore:
             def __init__(self) -> None:
                 self.image_row = {
@@ -695,12 +715,15 @@ class ApiRouterTests(unittest.TestCase):
             def build_report_image_variant(self, source_path, output_path):
                 stored["report_source"] = source_path
                 stored["report_output"] = output_path
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path.write_bytes(b"x" * 42)
                 return output_path, 42
 
         class DummyRequest:
             async def body(self):
                 return b"image-bytes"
 
+        self_storage = self.storage_root
         db_store = DummyDbStore()
         router = build_image_router(
             require_api_key=lambda key: DummyAuth(),
@@ -709,7 +732,6 @@ class ApiRouterTests(unittest.TestCase):
             assert_job_editable=lambda record, auth, allow_correction=False: None,
             media_runtime_service=DummyMediaService(),
             job_artifact_key=lambda *parts: "/".join(parts),
-            materialize_artifact_path=lambda key: self.storage_root / key,
             artifact_store=DummyArtifactStore(),
             db_store=db_store,
             write_json=lambda path, payload: stored.setdefault("meta", payload),
@@ -738,6 +760,14 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(
             stored["artifact_key"],
             "job_1/sections/job_photos/images/img_1.jpg",
+        )
+        self.assertEqual(
+            stored["staged_report_key"],
+            "job_1/sections/job_photos/images/img_1.report.jpg",
+        )
+        self.assertEqual(
+            stored["committed_report_key"],
+            "job_1/sections/job_photos/images/img_1.report.jpg",
         )
         self.assertEqual(stored["upserts"][0]["round_id"], "round_1")
         self.assertEqual(stored["meta"]["report_bytes"], 42)

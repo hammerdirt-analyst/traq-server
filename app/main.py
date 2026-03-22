@@ -667,7 +667,6 @@ def create_app() -> FastAPI:
             assert_job_editable=_assert_job_editable,
             media_runtime_service=media_runtime_service,
             job_artifact_key=_job_artifact_key,
-            materialize_artifact_path=_materialize_artifact_path,
             artifact_store=artifact_store,
             db_store=db_store,
             write_json=_write_json,
