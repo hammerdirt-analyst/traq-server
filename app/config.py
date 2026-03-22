@@ -58,6 +58,8 @@ class Settings:
     enable_file_logging: bool
     database_url: str
     admin_base_url: str
+    cloud_admin_base_url: str | None
+    cloud_api_key: str | None
     plantnet_api_key: str | None
     plantnet_base_url: str
     plantnet_project: str
@@ -82,6 +84,10 @@ def load_settings() -> Settings:
       the required deployment target
     - `TRAQ_ADMIN_BASE_URL`: default server base URL for admin CLI HTTP
       commands; defaults to `http://127.0.0.1:<TRAQ_DISCOVERY_PORT>`
+    - `TRAQ_CLOUD_ADMIN_BASE_URL`: optional Cloud Run base URL for the admin
+      CLI `cloud` context
+    - `TRAQ_CLOUD_API_KEY`: optional admin API key for the admin CLI `cloud`
+      context
     - `TRAQ_PLANTNET_API_KEY`: optional Pl@ntNet API key for tree
       identification requests
     - `TRAQ_PLANTNET_BASE_URL`: upstream Pl@ntNet API base URL; defaults to
@@ -121,7 +127,9 @@ def load_settings() -> Settings:
     admin_base_url = os.environ.get(
         "TRAQ_ADMIN_BASE_URL",
         f"http://127.0.0.1:{discovery_port}",
-    ).rstrip("/")
+    ).strip().rstrip("/")
+    cloud_admin_base_url = (os.environ.get("TRAQ_CLOUD_ADMIN_BASE_URL") or "").strip().rstrip("/") or None
+    cloud_api_key = (os.environ.get("TRAQ_CLOUD_API_KEY") or "").strip() or None
     plantnet_api_key = (os.environ.get("TRAQ_PLANTNET_API_KEY") or "").strip() or None
     plantnet_base_url = (
         os.environ.get("TRAQ_PLANTNET_BASE_URL")
@@ -140,6 +148,8 @@ def load_settings() -> Settings:
         enable_file_logging=enable_file_logging,
         database_url=database_url,
         admin_base_url=admin_base_url,
+        cloud_admin_base_url=cloud_admin_base_url,
+        cloud_api_key=cloud_api_key,
         plantnet_api_key=plantnet_api_key,
         plantnet_base_url=plantnet_base_url,
         plantnet_project=plantnet_project,

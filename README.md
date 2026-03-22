@@ -1,339 +1,79 @@
-# Demo Server
-Authors: Roger Erismann (https://hammerdirt.solutions), OpenAI Codex
+# traq-server
 
-Local demo server for Tree Risk assessment.
+`traq-server` is the server for a capture-first tree risk assessment workflow.
 
-## Setup
+It continues the work started in `handsfreetraq`: observations are captured in the field as audio and images, then turned into structured assessment data on the server. This repo adds the server-side job lifecycle, review artifacts, final submission, archival outputs, and standalone tree identification.
 
-- Install `uv`
-- Sync the standalone repo environment:
-  - `uv sync`
-- Run commands through `uv`:
-  - `uv run traq-server --reload --port 8000`
-  - `uv run traq-admin`
+## What matters here
 
-Optional:
+- **TRAQ-aligned structure**
+  The server builds against a canonical TRAQ mapping instead of treating the form as loose text.
+- **Structured extraction**
+  Extraction is done with validated models and shared extractor utilities, so outputs are consistent and machine-usable.
+- **Geospatial output**
+  GeoJSON is part of the storage/export model, which keeps the assessment useful for mapping and inventory workflows.
+- **Standalone tree identification**
+  `POST /v1/trees/identify` accepts up to five images outside the job lifecycle and returns a canonical normalized response.
 
-- direct editable install still works:
-  - `pip install -e .`
+## Quick start
 
-### Documentation publishing
+```bash
+uv sync
+uv run traq-server --reload --port 8000
+```
 
-The repo is set up for GitHub Pages to build documentation from source in CI.
+In another terminal:
 
-- workflow: `.github/workflows/docs.yml`
-- source docs: `docs/`
-- generated HTML remains local-only and ignored:
-  - `docs/_build/`
+```bash
+uv run traq-admin local
+```
 
-GitHub Pages should be configured to publish from the GitHub Actions workflow,
-not from committed generated HTML.
+## Workflow
 
-### PostgreSQL baseline
+1. A client creates a job and uploads section recordings and images.
+2. The server processes a round and returns a review package.
+3. The client submits a final or correction payload.
+4. The server writes final artifacts and archives the job.
 
-The server is moving to PostgreSQL as the primary metadata/state store.
-
-- PostgreSQL driver: `psycopg[binary]`
-- SQL toolkit/migrations:
-  - `sqlalchemy`
-  - `alembic`
-
-Example runtime database URL:
-
-- `postgresql+psycopg://traq_app:change-this-password@127.0.0.1:5432/traq_demo`
-
-### Alembic workflow
-
-Use Alembic for explicit schema changes.
-
-Local/dev:
-
-- keep `TRAQ_AUTO_CREATE_SCHEMA=true` if you want automatic bootstrap for ad hoc work
-- generate a migration:
-  - `uv run alembic revision --autogenerate -m "describe change"`
-- inspect the migration before applying it
-- apply migrations:
-  - `uv run alembic upgrade head`
-
-Existing database adopting Alembic for the first time:
-
-- after reviewing the baseline migration, record the current schema state:
-  - `uv run alembic stamp head`
-
-Cloud/production:
-
-- set `TRAQ_AUTO_CREATE_SCHEMA=false`
-- run:
-  - `uv run alembic upgrade head`
-- deploy the app only after migrations succeed
-
-## Run
-
-- `uv run traq-server --reload --port 8000`
-- direct module form also works:
-  - `uv run python -m app.server_cli --reload --port 8000`
-
-## Container
-
-Build the image:
-
-- `docker build -t traq-server:local .`
-
-Run the image locally:
-
-- `docker run --rm -p 8000:8000 \`
-  `-e TRAQ_DATABASE_URL=postgresql+psycopg://traq_app:<password>@host.docker.internal:5432/traq_demo \`
-  `-e TRAQ_API_KEY=demo-key \`
-  `-e OPENAI_API_KEY=<key> \`
-  `traq-server:local`
-
-For local smoke testing with values loaded from `.env`:
-
-- `./scripts/run_local_container.sh`
-
-Cloud-oriented defaults baked into the image:
-
-- `TRAQ_ENABLE_DISCOVERY=false`
-- `TRAQ_AUTO_CREATE_SCHEMA=false`
-- `TRAQ_ENABLE_FILE_LOGGING=false`
-
-For Cloud Run, also set:
-
-- `TRAQ_ARTIFACT_BACKEND=gcs`
-- `TRAQ_GCS_BUCKET=<bucket>`
-- optional `TRAQ_GCS_PREFIX=<prefix>`
-
-Default API key: `demo-key` (set `TRAQ_API_KEY` to change).
-
-For beta, treat `TRAQ_API_KEY` as an operator-only credential:
-
-- use it for `traq-admin` and controlled operator scripts
-- do not put it on field devices
-- do not prompt for it during device registration
-- do not treat the mobile client as an admin surface
-
-Default local artifact storage:
-
-- `TRAQ_STORAGE_ROOT` defaults to `./local_data`
-- this directory is repo-local and git-ignored
-- artifact bytes and generated outputs live there; runtime authority is in PostgreSQL
-- set `TRAQ_ARTIFACT_BACKEND=gcs` to use Google Cloud Storage
-- when using GCS, set:
-  - `TRAQ_GCS_BUCKET`
-  - optional `TRAQ_GCS_PREFIX`
-- set `TRAQ_ENABLE_DISCOVERY=false` in cloud deployments
-- set `TRAQ_AUTO_CREATE_SCHEMA=false` in cloud deployments
-- set `TRAQ_ENABLE_FILE_LOGGING=false` in cloud deployments
-- current cloud download strategy is app-streamed artifact responses, not signed URLs
-
-## Admin CLI
-
-Required environment:
-
-- `TRAQ_DATABASE_URL=postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo`
-- optional `TRAQ_ADMIN_BASE_URL=http://127.0.0.1:8000`
-- local development can put these in `.env`; `app/config.py` loads that file automatically without overriding already-exported variables
-
-Interactive mode:
-
-- `uv run traq-admin`
-- inside the REPL, use the same commands as one-shot mode; a leading `/` is optional, for example `/round reopen --job-id job_1 --round-id round_1`
-- customer and billing records have short operator-facing codes, for example `C0001` and `B0001`
-
-Examples:
-
-- `traq-admin device pending`
-- `traq-admin device validate --index 1 --role arborist`
-- `traq-admin device pending --host https://<service-url> --api-key <admin_key>`
-- `traq-admin device approve <device_id> --role arborist --host https://<service-url> --api-key <admin_key>`
-- `traq-admin device issue-token <device_id> --ttl 900 --host https://<service-url> --api-key <admin_key>`
-- `traq-admin tree identify --image ./leaf.jpg --image ./bark.jpg --organ leaf --organ bark --host http://127.0.0.1:8000 --api-key <admin_key>`
-- `traq-admin customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
-- `traq-admin customer duplicates`
-- `traq-admin customer usage C0001`
-- `traq-admin customer merge C0002 --into C0001`
-- `traq-admin customer delete C0008`
-- `traq-admin customer billing create --billing-name "Customer Name" --billing-address "123 Oak St"`
-- `traq-admin customer billing duplicates`
-- `traq-admin customer billing usage B0001`
-- `traq-admin customer billing merge B0002 --into B0001`
-- `traq-admin customer billing delete B0001`
-- `traq-admin job create --job-id job_1 --job-number J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 1 --job-name "Valley Oak"`
-- `traq-admin job update --job J0001 --customer-id C0001 --billing-profile-id B0001 --tree-number 2 --job-name "Valley Oak Revisit" --status REVIEW_RETURNED`
-- `traq-admin job inspect --job J0001`
-- `traq-admin round inspect --job J0001 --round-id round_1`
-- `traq-admin review inspect --job J0001 --round-id round_1`
-- `traq-admin final inspect --job J0001`
-- `traq-admin final set-final --job J0001 --from-json ./final.json [--geojson-json ./final.geojson]`
-- `traq-admin final set-correction --job J0001 --from-json ./final_correction.json [--geojson-json ./final_correction.geojson]`
-
-Full CLI reference:
-
-- `app/README.md`
-- `docs/cli_operations_model.rst`
-- `docs/deployment_operations.rst`
-
-Remote device admin note:
-
-- `traq-admin` does not accept global `--host` / `--api-key`
-- for cloud operator workflows, put `--host` and `--api-key` on the specific `device`, `job`, or `round` subcommand
-
-## Local Discovery
-
-- The server can advertise itself on the local network via mDNS / DNS-SD as `_traq._tcp.local`.
-- Android clients can browse discovered TRAQ servers from Profile / Settings.
-- Install `zeroconf` from `requirements.txt` to enable advertisement.
-- Optional discovery env vars:
-  - `TRAQ_DISCOVERY_PORT` (default: `8000`)
-  - `TRAQ_DISCOVERY_NAME` (default: `TRAQ Server`)
-
-## Endpoints
-
-Most endpoints require `X-API-Key: <key>`.
-
-Bootstrap exceptions:
-
-- `POST /v1/auth/register-device`
-- `GET /v1/auth/device/{device_id}/status`
-- `POST /v1/auth/token`
-
-Those three endpoints are intentionally open for device bootstrap. Admin
-approval still happens through the admin CLI/workflow, and the issued device
-token is used for normal authenticated requests.
-
-### Health
-
-- `GET /health`
-  - Returns basic server status and storage root.
-
-### Auth and profile
-
-- `POST /v1/auth/register-device`
-  - Registers a device for approval.
-- `GET /v1/auth/device/{device_id}/status`
-  - Returns pending / approved / revoked device status.
-- `POST /v1/auth/token`
-  - Issues a device token for an approved device.
-- `GET /v1/profile`
-  - Returns the current device profile.
-- `PUT /v1/profile`
-  - Updates the current device profile.
-
-### Jobs
+## Main endpoints
 
 - `POST /v1/jobs`
-  - Creates a server job and returns authoritative job metadata including `job_id`, `job_number`, `status`, and `tree_number`.
-
-- `GET /v1/jobs/assigned`
-  - Returns jobs assigned to the authenticated device.
-
-- `GET /v1/jobs/{job_id}`
-  - Returns job status, latest round info, and server-authoritative `tree_number`.
-
-### Rounds
-
 - `POST /v1/jobs/{job_id}/rounds`
-  - Creates a new round in `DRAFT`.
-
-- `PUT /v1/jobs/{job_id}/rounds/{round_id}/manifest`
-  - Replaces the round manifest. Body: list of manifest items.
-
 - `POST /v1/jobs/{job_id}/rounds/{round_id}/submit`
-  - Submits the round for processing and resolves authoritative `tree_number`.
-
-- `POST /v1/jobs/{job_id}/rounds/{round_id}/reprocess`
-  - Resubmits round recordings for processing.
-
 - `GET /v1/jobs/{job_id}/rounds/{round_id}/review`
-  - Returns cached/generated review payload including transcript, form, narrative, and canonical `tree_number`.
-
-### Media uploads (local storage)
-
-- `PUT /v1/jobs/{job_id}/sections/{section_id}/recordings/{recording_id}`
-  - Accepts raw audio bytes, writes to `local_data/jobs/<job_id>/sections/<section_id>/recordings/`.
-
-- `PUT /v1/jobs/{job_id}/sections/{section_id}/images/{image_id}`
-  - Accepts raw image bytes, writes to `local_data/jobs/<job_id>/sections/<section_id>/images/`.
-
-- `PATCH /v1/jobs/{job_id}/sections/{section_id}/images/{image_id}`
-  - Persists caption/GPS updates into the image metadata JSON.
-
-### Final submit
-
 - `POST /v1/jobs/{job_id}/final`
-  - Accepts final or correction payload, writes final artifacts, marks job archived, and preserves correction output separately when applicable.
-
 - `GET /v1/jobs/{job_id}/final/report`
-  - Returns the current report PDF for the job.
-
-### Standalone tree identification
-
 - `POST /v1/trees/identify`
-  - Accepts up to five JPEG/PNG images outside the job lifecycle and returns the canonical normalized identification payload.
 
-### Admin endpoints
+## Auth boundaries
 
-- `GET /v1/admin/jobs/assignments`
-  - Lists current device/job assignments.
-- `POST /v1/admin/jobs/{job_id}/assign`
-  - Assigns or reassigns a job to a device.
-- `POST /v1/admin/jobs/{job_id}/unassign`
-  - Removes a device assignment from a job.
-- `POST /v1/admin/jobs/{job_id}/status`
-  - Updates job status and, optionally, round status.
-- `POST /v1/admin/jobs/{job_id}/rounds/{round_id}/reopen`
-  - Reopens a round back to `DRAFT`.
+- Bootstrap endpoints are intentionally open:
+  - `POST /v1/auth/register-device`
+  - `GET /v1/auth/device/{device_id}/status`
+  - `POST /v1/auth/token`
+- Normal client requests use issued device tokens.
+- Operator workflows use `traq-admin` and the server admin key.
 
-## Storage layout
+## Admin CLI contexts
 
-- `local_data/jobs/<job_id>/sections/<section_id>/recordings/<recording_id>.<ext>`
-- `local_data/jobs/<job_id>/sections/<section_id>/recordings/<recording_id>.meta.json`
-- `local_data/jobs/<job_id>/sections/<section_id>/images/<image_id>.<ext>`
-- `local_data/jobs/<job_id>/sections/<section_id>/images/<image_id>.meta.json`
-- `local_data/jobs/<job_id>/rounds/<round_id>/review.json`
-- `local_data/jobs/<job_id>/final.json`
-- `local_data/jobs/<job_id>/final_correction.json`
+- `uv run traq-admin local`
+  - uses local operator defaults
+- `uv run traq-admin cloud`
+  - uses `TRAQ_CLOUD_ADMIN_BASE_URL` and `TRAQ_CLOUD_API_KEY`
+- one-shot commands can also be context-prefixed:
+  - `uv run traq-admin cloud device pending`
+  - `uv run traq-admin local tree identify --image ./leaf.jpg --organ leaf`
 
-These JSON files are exported debug/compatibility copies. Runtime authority is
-in PostgreSQL. Artifact bytes and generated outputs remain on disk.
+## Key docs
 
-## Config
+- `docs/architecture.rst`
+- `docs/api/index.rst`
+- `docs/tree_identity_contract.rst`
+- `docs/cli_operations_model.rst`
+- `app/README.md`
 
-Environment variables:
+## Setup notes
 
-- `TRAQ_API_KEY` (default: demo-key)
-- `TRAQ_STORAGE_ROOT` (default: ./local_data)
-- `TRAQ_ARTIFACT_BACKEND` (default: `local`; valid values: `local`, `gcs`)
-- `TRAQ_GCS_BUCKET` (required when `TRAQ_ARTIFACT_BACKEND=gcs`)
-- `TRAQ_GCS_PREFIX` (optional object prefix when `TRAQ_ARTIFACT_BACKEND=gcs`)
-- `TRAQ_ENABLE_DISCOVERY` (default: `true`; set to `false` in cloud)
-- `TRAQ_AUTO_CREATE_SCHEMA` (default: `true`; set to `false` in cloud and run migrations explicitly)
-- `TRAQ_ENABLE_FILE_LOGGING` (default: `true`; set to `false` in cloud to use stdout/stderr only)
-- `TRAQ_DATABASE_URL` (required: `postgresql+psycopg://traq_app:<password>@127.0.0.1:5432/traq_demo`)
-- `TRAQ_ADMIN_BASE_URL` (default: `http://127.0.0.1:<TRAQ_DISCOVERY_PORT>`)
-- `TRAQ_PLANTNET_API_KEY` (required for real tree-identification requests)
-- `TRAQ_PLANTNET_BASE_URL` (default: `https://my-api.plantnet.org`)
-- `TRAQ_PLANTNET_PROJECT` (default: `all`)
-- `TRAQ_DISCOVERY_PORT` (default: 8000)
-- `TRAQ_DISCOVERY_NAME` (default: TRAQ Server)
-- `OPENAI_API_KEY` (required for extractor calls)
-- `TRAQ_OPENAI_MODEL` (default: gpt-4o-mini)
-- `TRAQ_OPENAI_TRANSCRIBE_MODEL` (default: gpt-4o-mini-transcribe)
-
-## Current docs
-
-- runtime and CLI details: `app/README.md`
-- CLI/service model: `docs/cli_operations_model.rst`
-- DB schema: `docs/database_schema.rst`
-- DB workflow: `docs/database_workflow.rst`
-- tree identity contract: `docs/tree_identity_contract.rst`
-- runtime/export boundary: `docs/runtime_export_boundary.rst`
-
-## API docs (Sphinx)
-
-Doc source is in `docs/` and uses autodoc + napoleon.
-
-- Build:
-  - `uv run sphinx-build -E -b html docs docs/_build/html`
-- Open:
-  - `docs/_build/html/index.html`
+- local development can put environment variables in `.env`; `app/config.py` loads that file without overriding already-exported values
+- the current deployment target is Cloud Run
+- deploy automation is intended to run from GitHub Actions on `main`; active development should happen on feature branches

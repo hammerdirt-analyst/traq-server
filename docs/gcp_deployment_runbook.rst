@@ -164,25 +164,17 @@ Remote operator workflow
 
 Cloud operator actions are now performed over admin HTTP endpoints.
 
+Configure these optional CLI context variables in ``.env`` or the shell::
+
+   TRAQ_CLOUD_ADMIN_BASE_URL=https://traq-server-589591848994.us-west1.run.app
+   TRAQ_CLOUD_API_KEY=<TRAQ_API_KEY>
+
 Examples from a laptop::
 
    cd /home/roger/projects/codex_trial/agent_client/server
-   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin device pending \
-     --host https://traq-server-589591848994.us-west1.run.app \
-     --api-key '<TRAQ_API_KEY>'
-
-   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin device approve <device_id> --role arborist \
-     --host https://traq-server-589591848994.us-west1.run.app \
-     --api-key '<TRAQ_API_KEY>'
-
-   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin device issue-token <device_id> --ttl 604800 \
-     --host https://traq-server-589591848994.us-west1.run.app \
-     --api-key '<TRAQ_API_KEY>'
-
-Important:
-
-- ``traq-admin`` does not accept global ``--host`` / ``--api-key``
-- pass those flags on the specific subcommand
+   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin cloud device pending
+   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin cloud device approve <device_id> --role arborist
+   UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin cloud device issue-token <device_id> --ttl 604800
 
 Verified local tree-identification smoke test::
 

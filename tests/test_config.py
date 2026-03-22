@@ -40,6 +40,8 @@ class ConfigTests(unittest.TestCase):
             "TRAQ_AUTO_CREATE_SCHEMA",
             "TRAQ_ENABLE_FILE_LOGGING",
             "TRAQ_API_KEY",
+            "TRAQ_CLOUD_ADMIN_BASE_URL",
+            "TRAQ_CLOUD_API_KEY",
             "TRAQ_PLANTNET_API_KEY",
             "TRAQ_PLANTNET_BASE_URL",
             "TRAQ_PLANTNET_PROJECT",
@@ -84,10 +86,18 @@ class ConfigTests(unittest.TestCase):
         self.assertFalse(settings.enable_file_logging)
 
     def test_plantnet_settings_load_with_defaults(self) -> None:
+        os.environ["TRAQ_PLANTNET_API_KEY"] = ""
         settings = load_settings()
         self.assertIsNone(settings.plantnet_api_key)
         self.assertEqual(settings.plantnet_base_url, "https://my-api.plantnet.org")
         self.assertEqual(settings.plantnet_project, "all")
+
+    def test_cloud_cli_settings_load_when_present(self) -> None:
+        os.environ["TRAQ_CLOUD_ADMIN_BASE_URL"] = "https://traq-server.example.run.app"
+        os.environ["TRAQ_CLOUD_API_KEY"] = "cloud-key"
+        settings = load_settings()
+        self.assertEqual(settings.cloud_admin_base_url, "https://traq-server.example.run.app")
+        self.assertEqual(settings.cloud_api_key, "cloud-key")
 
     def test_app_startup_can_skip_schema_creation(self) -> None:
         os.environ["TRAQ_API_KEY"] = "test-key"

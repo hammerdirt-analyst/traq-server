@@ -51,7 +51,14 @@ class AdminCliTests(unittest.TestCase):
 
     @staticmethod
     def _env_keys() -> tuple[str, ...]:
-        return ("TRAQ_STORAGE_ROOT", "TRAQ_DATABASE_URL")
+        return (
+            "TRAQ_STORAGE_ROOT",
+            "TRAQ_DATABASE_URL",
+            "TRAQ_ADMIN_BASE_URL",
+            "TRAQ_API_KEY",
+            "TRAQ_CLOUD_ADMIN_BASE_URL",
+            "TRAQ_CLOUD_API_KEY",
+        )
 
     def _restore_env(self) -> None:
         for key, value in self.old_env.items():
@@ -186,6 +193,66 @@ class AdminCliTests(unittest.TestCase):
         )
         self.assertEqual(rc, 0)
         self.assertIn('"access_token": "token"', output)
+
+    def test_context_defaults_select_local_and_cloud(self) -> None:
+        os.environ["TRAQ_ADMIN_BASE_URL"] = "http://127.0.0.1:8000"
+        os.environ["TRAQ_API_KEY"] = "demo-key"
+        os.environ["TRAQ_CLOUD_ADMIN_BASE_URL"] = "https://cloud.example.run.app"
+        os.environ["TRAQ_CLOUD_API_KEY"] = "cloud-key"
+        self.assertEqual(
+            admin_cli._context_defaults("local"),
+            ("http://127.0.0.1:8000", "demo-key"),
+        )
+        self.assertEqual(
+            admin_cli._context_defaults("cloud"),
+            ("https://cloud.example.run.app", "cloud-key"),
+        )
+
+    def test_cloud_context_requires_explicit_settings(self) -> None:
+        os.environ.pop("TRAQ_CLOUD_ADMIN_BASE_URL", None)
+        os.environ.pop("TRAQ_CLOUD_API_KEY", None)
+        with self.assertRaises(RuntimeError):
+            admin_cli._context_defaults("cloud")
+
+    def test_http_defaults_cover_device_commands(self) -> None:
+        self.assertEqual(
+            admin_cli._inject_http_defaults(
+                ["device", "pending"],
+                host="https://cloud.example.run.app",
+                api_key="cloud-key",
+            ),
+            [
+                "device",
+                "pending",
+                "--host",
+                "https://cloud.example.run.app",
+                "--api-key",
+                "cloud-key",
+            ],
+        )
+
+    @patch("admin_cli._run_repl")
+    def test_main_cloud_context_starts_repl_with_cloud_defaults(self, repl_mock) -> None:
+        os.environ["TRAQ_CLOUD_ADMIN_BASE_URL"] = "https://cloud.example.run.app"
+        os.environ["TRAQ_CLOUD_API_KEY"] = "cloud-key"
+        repl_mock.return_value = 0
+        with patch.object(sys, "argv", ["traq-admin", "cloud"]):
+            rc = admin_cli.main()
+        self.assertEqual(rc, 0)
+        _, kwargs = repl_mock.call_args
+        self.assertEqual(kwargs["context_name"], "cloud")
+
+    @patch("admin_cli.cmd_device_pending")
+    def test_main_cloud_context_injects_http_defaults_for_one_shot_commands(self, pending_mock) -> None:
+        os.environ["TRAQ_CLOUD_ADMIN_BASE_URL"] = "https://cloud.example.run.app"
+        os.environ["TRAQ_CLOUD_API_KEY"] = "cloud-key"
+        pending_mock.return_value = 0
+        with patch.object(sys, "argv", ["traq-admin", "cloud", "device", "pending"]):
+            rc = admin_cli.main()
+        self.assertEqual(rc, 0)
+        args = pending_mock.call_args.args[0]
+        self.assertEqual(args.host, "https://cloud.example.run.app")
+        self.assertEqual(args.api_key, "cloud-key")
 
     @patch("admin_cli._http")
     def test_tree_identify_command(self, http_mock) -> None:
@@ -832,7 +899,7 @@ class AdminCliTests(unittest.TestCase):
 
     def test_repl_http_defaults_apply_only_to_http_commands(self) -> None:
         self.assertEqual(
-            admin_cli._inject_repl_defaults(
+            admin_cli._inject_http_defaults(
                 ["job", "inspect", "--job", "J0001"],
                 host="http://127.0.0.1:8000",
                 api_key="demo-key",
@@ -840,7 +907,7 @@ class AdminCliTests(unittest.TestCase):
             ["job", "inspect", "--job", "J0001"],
         )
         self.assertEqual(
-            admin_cli._inject_repl_defaults(
+            admin_cli._inject_http_defaults(
                 ["job", "assign", "--job", "J0001", "--device-id", "device-1"],
                 host="http://127.0.0.1:8000",
                 api_key="demo-key",
@@ -859,7 +926,7 @@ class AdminCliTests(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            admin_cli._inject_repl_defaults(
+            admin_cli._inject_http_defaults(
                 ["job", "unlock", "--job", "J0001"],
                 host="http://127.0.0.1:8000",
                 api_key="demo-key",
@@ -876,7 +943,7 @@ class AdminCliTests(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            admin_cli._inject_repl_defaults(
+            admin_cli._inject_http_defaults(
                 ["tree", "identify", "--image", "./leaf.jpg"],
                 host="http://127.0.0.1:8000",
                 api_key="demo-key",
@@ -905,6 +972,19 @@ class AdminCliTests(unittest.TestCase):
         self.assertIn("TRAQ admin CLI interactive mode", output)
         self.assertIn("device-1", output)
         self.assertIn("status=pending", output)
+
+    def test_repl_can_switch_to_cloud_context(self) -> None:
+        os.environ["TRAQ_CLOUD_ADMIN_BASE_URL"] = "https://cloud.example.run.app"
+        os.environ["TRAQ_CLOUD_API_KEY"] = "cloud-key"
+        parser = admin_cli.build_parser()
+        stdout = io.StringIO()
+        with patch("builtins.input", side_effect=["use cloud", "show", "exit"]):
+            with contextlib.redirect_stdout(stdout):
+                rc = admin_cli._run_repl(parser)
+        self.assertEqual(rc, 0)
+        output = stdout.getvalue()
+        self.assertIn("context=cloud", output)
+        self.assertIn("host=https://cloud.example.run.app", output)
 
     def test_final_set_final_and_set_correction_commands(self) -> None:
         customer = json.loads(

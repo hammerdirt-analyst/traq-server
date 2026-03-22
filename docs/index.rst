@@ -8,18 +8,15 @@ This documentation is generated from in-code docstrings using Sphinx.
    :caption: Contents
 
    architecture
+   api/index
+   tree_identity_contract
+   cli_operations_model
    local_development
-   deployment_operations
-   gcp_deployment_runbook
-   postgresql_bootstrap
    database_schema
    database_workflow
    archive_retention
    geojson_storage
-   tree_identity_contract
+   runtime_export_boundary
    legacy_import
    import_validation_2026-03-14
    db_store_plan
-   cli_operations_model
-   runtime_export_boundary
-   api/index

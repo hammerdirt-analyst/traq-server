@@ -89,10 +89,26 @@ from app.services.inspection_service import InspectionService
 from app.services.job_mutation_service import JobMutationService
 
 _HISTORY_PATH = Path.home() / ".traq_admin_history"
+_CONTEXT_NAMES = {"local", "cloud"}
 
 
 def _settings():
     return load_settings()
+
+
+def _context_defaults(name: str) -> tuple[str, str]:
+    settings = _settings()
+    if name == "local":
+        return settings.admin_base_url, settings.api_key
+    if name == "cloud":
+        host = settings.cloud_admin_base_url
+        api_key = settings.cloud_api_key
+        if not host or not api_key:
+            raise RuntimeError(
+                "Cloud context requires TRAQ_CLOUD_ADMIN_BASE_URL and TRAQ_CLOUD_API_KEY."
+            )
+        return host, api_key
+    raise RuntimeError(f"Unknown context: {name}")
 
 
 def _store() -> DatabaseStore:
@@ -629,15 +645,15 @@ def _normalize_repl_tokens(raw: str) -> list[str]:
     return shlex.split(normalized)
 
 
-def _inject_repl_defaults(tokens: list[str], *, host: str, api_key: str) -> list[str]:
+def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list[str]:
     if not tokens:
         return tokens
     top = tokens[0]
     sub = tokens[1] if len(tokens) > 1 else ""
     augmented = list(tokens)
     needs_http_defaults = (
-        (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status"})
-        or (top == "job" and sub == "unlock")
+        (top == "device" and sub in {"list", "pending", "validate", "approve", "revoke", "issue-token"})
+        or (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status", "unlock"})
         or (top == "round" and sub == "reopen")
         or (top == "tree" and sub == "identify")
     )
@@ -696,6 +712,8 @@ def _repl_command_catalog() -> list[str]:
             "quit",
             "set host",
             "set api-key",
+            "use local",
+            "use cloud",
         ]
     )
 
@@ -731,13 +749,16 @@ def _save_repl_history() -> None:
         pass
 
 
-def _run_repl(parser: argparse.ArgumentParser) -> int:
+def _run_repl(parser: argparse.ArgumentParser, *, context_name: str | None = None) -> int:
     settings = _settings()
-    host = settings.admin_base_url
-    api_key = settings.api_key
+    if context_name is None:
+        host, api_key = settings.admin_base_url, settings.api_key
+    else:
+        host, api_key = _context_defaults(context_name)
     _setup_repl_readline()
     print("TRAQ admin CLI interactive mode")
     print("Type 'help' for commands, 'exit' to quit.")
+    print(f"context={context_name or 'default'}")
     print(f"default host={host} api_key={'*' * len(api_key) if api_key else '(empty)'}")
     while True:
         try:
@@ -755,6 +776,8 @@ def _run_repl(parser: argparse.ArgumentParser) -> int:
             print("Meta commands:")
             print("  set host <url>")
             print("  set api-key <key>")
+            print("  use local")
+            print("  use cloud")
             print("  show")
             print("  help")
             print("  exit")
@@ -775,8 +798,19 @@ def _run_repl(parser: argparse.ArgumentParser) -> int:
             continue
         if raw == "show":
             masked = "*" * len(api_key) if api_key else "(empty)"
+            print(f"context={context_name or 'default'}")
             print(f"host={host}")
             print(f"api_key={masked}")
+            continue
+        if raw in {"use local", "use cloud"}:
+            context_name = raw.split()[1]
+            try:
+                host, api_key = _context_defaults(context_name)
+            except RuntimeError as exc:
+                print(f"ERROR: {exc}")
+                continue
+            print(f"context={context_name or 'default'}")
+            print(f"host={host}")
             continue
         if raw.startswith("set "):
             parts = raw.split(" ", 2)
@@ -800,7 +834,8 @@ def _run_repl(parser: argparse.ArgumentParser) -> int:
         except ValueError as exc:
             print(f"Parse error: {exc}")
             continue
-        tokens = _inject_repl_defaults(tokens, host=host, api_key=api_key)
+        if context_name is not None:
+            tokens = _inject_http_defaults(tokens, host=host, api_key=api_key)
         try:
             args = parser.parse_args(tokens)
             code = int(args.func(args))
@@ -814,9 +849,17 @@ def _run_repl(parser: argparse.ArgumentParser) -> int:
 
 def main() -> int:
     parser = build_parser()
-    if len(sys.argv) == 1:
-        return _run_repl(parser)
-    args = parser.parse_args()
+    argv = list(sys.argv[1:])
+    context_name = "local"
+    if argv and argv[0] in _CONTEXT_NAMES:
+        context_name = argv.pop(0)
+        if not argv:
+            return _run_repl(parser, context_name=context_name)
+        host, api_key = _context_defaults(context_name)
+        argv = _inject_http_defaults(argv, host=host, api_key=api_key)
+    elif not argv:
+        return _run_repl(parser, context_name=context_name)
+    args = parser.parse_args(argv)
     return int(args.func(args))
 
 

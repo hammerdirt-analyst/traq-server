@@ -130,10 +130,10 @@ Admin CLI (host machine):
 - `uv run traq-admin device approve <device_id> --role arborist`
 - `uv run traq-admin device revoke <device_id>`
 - `uv run traq-admin device issue-token <device_id> --ttl 900`
-- `uv run traq-admin device pending --host https://<service-url> --api-key <admin_key>`
-- `uv run traq-admin device approve <device_id> --role arborist --host https://<service-url> --api-key <admin_key>`
-- `uv run traq-admin device issue-token <device_id> --ttl 900 --host https://<service-url> --api-key <admin_key>`
-- `uv run traq-admin tree identify --image ./leaf.jpg --image ./bark.jpg --organ leaf --organ bark --host http://127.0.0.1:8000 --api-key <admin_key>`
+- `uv run traq-admin cloud device pending`
+- `uv run traq-admin cloud device approve <device_id> --role arborist`
+- `uv run traq-admin cloud device issue-token <device_id> --ttl 900`
+- `uv run traq-admin local tree identify --image ./leaf.jpg --image ./bark.jpg --organ leaf --organ bark`
 - `uv run traq-admin customer create --name "Customer Name" --phone "555-1212" --address "123 Oak St"`
 - `uv run traq-admin customer list --search Arboretum`
 - `uv run traq-admin customer update C0001 --phone "555-3434"`
@@ -170,6 +170,8 @@ help
 show
 set host http://127.0.0.1:8000
 set api-key demo-key
+use local
+use cloud
 exit
 ```
 
@@ -188,8 +190,7 @@ For local operator workflows, `.env` is loaded automatically by
 `app/config.py`. Shell exports still win if both are present.
 
 The CLI now fails fast if ``TRAQ_DATABASE_URL`` is not set. There is no silent
-SQLite fallback. Remote admin commands use explicit ``--host`` and
-``--api-key`` on the command that makes the HTTP request.
+SQLite fallback. Use ``uv run traq-admin local`` and ``uv run traq-admin cloud`` to start the CLI with explicit operator contexts. Context-prefixed one-shot commands such as ``uv run traq-admin cloud device pending`` inject the configured host and admin key automatically.
 
 ### Admin CLI Command Reference (all commands)
 
@@ -305,6 +306,8 @@ Inside interactive mode:
 show
 set host http://127.0.0.1:8000
 set api-key demo-key
+use local
+use cloud
 /net ipv4
 /net ipv6
 /device pending
