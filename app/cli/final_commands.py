@@ -7,8 +7,8 @@ import json
 from pathlib import Path
 from typing import Any, Callable
 
+from .backends import CliBackendBundle
 
-FinalServiceFactory = Callable[[], Any]
 JsonPrinter = Callable[[object], None]
 
 
@@ -33,11 +33,11 @@ def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
     return 0
 
 
-def cmd_final_set_final(args: argparse.Namespace, *, service_factory: FinalServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_final_set_final(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Write an original final snapshot into the database."""
     return _wrap(
-        lambda: service_factory().set_final(
-            args.job,
+        lambda: backend.final.set_final(
+            job_ref=args.job,
             payload=_read_json(args.from_json) or {},
             geojson_payload=_read_json(args.geojson_json),
         ),
@@ -45,11 +45,11 @@ def cmd_final_set_final(args: argparse.Namespace, *, service_factory: FinalServi
     )
 
 
-def cmd_final_set_correction(args: argparse.Namespace, *, service_factory: FinalServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_final_set_correction(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Write or replace a correction snapshot in the database."""
     return _wrap(
-        lambda: service_factory().set_correction(
-            args.job,
+        lambda: backend.final.set_correction(
+            job_ref=args.job,
             payload=_read_json(args.from_json) or {},
             geojson_payload=_read_json(args.geojson_json),
         ),

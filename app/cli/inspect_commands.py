@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from typing import Callable
+
+from .backends import CliBackendBundle
 
 
-InspectionFactory = Callable[[], Any]
 JsonPrinter = Callable[[object], None]
 
 
@@ -21,24 +22,24 @@ def _inspect(run: Callable[[], object], print_json: JsonPrinter) -> int:
     return 0
 
 
-def cmd_job_inspect(args: argparse.Namespace, *, inspection_service: InspectionFactory, print_json: JsonPrinter) -> int:
+def cmd_job_inspect(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Inspect current operational state for one job."""
-    return _inspect(lambda: inspection_service().inspect_job(args.job), print_json)
+    return _inspect(lambda: backend.job.inspect(job_ref=args.job), print_json)
 
 
-def cmd_round_inspect(args: argparse.Namespace, *, inspection_service: InspectionFactory, print_json: JsonPrinter) -> int:
+def cmd_round_inspect(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Inspect one round manifest and status view."""
-    return _inspect(lambda: inspection_service().inspect_round(args.job, args.round_id), print_json)
+    return _inspect(lambda: backend.round.inspect(job_ref=args.job, round_id=args.round_id), print_json)
 
 
-def cmd_review_inspect(args: argparse.Namespace, *, inspection_service: InspectionFactory, print_json: JsonPrinter) -> int:
+def cmd_review_inspect(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Inspect one stored review payload."""
-    return _inspect(lambda: inspection_service().inspect_review(args.job, args.round_id), print_json)
+    return _inspect(lambda: backend.review.inspect(job_ref=args.job, round_id=args.round_id), print_json)
 
 
-def cmd_final_inspect(args: argparse.Namespace, *, inspection_service: InspectionFactory, print_json: JsonPrinter) -> int:
+def cmd_final_inspect(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Inspect archived final or correction outputs for one job."""
-    return _inspect(lambda: inspection_service().inspect_final(args.job), print_json)
+    return _inspect(lambda: backend.final.inspect(job_ref=args.job), print_json)
 
 
 def register_inspect_commands(subparsers, handlers: dict[str, Callable[[argparse.Namespace], int]]) -> None:

@@ -3,63 +3,34 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
+from .backends import CliBackendBundle
 
-HttpCaller = Callable[..., tuple[int, Any]]
 JsonPrinter = Callable[[object], None]
 
 
 def cmd_tree_identify(
     args: argparse.Namespace,
     *,
-    http: HttpCaller,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Call the standalone tree-identification endpoint."""
-    image_paths = [Path(item) for item in args.image]
-    missing = [str(path) for path in image_paths if not path.exists()]
-    if missing:
-        print(f"ERROR: Missing image files: {', '.join(missing)}")
-        return 1
-    if len(image_paths) > 5:
-        print("ERROR: Maximum 5 images are allowed")
-        return 1
-    payload = {
-        "project": args.project,
-        "include_related_images": args.include_related_images,
-        "no_reject": args.no_reject,
-        "nb_results": args.nb_results,
-        "lang": args.lang,
-    }
-    files = []
     try:
-        for path in image_paths:
-            files.append(
-                (
-                    "images",
-                    path.name,
-                    path.read_bytes(),
-                    "image/png" if path.suffix.lower() == ".png" else "image/jpeg",
-                )
-            )
+        payload = backend.tree.identify(
+            image_paths=list(args.image),
+            organs=list(args.organ or []),
+            project=args.project,
+            include_related_images=args.include_related_images,
+            no_reject=args.no_reject,
+            nb_results=args.nb_results,
+            lang=args.lang,
+        )
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1
-    for organ in args.organ or []:
-        payload.setdefault("organs", []).append(organ)
-    code, body = http(
-        "POST",
-        f"{args.host.rstrip('/')}/v1/trees/identify",
-        api_key=args.api_key,
-        payload=payload,
-        files=files,
-    )
-    if code != 200:
-        print(f"HTTP {code}: {body}")
-        return 1
-    print_json(body)
+    print_json(payload)
     return 0
 
 

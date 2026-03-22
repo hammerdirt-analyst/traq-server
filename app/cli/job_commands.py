@@ -3,23 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
-from urllib import parse
+from typing import Callable
 
+from .backends import CliBackendBundle
 
-HttpCaller = Callable[..., tuple[int, Any]]
 JsonPrinter = Callable[[object], None]
-JobResolver = Callable[[str, str, str], str]
-JobMutationFactory = Callable[[], Any]
-
-
-def _print_http_result(code: int, body: Any, print_json: JsonPrinter) -> int:
-    """Render a uniform result for HTTP-backed admin operations."""
-    if code != 200:
-        print(f"HTTP {code}: {body}")
-        return 1
-    print_json(body)
-    return 0
 
 
 def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
@@ -36,12 +24,12 @@ def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
 def cmd_job_create(
     args: argparse.Namespace,
     *,
-    job_service_factory: JobMutationFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Create one operational job record directly in the database."""
     return _wrap(
-        lambda: job_service_factory().create_job(
+        lambda: backend.job.create(
             job_id=args.job_id,
             job_number=args.job_number,
             status=args.status,
@@ -61,12 +49,12 @@ def cmd_job_create(
 def cmd_job_update(
     args: argparse.Namespace,
     *,
-    job_service_factory: JobMutationFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Update one operational job record directly in the database."""
     return _wrap(
-        lambda: job_service_factory().update_job(
+        lambda: backend.job.update(
             args.job,
             customer_id=args.customer_id,
             billing_profile_id=args.billing_profile_id,
@@ -85,135 +73,76 @@ def cmd_job_update(
 def cmd_job_list_assignments(
     args: argparse.Namespace,
     *,
-    http: HttpCaller,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """List current job-to-device assignments from the admin API."""
-    code, body = http(
-        "GET",
-        f"{args.host.rstrip('/')}/v1/admin/jobs/assignments",
-        api_key=args.api_key,
-    )
-    if code != 200:
-        print(f"HTTP {code}: {body}")
-        return 1
-    assignments = body.get("assignments", []) if isinstance(body, dict) else []
-    print_json(assignments if args.raw else body)
-    return 0
+    return _wrap(lambda: backend.job.list_assignments(raw=args.raw), print_json)
 
 
 def cmd_job_assign(
     args: argparse.Namespace,
     *,
-    http: HttpCaller,
-    resolve_job_id: JobResolver,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Assign one job to a device through the admin API."""
-    try:
-        job_id = resolve_job_id(args.host, args.api_key, args.job)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    code, body = http(
-        "POST",
-        f"{args.host.rstrip('/')}/v1/admin/jobs/{parse.quote(job_id)}/assign",
-        api_key=args.api_key,
-        payload={"device_id": args.device_id},
-    )
-    return _print_http_result(code, body, print_json)
+    return _wrap(lambda: backend.job.assign(job_ref=args.job, device_id=args.device_id), print_json)
 
 
 def cmd_job_unassign(
     args: argparse.Namespace,
     *,
-    http: HttpCaller,
-    resolve_job_id: JobResolver,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Remove the current assignment for one job."""
-    try:
-        job_id = resolve_job_id(args.host, args.api_key, args.job)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    code, body = http(
-        "POST",
-        f"{args.host.rstrip('/')}/v1/admin/jobs/{parse.quote(job_id)}/unassign",
-        api_key=args.api_key,
-        payload={},
-    )
-    return _print_http_result(code, body, print_json)
+    return _wrap(lambda: backend.job.unassign(job_ref=args.job), print_json)
 
 
 def cmd_job_set_status(
     args: argparse.Namespace,
     *,
-    http: HttpCaller,
-    resolve_job_id: JobResolver,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Force one server-side job or round status through the admin API."""
-    try:
-        job_id = resolve_job_id(args.host, args.api_key, args.job)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    payload: dict[str, Any] = {"status": args.status}
-    if args.round_id:
-        payload["round_id"] = args.round_id
-    if args.round_status:
-        payload["round_status"] = args.round_status
-    code, body = http(
-        "POST",
-        f"{args.host.rstrip('/')}/v1/admin/jobs/{parse.quote(job_id)}/status",
-        api_key=args.api_key,
-        payload=payload,
+    return _wrap(
+        lambda: backend.job.set_status(
+            job_ref=args.job,
+            status=args.status,
+            round_id=args.round_id,
+            round_status=args.round_status,
+        ),
+        print_json,
     )
-    return _print_http_result(code, body, print_json)
 
 
 def cmd_job_unlock(
     args: argparse.Namespace,
     *,
-    http: HttpCaller,
-    resolve_job_id: JobResolver,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Reopen a finalized job and optionally reassign it to a device."""
-    try:
-        job_id = resolve_job_id(args.host, args.api_key, args.job)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    payload: dict[str, Any] = {}
-    if args.round_id:
-        payload["round_id"] = args.round_id
-    if args.device_id:
-        payload["device_id"] = args.device_id
-    code, body = http(
-        "POST",
-        f"{args.host.rstrip('/')}/v1/admin/jobs/{parse.quote(job_id)}/unlock",
-        api_key=args.api_key,
-        payload=payload,
+    return _wrap(
+        lambda: backend.job.unlock(
+            job_ref=args.job,
+            round_id=args.round_id,
+            device_id=args.device_id,
+        ),
+        print_json,
     )
-    return _print_http_result(code, body, print_json)
 
 
 def cmd_round_reopen(
     args: argparse.Namespace,
     *,
-    http: HttpCaller,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Reopen one round to DRAFT through the admin API."""
-    code, body = http(
-        "POST",
-        f"{args.host.rstrip('/')}/v1/admin/jobs/{args.job_id}/rounds/{args.round_id}/reopen",
-        api_key=args.api_key,
-        payload={},
-    )
-    return _print_http_result(code, body, print_json)
+    return _wrap(lambda: backend.round.reopen(job_id=args.job_id, round_id=args.round_id), print_json)
 
 
 def register_job_commands(

@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from typing import Callable
+
+from .backends import CliBackendBundle
 
 
-StoreFactory = Callable[[], Any]
 JsonPrinter = Callable[[object], None]
-PendingDevices = Callable[[], list[dict[str, Any]]]
 
 
 def print_device_rows(rows: list[dict[str, Any]]) -> None:
@@ -29,11 +29,11 @@ def print_device_rows(rows: list[dict[str, Any]]) -> None:
 def cmd_device_list(
     args: argparse.Namespace,
     *,
-    store_factory: StoreFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """List known devices, optionally filtered by status."""
-    rows = store_factory().list_devices(status=args.status)
+    rows = backend.device.list(status=args.status)
     if args.json:
         print_json(rows)
     else:
@@ -44,11 +44,11 @@ def cmd_device_list(
 def cmd_device_pending(
     args: argparse.Namespace,
     *,
-    pending_devices: PendingDevices,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """List devices still waiting for approval."""
-    rows = pending_devices()
+    rows = backend.device.pending()
     if args.json:
         print_json(rows)
     else:
@@ -59,27 +59,15 @@ def cmd_device_pending(
 def cmd_device_validate(
     args: argparse.Namespace,
     *,
-    pending_devices: PendingDevices,
-    store_factory: StoreFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Approve one pending device by list index."""
-    rows = pending_devices()
-    if not rows:
-        print("No pending devices.")
-        return 1
-    index = max(1, int(args.index))
-    if index > len(rows):
-        print(f"Invalid index {index}; pending count={len(rows)}")
-        return 1
-    target = rows[index - 1]
-    device_id = str(target.get("device_id") or "")
     try:
-        approved = store_factory().approve_device(device_id, role=args.role)
+        approved = backend.device.validate(index=args.index, role=args.role)
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1
-    print(f"Validated device {device_id[:8]} as role={args.role}")
     print_json(approved)
     return 0
 
@@ -87,12 +75,12 @@ def cmd_device_validate(
 def cmd_device_approve(
     args: argparse.Namespace,
     *,
-    store_factory: StoreFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Approve one device by explicit device id."""
     try:
-        row = store_factory().approve_device(args.device_id, role=args.role)
+        row = backend.device.approve(device_id=args.device_id, role=args.role)
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1
@@ -103,12 +91,12 @@ def cmd_device_approve(
 def cmd_device_revoke(
     args: argparse.Namespace,
     *,
-    store_factory: StoreFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Revoke one approved device."""
     try:
-        row = store_factory().revoke_device(args.device_id)
+        row = backend.device.revoke(device_id=args.device_id)
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1
@@ -119,12 +107,12 @@ def cmd_device_revoke(
 def cmd_device_issue_token(
     args: argparse.Namespace,
     *,
-    store_factory: StoreFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Issue an access token for an approved device."""
     try:
-        row = store_factory().issue_token(args.device_id, ttl_seconds=args.ttl)
+        row = backend.device.issue_token(device_id=args.device_id, ttl=args.ttl)
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1

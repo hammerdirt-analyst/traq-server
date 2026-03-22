@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from fastapi import APIRouter, Body, Header, HTTPException
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
 from .models import (
     AdminDeviceApproveRequest,
@@ -24,6 +25,8 @@ def build_admin_router(
     list_job_assignments: Callable[[], list[dict[str, Any]]],
     save_job_record: Callable[[Any], None],
     db_store: Any,
+    inspection_service: Any,
+    artifact_fetch_service: Any,
     round_record_factory: Callable[..., Any],
     logger: Any,
 ) -> APIRouter:
@@ -173,6 +176,133 @@ def build_admin_router(
         """Admin endpoint listing current job assignments."""
         require_api_key(x_api_key, required_role="admin")
         return {"ok": True, "assignments": list_job_assignments()}
+
+    @router.get("/v1/admin/jobs/resolve")
+    def admin_resolve_job(
+        job_ref: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint resolving a job reference to canonical ids."""
+        require_api_key(x_api_key, required_role="admin")
+        normalized = (job_ref or "").strip()
+        if not normalized:
+            raise HTTPException(status_code=400, detail="job_ref is required")
+        payload = db_store.get_job(normalized) if normalized.startswith("job_") else db_store.get_job_by_number(normalized)
+        if not isinstance(payload, dict):
+            raise HTTPException(status_code=404, detail="Job not found")
+        return {
+            "ok": True,
+            "job_id": payload.get("job_id"),
+            "job_number": payload.get("job_number"),
+            "status": payload.get("status"),
+        }
+
+    @router.get("/v1/admin/jobs/{job_id}/inspect")
+    def admin_inspect_job(
+        job_id: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint returning job inspection payload."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            return inspection_service.inspect_job(job_id)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.get("/v1/admin/jobs/{job_id}/rounds/{round_id}/inspect")
+    def admin_inspect_round(
+        job_id: str,
+        round_id: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint returning round inspection payload."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            return inspection_service.inspect_round(job_id, round_id)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.get("/v1/admin/jobs/{job_id}/rounds/{round_id}/review/inspect")
+    def admin_inspect_review(
+        job_id: str,
+        round_id: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint returning review inspection payload."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            return inspection_service.inspect_review(job_id, round_id)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.get("/v1/admin/jobs/{job_id}/final/inspect")
+    def admin_inspect_final(
+        job_id: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint returning final/correction inspection payload."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            return inspection_service.inspect_final(job_id)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.get("/v1/admin/jobs/{job_id}/artifacts/{kind}")
+    def admin_fetch_artifact(
+        job_id: str,
+        kind: str,
+        x_api_key: str | None = Header(default=None),
+    ):
+        """Admin endpoint exporting one preferred artifact variant for a job."""
+        require_api_key(x_api_key, required_role="admin")
+        try:
+            payload = artifact_fetch_service.fetch(job_id, kind=kind)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        saved_path = str(payload.get("saved_path") or "").strip()
+        if not saved_path:
+            raise HTTPException(status_code=500, detail="Artifact export path not available")
+        variant = str(payload.get("variant") or "final")
+
+        if kind == "transcript":
+            try:
+                from pathlib import Path
+
+                path = Path(saved_path)
+                return PlainTextResponse(
+                    path.read_text(encoding="utf-8"),
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{path.name}"',
+                        "X-Artifact-Variant": variant,
+                    },
+                )
+            except OSError as exc:
+                raise HTTPException(status_code=500, detail="Failed to read transcript artifact") from exc
+
+        if kind == "final-json":
+            try:
+                from pathlib import Path
+                import json
+
+                path = Path(saved_path)
+                return JSONResponse(
+                    json.loads(path.read_text(encoding="utf-8")),
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{path.name}"',
+                        "X-Artifact-Variant": variant,
+                    },
+                )
+            except (OSError, json.JSONDecodeError) as exc:
+                raise HTTPException(status_code=500, detail="Failed to read final JSON artifact") from exc
+
+        return FileResponse(
+            path=saved_path,
+            filename=saved_path.rsplit("/", 1)[-1],
+            headers={"X-Artifact-Variant": variant},
+        )
 
     @router.post("/v1/admin/jobs/{job_id}/assign")
     def admin_assign_job(

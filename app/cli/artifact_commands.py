@@ -3,22 +3,22 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from typing import Callable
 
+from .backends import CliBackendBundle
 
-ArtifactFetchFactory = Callable[[], Any]
 JsonPrinter = Callable[[object], None]
 
 
 def cmd_artifact_fetch(
     args: argparse.Namespace,
     *,
-    service_factory: ArtifactFetchFactory,
+    backend: CliBackendBundle,
     print_json: JsonPrinter,
 ) -> int:
     """Export one customer-facing artifact for the provided job."""
     try:
-        payload = service_factory().fetch(args.job, kind=args.kind)
+        payload = backend.artifact.fetch(job_ref=args.job, kind=args.kind)
     except Exception as exc:
         print(f"ERROR: {exc}")
         return 1

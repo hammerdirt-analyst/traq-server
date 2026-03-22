@@ -69,6 +69,8 @@ from .runtime_context import RuntimeContext
 from .fs_utils import write_json_file
 from .security_store import AuthContext
 from .services.assigned_job_service import AssignedJobService
+from .services.artifact_fetch_service import ArtifactFetchService
+from .services.inspection_service import InspectionService
 from .services.report_render_service import ReportRenderService
 from .services.review_state_service import ReviewStateService
 from .services.round_processing_service import RoundProcessingService
@@ -213,6 +215,11 @@ def create_app() -> FastAPI:
         review_payload_service=review_payload_service,
         normalize_form_schema=review_form_service.normalize_form_schema,
         assigned_job_factory=AssignedJob,
+    )
+    artifact_fetch_service = ArtifactFetchService(
+        settings=settings,
+        db_store=db_store,
+        artifact_store=artifact_store,
     )
     review_state_service = ReviewStateService(db_store=db_store)
     report_render_service = ReportRenderService()
@@ -632,6 +639,8 @@ def create_app() -> FastAPI:
             list_job_assignments=_list_job_assignments,
             save_job_record=_save_job_record,
             db_store=db_store,
+            inspection_service=InspectionService(settings=settings, db_store=db_store),
+            artifact_fetch_service=artifact_fetch_service,
             round_record_factory=RoundRecord,
             logger=logger,
         )

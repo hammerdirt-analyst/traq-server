@@ -13,148 +13,84 @@ import shlex
 import sys
 from typing import Any
 import uuid
-from urllib import error, parse, request
+from urllib import error, request
 
-from app.cli.device_commands import (
-    cmd_device_approve as _cmd_device_approve,
-    cmd_device_issue_token as _cmd_device_issue_token,
-    cmd_device_list as _cmd_device_list,
-    cmd_device_pending as _cmd_device_pending,
-    cmd_device_revoke as _cmd_device_revoke,
-    cmd_device_validate as _cmd_device_validate,
-    register_device_commands,
-)
+from app.cli.artifact_commands import cmd_artifact_fetch, register_artifact_commands
 from app.cli.customer_commands import (
-    cmd_billing_duplicates as _cmd_billing_duplicates,
-    cmd_billing_create as _cmd_billing_create,
-    cmd_billing_delete as _cmd_billing_delete,
-    cmd_billing_list as _cmd_billing_list,
-    cmd_billing_merge as _cmd_billing_merge,
-    cmd_billing_update as _cmd_billing_update,
-    cmd_billing_usage as _cmd_billing_usage,
-    cmd_customer_duplicates as _cmd_customer_duplicates,
-    cmd_customer_create as _cmd_customer_create,
-    cmd_customer_delete as _cmd_customer_delete,
-    cmd_customer_list as _cmd_customer_list,
-    cmd_customer_merge as _cmd_customer_merge,
-    cmd_customer_update as _cmd_customer_update,
-    cmd_customer_usage as _cmd_customer_usage,
+    cmd_billing_create,
+    cmd_billing_delete,
+    cmd_billing_duplicates,
+    cmd_billing_list,
+    cmd_billing_merge,
+    cmd_billing_update,
+    cmd_billing_usage,
+    cmd_customer_create,
+    cmd_customer_delete,
+    cmd_customer_duplicates,
+    cmd_customer_list,
+    cmd_customer_merge,
+    cmd_customer_update,
+    cmd_customer_usage,
     register_customer_commands,
 )
-from app.cli.artifact_commands import (
-    cmd_artifact_fetch as _cmd_artifact_fetch,
-    register_artifact_commands,
+from app.cli.device_commands import (
+    cmd_device_approve,
+    cmd_device_issue_token,
+    cmd_device_list,
+    cmd_device_pending,
+    cmd_device_revoke,
+    cmd_device_validate,
+    register_device_commands,
 )
 from app.cli.final_commands import (
-    cmd_final_set_correction as _cmd_final_set_correction,
-    cmd_final_set_final as _cmd_final_set_final,
+    cmd_final_set_correction,
+    cmd_final_set_final,
     register_final_commands,
 )
 from app.cli.inspect_commands import (
-    cmd_final_inspect as _cmd_final_inspect,
-    cmd_job_inspect as _cmd_job_inspect,
-    cmd_review_inspect as _cmd_review_inspect,
-    cmd_round_inspect as _cmd_round_inspect,
+    cmd_final_inspect,
+    cmd_job_inspect,
+    cmd_review_inspect,
+    cmd_round_inspect,
     register_inspect_commands,
 )
 from app.cli.job_commands import (
-    cmd_job_create as _cmd_job_create,
-    cmd_job_assign as _cmd_job_assign,
-    cmd_job_list_assignments as _cmd_job_list_assignments,
-    cmd_job_set_status as _cmd_job_set_status,
-    cmd_job_unlock as _cmd_job_unlock,
-    cmd_job_unassign as _cmd_job_unassign,
-    cmd_job_update as _cmd_job_update,
-    cmd_round_reopen as _cmd_round_reopen,
+    cmd_job_assign,
+    cmd_job_create,
+    cmd_job_list_assignments,
+    cmd_job_set_status,
+    cmd_job_unassign,
+    cmd_job_unlock,
+    cmd_job_update,
+    cmd_round_reopen,
     register_job_commands,
     register_round_commands,
 )
-from app.cli.net_commands import (
-    cmd_net_ipv4 as _cmd_net_ipv4,
-    cmd_net_ipv6 as _cmd_net_ipv6,
-    register_net_commands,
-)
-from app.cli.tree_commands import (
-    cmd_tree_identify as _cmd_tree_identify,
-    register_tree_commands,
-)
-from app.artifact_storage import create_artifact_store
+from app.cli.net_commands import register_net_commands
+from app.cli.tree_commands import cmd_tree_identify, register_tree_commands
 from app.config import load_settings
-from app.services.customer_service import CustomerService
-from app.db import create_schema, init_database
-from app.db_store import DatabaseStore
-from app.services.final_mutation_service import FinalMutationService
-from app.services.artifact_fetch_service import ArtifactFetchService
-from app.services.inspection_service import InspectionService
-from app.services.job_mutation_service import JobMutationService
 
 _HISTORY_PATH = Path.home() / ".traq_admin_history"
-_CONTEXT_NAMES = {"local", "cloud"}
+_CONTEXT_NAMES = {"local", "cloud", "remote"}
 
 
 def _settings():
     return load_settings()
 
 
-def _context_defaults(name: str) -> tuple[str, str]:
+def _context_defaults(name: str) -> tuple[str | None, str | None]:
     settings = _settings()
     if name == "local":
         return settings.admin_base_url, settings.api_key
-    if name == "cloud":
+    if name in {"cloud", "remote"}:
         host = settings.cloud_admin_base_url
         api_key = settings.cloud_api_key
         if not host or not api_key:
             raise RuntimeError(
-                "Cloud context requires TRAQ_CLOUD_ADMIN_BASE_URL and TRAQ_CLOUD_API_KEY."
+                "Remote context requires TRAQ_CLOUD_ADMIN_BASE_URL and TRAQ_CLOUD_API_KEY."
             )
         return host, api_key
     raise RuntimeError(f"Unknown context: {name}")
-
-
-def _store() -> DatabaseStore:
-    settings = _settings()
-    init_database(settings)
-    create_schema()
-    return DatabaseStore()
-
-
-def _inspection_service() -> InspectionService:
-    settings = _settings()
-    init_database(settings)
-    create_schema()
-    return InspectionService(settings=settings, db_store=DatabaseStore())
-
-
-def _customer_service() -> CustomerService:
-    settings = _settings()
-    init_database(settings)
-    create_schema()
-    return CustomerService()
-
-
-def _job_mutation_service() -> JobMutationService:
-    settings = _settings()
-    init_database(settings)
-    create_schema()
-    return JobMutationService()
-
-
-def _final_mutation_service() -> FinalMutationService:
-    settings = _settings()
-    init_database(settings)
-    create_schema()
-    return FinalMutationService()
-
-
-def _artifact_fetch_service() -> ArtifactFetchService:
-    settings = _settings()
-    init_database(settings)
-    create_schema()
-    return ArtifactFetchService(
-        settings=settings,
-        db_store=DatabaseStore(),
-        artifact_store=create_artifact_store(settings),
-    )
 
 
 def _print_json(payload: object) -> None:
@@ -238,403 +174,191 @@ def _encode_multipart(
     return b"".join(body), f"multipart/form-data; boundary={boundary}"
 
 
-def _resolve_job_id(host: str, api_key: str, job_ref: str) -> str:
-    if job_ref.startswith("job_"):
-        return job_ref
-    return _inspection_service().resolve_job_id(job_ref)
+def _build_backend(*, context_name: str, host: str | None = None, api_key: str | None = None):
+    if context_name == "local":
+        from app.cli.local_backend import build_local_backend
 
+        return build_local_backend(http=_http)
+    from app.cli.remote_backend import build_remote_backend
 
-def _resolve_device_id(device_ref: str) -> str:
-    normalized = (device_ref or "").strip()
-    if not normalized:
-        raise RuntimeError("Device id is required")
-    rows = _store().list_devices()
-    exact = [row for row in rows if str(row.get("device_id") or "") == normalized]
-    if exact:
-        return normalized
-    matches = [
-        str(row.get("device_id") or "")
-        for row in rows
-        if str(row.get("device_id") or "").startswith(normalized)
-    ]
-    if len(matches) == 1:
-        return matches[0]
-    if not matches:
-        raise RuntimeError(f"Device not found: {device_ref}")
-    raise RuntimeError(f"Device id prefix is ambiguous: {device_ref}")
-
-
-def _should_use_remote_device_api(args: argparse.Namespace) -> bool:
-    return bool(getattr(args, "host", None) and getattr(args, "api_key", None))
-
-
-def _list_remote_devices(*, host: str, api_key: str, status: str | None = None) -> tuple[int, Any]:
-    suffix = "/v1/admin/devices/pending" if status == "pending" else "/v1/admin/devices"
-    query = ""
-    if status and status != "pending":
-        query = f"?status={parse.quote(status)}"
-    return _http("GET", f"{host.rstrip('/')}{suffix}{query}", api_key=api_key)
-
-
-def _pending_devices() -> list[dict[str, Any]]:
-    rows = _store().list_devices(status="pending")
-    rows.sort(key=lambda r: str(r.get("updated_at") or r.get("created_at") or ""))
-    return rows
-
-
-def cmd_device_list(args: argparse.Namespace) -> int:
-    if _should_use_remote_device_api(args):
-        code, body = _list_remote_devices(host=args.host, api_key=args.api_key, status=args.status)
-        if code != 200:
-            print(f"HTTP {code}: {body}")
-            return 1
-        devices = body.get("devices", []) if isinstance(body, dict) else []
-        _print_json(devices if args.json else body)
-        return 0
-    return _cmd_device_list(args, store_factory=_store, print_json=_print_json)
-
-
-def cmd_device_pending(args: argparse.Namespace) -> int:
-    if _should_use_remote_device_api(args):
-        code, body = _list_remote_devices(host=args.host, api_key=args.api_key, status="pending")
-        if code != 200:
-            print(f"HTTP {code}: {body}")
-            return 1
-        devices = body.get("devices", []) if isinstance(body, dict) else []
-        _print_json(devices if args.json else body)
-        return 0
-    return _cmd_device_pending(args, pending_devices=_pending_devices, print_json=_print_json)
-
-
-def cmd_device_validate(args: argparse.Namespace) -> int:
-    if _should_use_remote_device_api(args):
-        code, body = _list_remote_devices(host=args.host, api_key=args.api_key, status="pending")
-        if code != 200:
-            print(f"HTTP {code}: {body}")
-            return 1
-        rows = body.get("devices", []) if isinstance(body, dict) else []
-        if not rows:
-            print("No pending devices.")
-            return 1
-        index = max(1, int(args.index))
-        if index > len(rows):
-            print(f"Invalid index {index}; pending count={len(rows)}")
-            return 1
-        device_id = str(rows[index - 1].get("device_id") or "")
-        code, body = _http(
-            "POST",
-            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(device_id)}/approve",
-            api_key=args.api_key,
-            payload={"role": args.role},
-        )
-        if code != 200:
-            print(f"HTTP {code}: {body}")
-            return 1
-        print(f"Validated device {device_id[:8]} as role={args.role}")
-        _print_json(body)
-        return 0
-    return _cmd_device_validate(
-        args,
-        pending_devices=_pending_devices,
-        store_factory=_store,
-        print_json=_print_json,
+    resolved_host, resolved_api_key = _context_defaults(context_name)
+    return build_remote_backend(
+        host=(host or resolved_host or "").rstrip("/"),
+        api_key=api_key or resolved_api_key or "",
+        http=_http,
     )
 
 
-def cmd_device_approve(args: argparse.Namespace) -> int:
-    if _should_use_remote_device_api(args):
-        code, body = _http(
-            "POST",
-            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(args.device_id)}/approve",
-            api_key=args.api_key,
-            payload={"role": args.role},
-        )
-        if code != 200:
-            print(f"HTTP {code}: {body}")
-            return 1
-        _print_json(body)
-        return 0
-    try:
-        args.device_id = _resolve_device_id(args.device_id)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    return _cmd_device_approve(args, store_factory=_store, print_json=_print_json)
-
-
-def cmd_device_revoke(args: argparse.Namespace) -> int:
-    if _should_use_remote_device_api(args):
-        code, body = _http(
-            "POST",
-            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(args.device_id)}/revoke",
-            api_key=args.api_key,
-            payload={},
-        )
-        if code != 200:
-            print(f"HTTP {code}: {body}")
-            return 1
-        _print_json(body)
-        return 0
-    try:
-        args.device_id = _resolve_device_id(args.device_id)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    return _cmd_device_revoke(args, store_factory=_store, print_json=_print_json)
-
-
-def cmd_device_issue_token(args: argparse.Namespace) -> int:
-    if _should_use_remote_device_api(args):
-        code, body = _http(
-            "POST",
-            f"{args.host.rstrip('/')}/v1/admin/devices/{parse.quote(args.device_id)}/issue-token",
-            api_key=args.api_key,
-            payload={"ttl_seconds": args.ttl},
-        )
-        if code != 200:
-            print(f"HTTP {code}: {body}")
-            return 1
-        _print_json(body)
-        return 0
-    try:
-        args.device_id = _resolve_device_id(args.device_id)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    return _cmd_device_issue_token(args, store_factory=_store, print_json=_print_json)
-
-
-def cmd_tree_identify(args: argparse.Namespace) -> int:
-    return _cmd_tree_identify(args, http=_http, print_json=_print_json)
-
-
-def cmd_customer_list(args: argparse.Namespace) -> int:
-    return _cmd_customer_list(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_customer_duplicates(args: argparse.Namespace) -> int:
-    return _cmd_customer_duplicates(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_customer_create(args: argparse.Namespace) -> int:
-    return _cmd_customer_create(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_customer_update(args: argparse.Namespace) -> int:
-    return _cmd_customer_update(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_customer_usage(args: argparse.Namespace) -> int:
-    return _cmd_customer_usage(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_customer_merge(args: argparse.Namespace) -> int:
-    return _cmd_customer_merge(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_customer_delete(args: argparse.Namespace) -> int:
-    return _cmd_customer_delete(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_billing_list(args: argparse.Namespace) -> int:
-    return _cmd_billing_list(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_billing_duplicates(args: argparse.Namespace) -> int:
-    return _cmd_billing_duplicates(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_billing_create(args: argparse.Namespace) -> int:
-    return _cmd_billing_create(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_billing_update(args: argparse.Namespace) -> int:
-    return _cmd_billing_update(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_billing_usage(args: argparse.Namespace) -> int:
-    return _cmd_billing_usage(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_billing_merge(args: argparse.Namespace) -> int:
-    return _cmd_billing_merge(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_billing_delete(args: argparse.Namespace) -> int:
-    return _cmd_billing_delete(args, service_factory=_customer_service, print_json=_print_json)
-
-
-def cmd_job_list_assignments(args: argparse.Namespace) -> int:
-    return _cmd_job_list_assignments(args, http=_http, print_json=_print_json)
-
-
-def cmd_job_create(args: argparse.Namespace) -> int:
-    return _cmd_job_create(args, job_service_factory=_job_mutation_service, print_json=_print_json)
-
-
-def cmd_job_update(args: argparse.Namespace) -> int:
-    return _cmd_job_update(args, job_service_factory=_job_mutation_service, print_json=_print_json)
-
-
-def cmd_job_assign(args: argparse.Namespace) -> int:
-    try:
-        args.device_id = _resolve_device_id(args.device_id)
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
-    return _cmd_job_assign(args, http=_http, resolve_job_id=_resolve_job_id, print_json=_print_json)
-
-
-def cmd_job_unassign(args: argparse.Namespace) -> int:
-    return _cmd_job_unassign(args, http=_http, resolve_job_id=_resolve_job_id, print_json=_print_json)
-
-
-def cmd_job_set_status(args: argparse.Namespace) -> int:
-    return _cmd_job_set_status(args, http=_http, resolve_job_id=_resolve_job_id, print_json=_print_json)
-
-
-def cmd_job_unlock(args: argparse.Namespace) -> int:
-    if args.device_id:
+def _make_handlers(backend):
+    def _net_ipv4(args: argparse.Namespace) -> int:
         try:
-            args.device_id = _resolve_device_id(args.device_id)
+            payload = backend.net.ipv4()
         except Exception as exc:
             print(f"ERROR: {exc}")
             return 1
-    return _cmd_job_unlock(args, http=_http, resolve_job_id=_resolve_job_id, print_json=_print_json)
+        if args.json:
+            _print_json(payload)
+            return 0
+        print("Likely IPv4 addresses (best first):")
+        rows = list(payload.get("ipv4_candidates") or []) if isinstance(payload, dict) else []
+        if not rows:
+            print("  none found")
+        for idx, row in enumerate(rows, start=1):
+            print(
+                f" {idx}. {row['ipv4']}/{row['prefix']} "
+                f"iface={row['interface']} scope={row['scope']} dynamic={row['dynamic']}"
+            )
+        return 0
+
+    def _net_ipv6(args: argparse.Namespace) -> int:
+        try:
+            payload = backend.net.ipv6()
+        except Exception as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        if args.json:
+            _print_json(payload)
+            return 0
+        print("Likely IPv6 addresses (best first):")
+        rows = list(payload.get("ipv6_candidates") or []) if isinstance(payload, dict) else []
+        if not rows:
+            print("  none found")
+        for idx, row in enumerate(rows, start=1):
+            print(
+                f" {idx}. {row['ipv6']}/{row['prefix']} "
+                f"iface={row['interface']} scope={row['scope']} temporary={row['temporary']} dynamic={row['dynamic']}"
+            )
+        print("URL form: http://[IPv6]:8000")
+        return 0
+
+    return {
+        "device_list": lambda args: cmd_device_list(args, backend=backend, print_json=_print_json),
+        "device_pending": lambda args: cmd_device_pending(args, backend=backend, print_json=_print_json),
+        "device_validate": lambda args: cmd_device_validate(args, backend=backend, print_json=_print_json),
+        "device_approve": lambda args: cmd_device_approve(args, backend=backend, print_json=_print_json),
+        "device_revoke": lambda args: cmd_device_revoke(args, backend=backend, print_json=_print_json),
+        "device_issue_token": lambda args: cmd_device_issue_token(args, backend=backend, print_json=_print_json),
+        "customer_list": lambda args: cmd_customer_list(args, backend=backend, print_json=_print_json),
+        "customer_duplicates": lambda args: cmd_customer_duplicates(args, backend=backend, print_json=_print_json),
+        "customer_create": lambda args: cmd_customer_create(args, backend=backend, print_json=_print_json),
+        "customer_update": lambda args: cmd_customer_update(args, backend=backend, print_json=_print_json),
+        "customer_usage": lambda args: cmd_customer_usage(args, backend=backend, print_json=_print_json),
+        "customer_merge": lambda args: cmd_customer_merge(args, backend=backend, print_json=_print_json),
+        "customer_delete": lambda args: cmd_customer_delete(args, backend=backend, print_json=_print_json),
+        "billing_list": lambda args: cmd_billing_list(args, backend=backend, print_json=_print_json),
+        "billing_duplicates": lambda args: cmd_billing_duplicates(args, backend=backend, print_json=_print_json),
+        "billing_create": lambda args: cmd_billing_create(args, backend=backend, print_json=_print_json),
+        "billing_update": lambda args: cmd_billing_update(args, backend=backend, print_json=_print_json),
+        "billing_usage": lambda args: cmd_billing_usage(args, backend=backend, print_json=_print_json),
+        "billing_merge": lambda args: cmd_billing_merge(args, backend=backend, print_json=_print_json),
+        "billing_delete": lambda args: cmd_billing_delete(args, backend=backend, print_json=_print_json),
+        "job_create": lambda args: cmd_job_create(args, backend=backend, print_json=_print_json),
+        "job_update": lambda args: cmd_job_update(args, backend=backend, print_json=_print_json),
+        "job_list_assignments": lambda args: cmd_job_list_assignments(args, backend=backend, print_json=_print_json),
+        "job_assign": lambda args: cmd_job_assign(args, backend=backend, print_json=_print_json),
+        "job_unassign": lambda args: cmd_job_unassign(args, backend=backend, print_json=_print_json),
+        "job_set_status": lambda args: cmd_job_set_status(args, backend=backend, print_json=_print_json),
+        "job_unlock": lambda args: cmd_job_unlock(args, backend=backend, print_json=_print_json),
+        "job_inspect": lambda args: cmd_job_inspect(args, backend=backend, print_json=_print_json),
+        "round_reopen": lambda args: cmd_round_reopen(args, backend=backend, print_json=_print_json),
+        "round_inspect": lambda args: cmd_round_inspect(args, backend=backend, print_json=_print_json),
+        "review_inspect": lambda args: cmd_review_inspect(args, backend=backend, print_json=_print_json),
+        "final_inspect": lambda args: cmd_final_inspect(args, backend=backend, print_json=_print_json),
+        "final_set_final": lambda args: cmd_final_set_final(args, backend=backend, print_json=_print_json),
+        "final_set_correction": lambda args: cmd_final_set_correction(args, backend=backend, print_json=_print_json),
+        "tree_identify": lambda args: cmd_tree_identify(args, backend=backend, print_json=_print_json),
+        "artifact_fetch": lambda args: cmd_artifact_fetch(args, backend=backend, print_json=_print_json),
+        "net_ipv4": _net_ipv4,
+        "net_ipv6": _net_ipv6,
+    }
 
 
-def cmd_job_inspect(args: argparse.Namespace) -> int:
-    return _cmd_job_inspect(args, inspection_service=_inspection_service, print_json=_print_json)
-
-
-def cmd_round_reopen(args: argparse.Namespace) -> int:
-    return _cmd_round_reopen(args, http=_http, print_json=_print_json)
-
-
-def cmd_round_inspect(args: argparse.Namespace) -> int:
-    return _cmd_round_inspect(args, inspection_service=_inspection_service, print_json=_print_json)
-
-
-def cmd_review_inspect(args: argparse.Namespace) -> int:
-    return _cmd_review_inspect(args, inspection_service=_inspection_service, print_json=_print_json)
-
-
-def cmd_final_inspect(args: argparse.Namespace) -> int:
-    return _cmd_final_inspect(args, inspection_service=_inspection_service, print_json=_print_json)
-
-
-def cmd_final_set_final(args: argparse.Namespace) -> int:
-    return _cmd_final_set_final(args, service_factory=_final_mutation_service, print_json=_print_json)
-
-
-def cmd_final_set_correction(args: argparse.Namespace) -> int:
-    return _cmd_final_set_correction(args, service_factory=_final_mutation_service, print_json=_print_json)
-
-
-def cmd_net_ipv4(args: argparse.Namespace) -> int:
-    return _cmd_net_ipv4(args, print_json=_print_json)
-
-
-def cmd_net_ipv6(args: argparse.Namespace) -> int:
-    return _cmd_net_ipv6(args, print_json=_print_json)
-
-
-def cmd_artifact_fetch(args: argparse.Namespace) -> int:
-    return _cmd_artifact_fetch(args, service_factory=_artifact_fetch_service, print_json=_print_json)
-
-
-def build_parser() -> argparse.ArgumentParser:
+def build_parser(*, backend) -> argparse.ArgumentParser:
     settings = _settings()
+    handlers = _make_handlers(backend)
     parser = argparse.ArgumentParser(description="TRAQ admin CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
     register_device_commands(
         sub,
         {
-            "list": cmd_device_list,
-            "pending": cmd_device_pending,
-            "validate": cmd_device_validate,
-            "approve": cmd_device_approve,
-            "revoke": cmd_device_revoke,
-            "issue_token": cmd_device_issue_token,
+            "list": handlers["device_list"],
+            "pending": handlers["device_pending"],
+            "validate": handlers["device_validate"],
+            "approve": handlers["device_approve"],
+            "revoke": handlers["device_revoke"],
+            "issue_token": handlers["device_issue_token"],
         },
     )
     register_customer_commands(
         sub,
         {
-            "customer_list": cmd_customer_list,
-            "customer_duplicates": cmd_customer_duplicates,
-            "customer_create": cmd_customer_create,
-            "customer_update": cmd_customer_update,
-            "customer_usage": cmd_customer_usage,
-            "customer_merge": cmd_customer_merge,
-            "customer_delete": cmd_customer_delete,
-            "billing_list": cmd_billing_list,
-            "billing_duplicates": cmd_billing_duplicates,
-            "billing_create": cmd_billing_create,
-            "billing_update": cmd_billing_update,
-            "billing_usage": cmd_billing_usage,
-            "billing_merge": cmd_billing_merge,
-            "billing_delete": cmd_billing_delete,
+            "customer_list": handlers["customer_list"],
+            "customer_duplicates": handlers["customer_duplicates"],
+            "customer_create": handlers["customer_create"],
+            "customer_update": handlers["customer_update"],
+            "customer_usage": handlers["customer_usage"],
+            "customer_merge": handlers["customer_merge"],
+            "customer_delete": handlers["customer_delete"],
+            "billing_list": handlers["billing_list"],
+            "billing_duplicates": handlers["billing_duplicates"],
+            "billing_create": handlers["billing_create"],
+            "billing_update": handlers["billing_update"],
+            "billing_usage": handlers["billing_usage"],
+            "billing_merge": handlers["billing_merge"],
+            "billing_delete": handlers["billing_delete"],
         },
     )
     register_job_commands(
         sub,
         {
-            "create": cmd_job_create,
-            "update": cmd_job_update,
-            "list_assignments": cmd_job_list_assignments,
-            "assign": cmd_job_assign,
-            "unlock": cmd_job_unlock,
-            "unassign": cmd_job_unassign,
-            "set_status": cmd_job_set_status,
+            "create": handlers["job_create"],
+            "update": handlers["job_update"],
+            "list_assignments": handlers["job_list_assignments"],
+            "assign": handlers["job_assign"],
+            "unlock": handlers["job_unlock"],
+            "unassign": handlers["job_unassign"],
+            "set_status": handlers["job_set_status"],
         },
         default_host=settings.admin_base_url,
         default_api_key=settings.api_key,
     )
     register_round_commands(
         sub,
-        {"reopen": cmd_round_reopen},
+        {"reopen": handlers["round_reopen"]},
         default_host=settings.admin_base_url,
         default_api_key=settings.api_key,
     )
     register_inspect_commands(
         sub,
         {
-            "job_inspect": cmd_job_inspect,
-            "round_inspect": cmd_round_inspect,
-            "review_inspect": cmd_review_inspect,
-            "final_inspect": cmd_final_inspect,
+            "job_inspect": handlers["job_inspect"],
+            "round_inspect": handlers["round_inspect"],
+            "review_inspect": handlers["review_inspect"],
+            "final_inspect": handlers["final_inspect"],
         },
     )
     register_final_commands(
         sub,
         {
-            "set_final": cmd_final_set_final,
-            "set_correction": cmd_final_set_correction,
+            "set_final": handlers["final_set_final"],
+            "set_correction": handlers["final_set_correction"],
         },
     )
     register_net_commands(
         sub,
         {
-            "ipv4": cmd_net_ipv4,
-            "ipv6": cmd_net_ipv6,
+            "ipv4": handlers["net_ipv4"],
+            "ipv6": handlers["net_ipv6"],
         },
     )
     register_tree_commands(
         sub,
-        {
-            "identify": cmd_tree_identify,
-        },
+        {"identify": handlers["tree_identify"]},
         default_host=settings.admin_base_url,
         default_api_key=settings.api_key,
     )
-    register_artifact_commands(
-        sub,
-        {
-            "fetch": cmd_artifact_fetch,
-        },
-    )
+    register_artifact_commands(sub, {"fetch": handlers["artifact_fetch"]})
     return parser
 
 
@@ -643,26 +367,6 @@ def _normalize_repl_tokens(raw: str) -> list[str]:
     if normalized.startswith("/"):
         normalized = normalized[1:].lstrip()
     return shlex.split(normalized)
-
-
-def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list[str]:
-    if not tokens:
-        return tokens
-    top = tokens[0]
-    sub = tokens[1] if len(tokens) > 1 else ""
-    augmented = list(tokens)
-    needs_http_defaults = (
-        (top == "device" and sub in {"list", "pending", "validate", "approve", "revoke", "issue-token"})
-        or (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status", "unlock"})
-        or (top == "round" and sub == "reopen")
-        or (top == "tree" and sub == "identify")
-    )
-    if needs_http_defaults:
-        if "--host" not in augmented:
-            augmented.extend(["--host", host])
-        if "--api-key" not in augmented:
-            augmented.extend(["--api-key", api_key])
-    return augmented
 
 
 def _repl_command_catalog() -> list[str]:
@@ -714,6 +418,7 @@ def _repl_command_catalog() -> list[str]:
             "set api-key",
             "use local",
             "use cloud",
+            "use remote",
         ]
     )
 
@@ -749,17 +454,17 @@ def _save_repl_history() -> None:
         pass
 
 
-def _run_repl(parser: argparse.ArgumentParser, *, context_name: str | None = None) -> int:
-    settings = _settings()
-    if context_name is None:
-        host, api_key = settings.admin_base_url, settings.api_key
-    else:
-        host, api_key = _context_defaults(context_name)
+def _run_repl(*, context_name: str | None = None) -> int:
+    active_context = context_name or "local"
+    host, api_key = _context_defaults(active_context)
+    backend = _build_backend(context_name=active_context, host=host, api_key=api_key)
+    parser = build_parser(backend=backend)
     _setup_repl_readline()
     print("TRAQ admin CLI interactive mode")
     print("Type 'help' for commands, 'exit' to quit.")
-    print(f"context={context_name or 'default'}")
-    print(f"default host={host} api_key={'*' * len(api_key) if api_key else '(empty)'}")
+    print(f"context={active_context}")
+    print(f"mode={backend.mode_name}")
+    print(f"host={host or '(n/a)'}")
     while True:
         try:
             raw = input("traq-admin> ").strip()
@@ -778,39 +483,27 @@ def _run_repl(parser: argparse.ArgumentParser, *, context_name: str | None = Non
             print("  set api-key <key>")
             print("  use local")
             print("  use cloud")
+            print("  use remote")
             print("  show")
             print("  help")
             print("  exit")
-            print("CLI commands (same as one-shot; optional leading '/'): ")
-            print("  /net ipv4")
-            print("  /net ipv6")
-            print("  /device pending")
-            print("  /device validate --index 1 --role arborist")
-            print("  /device list --status approved")
-            print("  /device issue-token <device_id> --ttl 900")
-            print("  /customer billing delete B0001")
-            print("  /job assign --job J0001 --device-id <device_id>")
-            print("  /job list-assignments")
-            print("  /job set-status --job J0001 --status DRAFT")
-            print("  /artifact fetch --job J0001 --kind report-pdf")
-            print("  /tree identify --image ./leaf.jpg")
-            print("  /round reopen --job-id job_1 --round-id round_1")
+            print("CLI commands (same as one-shot; optional leading '/').")
             continue
         if raw == "show":
-            masked = "*" * len(api_key) if api_key else "(empty)"
-            print(f"context={context_name or 'default'}")
-            print(f"host={host}")
+            masked = "*" * len(api_key or "") if api_key else "(empty)"
+            print(f"context={active_context}")
+            print(f"mode={backend.mode_name}")
+            print(f"host={host or '(n/a)'}")
             print(f"api_key={masked}")
             continue
-        if raw in {"use local", "use cloud"}:
-            context_name = raw.split()[1]
-            try:
-                host, api_key = _context_defaults(context_name)
-            except RuntimeError as exc:
-                print(f"ERROR: {exc}")
-                continue
-            print(f"context={context_name or 'default'}")
-            print(f"host={host}")
+        if raw in {"use local", "use cloud", "use remote"}:
+            active_context = raw.split()[1]
+            host, api_key = _context_defaults(active_context)
+            backend = _build_backend(context_name=active_context, host=host, api_key=api_key)
+            parser = build_parser(backend=backend)
+            print(f"context={active_context}")
+            print(f"mode={backend.mode_name}")
+            print(f"host={host or '(n/a)'}")
             continue
         if raw.startswith("set "):
             parts = raw.split(" ", 2)
@@ -821,10 +514,14 @@ def _run_repl(parser: argparse.ArgumentParser, *, context_name: str | None = Non
             value = parts[2].strip()
             if key == "host":
                 host = value.rstrip("/")
+                backend = _build_backend(context_name=active_context, host=host, api_key=api_key)
+                parser = build_parser(backend=backend)
                 print(f"host={host}")
                 continue
             if key in {"api-key", "apikey", "key"}:
                 api_key = value
+                backend = _build_backend(context_name=active_context, host=host, api_key=api_key)
+                parser = build_parser(backend=backend)
                 print("api_key updated")
                 continue
             print("Unknown setting. Use 'host' or 'api-key'.")
@@ -834,8 +531,6 @@ def _run_repl(parser: argparse.ArgumentParser, *, context_name: str | None = Non
         except ValueError as exc:
             print(f"Parse error: {exc}")
             continue
-        if context_name is not None:
-            tokens = _inject_http_defaults(tokens, host=host, api_key=api_key)
         try:
             args = parser.parse_args(tokens)
             code = int(args.func(args))
@@ -848,17 +543,16 @@ def _run_repl(parser: argparse.ArgumentParser, *, context_name: str | None = Non
 
 
 def main() -> int:
-    parser = build_parser()
     argv = list(sys.argv[1:])
     context_name = "local"
     if argv and argv[0] in _CONTEXT_NAMES:
-        context_name = argv.pop(0)
-        if not argv:
-            return _run_repl(parser, context_name=context_name)
-        host, api_key = _context_defaults(context_name)
-        argv = _inject_http_defaults(argv, host=host, api_key=api_key)
-    elif not argv:
-        return _run_repl(parser, context_name=context_name)
+        raw_context = argv.pop(0)
+        context_name = "cloud" if raw_context == "remote" else raw_context
+    if not argv:
+        return _run_repl(context_name=context_name)
+    host, api_key = _context_defaults(context_name)
+    backend = _build_backend(context_name=context_name, host=host, api_key=api_key)
+    parser = build_parser(backend=backend)
     args = parser.parse_args(argv)
     return int(args.func(args))
 

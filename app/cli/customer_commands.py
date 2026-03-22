@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from typing import Callable
+
+from .backends import CliBackendBundle
 
 
-CustomerServiceFactory = Callable[[], Any]
 JsonPrinter = Callable[[object], None]
 
 
@@ -29,20 +30,20 @@ def _wrap(action: Callable[[], object], print_json: JsonPrinter) -> int:
     return 0
 
 
-def cmd_customer_list(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_customer_list(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """List reusable customer identities."""
-    return _wrap(lambda: service_factory().list_customers(search=_parse_search(args.search)), print_json)
+    return _wrap(lambda: backend.customer.list(search=_parse_search(args.search)), print_json)
 
 
-def cmd_customer_duplicates(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_customer_duplicates(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Show duplicate customer-name candidates."""
-    return _wrap(lambda: service_factory().customer_duplicates(), print_json)
+    return _wrap(lambda: backend.customer.duplicates(), print_json)
 
 
-def cmd_customer_create(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_customer_create(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Create one reusable customer identity."""
     return _wrap(
-        lambda: service_factory().create_customer(
+        lambda: backend.customer.create(
             name=args.name,
             phone=args.phone,
             address=args.address,
@@ -51,10 +52,10 @@ def cmd_customer_create(args: argparse.Namespace, *, service_factory: CustomerSe
     )
 
 
-def cmd_customer_update(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_customer_update(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Update one reusable customer identity."""
     return _wrap(
-        lambda: service_factory().update_customer(
+        lambda: backend.customer.update(
             args.customer_id,
             name=args.name,
             phone=args.phone,
@@ -64,41 +65,38 @@ def cmd_customer_update(args: argparse.Namespace, *, service_factory: CustomerSe
     )
 
 
-def cmd_customer_usage(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_customer_usage(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Show jobs and trees linked to one customer."""
-    return _wrap(lambda: service_factory().customer_usage(args.customer_id), print_json)
+    return _wrap(lambda: backend.customer.usage(args.customer_id), print_json)
 
 
-def cmd_customer_merge(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_customer_merge(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Merge one customer into another reusable customer record."""
     return _wrap(
-        lambda: service_factory().merge_customer(
-            args.customer_id,
-            target_customer_id=args.into,
-        ),
+        lambda: backend.customer.merge(args.customer_id, into=args.into),
         print_json,
     )
 
 
-def cmd_customer_delete(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_customer_delete(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Delete an unused reusable customer identity."""
-    return _wrap(lambda: service_factory().delete_customer(args.customer_id), print_json)
+    return _wrap(lambda: backend.customer.delete(args.customer_id), print_json)
 
 
-def cmd_billing_list(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_billing_list(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """List reusable billing profiles."""
-    return _wrap(lambda: service_factory().list_billing_profiles(search=_parse_search(args.search)), print_json)
+    return _wrap(lambda: backend.billing.list(search=_parse_search(args.search)), print_json)
 
 
-def cmd_billing_duplicates(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_billing_duplicates(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Show duplicate billing-profile candidates."""
-    return _wrap(lambda: service_factory().billing_duplicates(), print_json)
+    return _wrap(lambda: backend.billing.duplicates(), print_json)
 
 
-def cmd_billing_create(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_billing_create(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Create one reusable billing profile."""
     return _wrap(
-        lambda: service_factory().create_billing_profile(
+        lambda: backend.billing.create(
             billing_name=args.billing_name,
             billing_contact_name=args.billing_contact_name,
             billing_address=args.billing_address,
@@ -108,10 +106,10 @@ def cmd_billing_create(args: argparse.Namespace, *, service_factory: CustomerSer
     )
 
 
-def cmd_billing_update(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_billing_update(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Update one reusable billing profile."""
     return _wrap(
-        lambda: service_factory().update_billing_profile(
+        lambda: backend.billing.update(
             args.billing_profile_id,
             billing_name=args.billing_name,
             billing_contact_name=args.billing_contact_name,
@@ -122,25 +120,22 @@ def cmd_billing_update(args: argparse.Namespace, *, service_factory: CustomerSer
     )
 
 
-def cmd_billing_usage(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_billing_usage(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Show jobs linked to one billing profile."""
-    return _wrap(lambda: service_factory().billing_usage(args.billing_profile_id), print_json)
+    return _wrap(lambda: backend.billing.usage(args.billing_profile_id), print_json)
 
 
-def cmd_billing_merge(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_billing_merge(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Merge one billing profile into another."""
     return _wrap(
-        lambda: service_factory().merge_billing_profile(
-            args.billing_profile_id,
-            target_billing_profile_id=args.into,
-        ),
+        lambda: backend.billing.merge(args.billing_profile_id, into=args.into),
         print_json,
     )
 
 
-def cmd_billing_delete(args: argparse.Namespace, *, service_factory: CustomerServiceFactory, print_json: JsonPrinter) -> int:
+def cmd_billing_delete(args: argparse.Namespace, *, backend: CliBackendBundle, print_json: JsonPrinter) -> int:
     """Delete an unused billing profile."""
-    return _wrap(lambda: service_factory().delete_billing_profile(args.billing_profile_id), print_json)
+    return _wrap(lambda: backend.billing.delete(args.billing_profile_id), print_json)
 
 
 def register_customer_commands(subparsers, handlers: dict[str, Callable[[argparse.Namespace], int]]) -> None:
