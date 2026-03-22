@@ -176,6 +176,21 @@ Examples from a laptop::
    UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin cloud device approve <device_id> --role arborist
    UV_CACHE_DIR=/tmp/uv-cache uv run traq-admin cloud device issue-token <device_id> --ttl 604800
 
+Verified cloud workflow
+-----------------------
+
+The currently verified remote workflow is:
+
+1. register a device
+2. approve the device over the admin HTTP path
+3. issue a device token
+4. create a job
+5. create a round
+6. upload section recordings and ``job_photos`` images
+7. submit the round for review
+8. finalize the job
+9. download the final report PDF
+
 Verified local tree-identification smoke test::
 
    cd /home/roger/projects/codex_trial/agent_client/server
@@ -258,8 +273,26 @@ Current verified state:
 - device registration works
 - migration job succeeds
 - schema exists in database ``traq``
+- end-to-end cloud job cycle works through final report download
 
 Tree identification note:
 
 - the standalone route ``POST /v1/trees/identify`` requires ``TRAQ_PLANTNET_API_KEY``
 - until that secret exists in Cloud Run, the route will return an upstream configuration error
+
+Release notes
+-------------
+
+The fixes that made the cloud workflow work end to end were:
+
+- remote admin device operations over HTTP
+- explicit migration-job networking parity with the Cloud Run service
+- manifest supplementation so uploaded recordings are not skipped when the round already contains other items
+- artifact backend contract fixes for generated outputs:
+  - image report derivatives now use ``stage_output`` / ``commit_output``
+  - final report lookup now checks ``exists(...)`` before materializing a GCS object
+
+Process note:
+
+- unverified assumptions caused avoidable time loss
+- verify existence and runtime contracts before acting

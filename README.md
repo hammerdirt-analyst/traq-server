@@ -35,6 +35,17 @@ uv run traq-admin local
 3. The client submits a final or correction payload.
 4. The server writes final artifacts and archives the job.
 
+## Verified cloud workflow
+
+1. Register device: `POST /v1/auth/register-device`
+2. Approve device: `uv run traq-admin cloud device approve <device_id> --role arborist`
+3. Issue token: `uv run traq-admin cloud device issue-token <device_id> --ttl 604800`
+4. Start job: `POST /v1/jobs`, then `POST /v1/jobs/{job_id}/rounds`
+5. Upload media: section recordings and `job_photos` images
+6. Submit review: `POST /v1/jobs/{job_id}/rounds/{round_id}/submit`
+7. Finalize: `POST /v1/jobs/{job_id}/final`
+8. Download docs: `GET /v1/jobs/{job_id}/final/report`
+
 ## Main endpoints
 
 - `POST /v1/jobs`
@@ -77,3 +88,14 @@ uv run traq-admin local
 - local development can put environment variables in `.env`; `app/config.py` loads that file without overriding already-exported values
 - the current deployment target is Cloud Run
 - deploy automation is intended to run from GitHub Actions on `main`; active development should happen on feature branches
+
+## Release notes
+
+- Cloud end-to-end workflow is now verified on Cloud Run.
+- Remote operator path is in place for device approval and token issuance.
+- Round submit now supplements non-empty manifests with DB-backed recordings so uploaded audio is not dropped from processing.
+- Generated cloud artifacts follow the backend contract:
+  - direct payloads use `write_bytes` / `write_text`
+  - generated outputs use `stage_output` / `commit_output`
+- Final report download now checks artifact existence before materializing a GCS object and falls back correctly from correction to final report.
+- Process rule: do not act on unverified assumptions; verify object existence and runtime contracts first.
