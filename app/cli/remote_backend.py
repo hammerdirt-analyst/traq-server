@@ -59,25 +59,6 @@ class RemoteDeviceBackend(_RemoteBase):
         payload = self._expect_ok(code, body)
         return list(payload.get("devices", []) if isinstance(payload, dict) else [])
 
-    def _resolve_device_id(self, device_ref: str) -> str:
-        normalized = (device_ref or "").strip()
-        if not normalized:
-            raise RuntimeError("Device id is required")
-        rows = self._list_devices()
-        exact = [row for row in rows if str(row.get("device_id") or "") == normalized]
-        if exact:
-            return normalized
-        matches = [
-            str(row.get("device_id") or "")
-            for row in rows
-            if str(row.get("device_id") or "").startswith(normalized)
-        ]
-        if len(matches) == 1:
-            return matches[0]
-        if not matches:
-            raise RuntimeError(f"Device not found: {device_ref}")
-        raise RuntimeError(f"Device id prefix is ambiguous: {device_ref}")
-
     def list(self, *, status: str | None = None) -> Any:
         if status == "pending":
             return self._list_devices(status="pending")
@@ -94,33 +75,36 @@ class RemoteDeviceBackend(_RemoteBase):
         if normalized_index > len(rows):
             raise RuntimeError(f"Invalid index {normalized_index}; pending count={len(rows)}")
         device_id = str(rows[normalized_index - 1].get("device_id") or "")
-        return self.approve(device_id=device_id, role=role)
-
-    def approve(self, *, device_id: str, role: str) -> Any:
-        resolved = self._resolve_device_id(device_id)
         code, body = self._http(
             "POST",
-            f"{self._host}/v1/admin/devices/{parse.quote(resolved)}/approve",
+            f"{self._host}/v1/admin/devices/{parse.quote(device_id)}/approve",
+            api_key=self._api_key,
+            payload={"role": role},
+        )
+        return self._expect_ok(code, body)
+
+    def approve(self, *, device_id: str, role: str) -> Any:
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/admin/devices/{parse.quote(device_id)}/approve",
             api_key=self._api_key,
             payload={"role": role},
         )
         return self._expect_ok(code, body)
 
     def revoke(self, *, device_id: str) -> Any:
-        resolved = self._resolve_device_id(device_id)
         code, body = self._http(
             "POST",
-            f"{self._host}/v1/admin/devices/{parse.quote(resolved)}/revoke",
+            f"{self._host}/v1/admin/devices/{parse.quote(device_id)}/revoke",
             api_key=self._api_key,
             payload={},
         )
         return self._expect_ok(code, body)
 
     def issue_token(self, *, device_id: str, ttl: int) -> Any:
-        resolved = self._resolve_device_id(device_id)
         code, body = self._http(
             "POST",
-            f"{self._host}/v1/admin/devices/{parse.quote(resolved)}/issue-token",
+            f"{self._host}/v1/admin/devices/{parse.quote(device_id)}/issue-token",
             api_key=self._api_key,
             payload={"ttl_seconds": ttl},
         )

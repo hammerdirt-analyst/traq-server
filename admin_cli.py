@@ -15,60 +15,75 @@ from typing import Any
 import uuid
 from urllib import error, request
 
-from app.cli.artifact_commands import cmd_artifact_fetch, register_artifact_commands
+from app.cli.artifact_commands import (
+    cmd_artifact_fetch as _cmd_artifact_fetch,
+    register_artifact_commands,
+)
 from app.cli.customer_commands import (
-    cmd_billing_create,
-    cmd_billing_delete,
-    cmd_billing_duplicates,
-    cmd_billing_list,
-    cmd_billing_merge,
-    cmd_billing_update,
-    cmd_billing_usage,
-    cmd_customer_create,
-    cmd_customer_delete,
-    cmd_customer_duplicates,
-    cmd_customer_list,
-    cmd_customer_merge,
-    cmd_customer_update,
-    cmd_customer_usage,
+    cmd_billing_create as _cmd_billing_create,
+    cmd_billing_delete as _cmd_billing_delete,
+    cmd_billing_duplicates as _cmd_billing_duplicates,
+    cmd_billing_list as _cmd_billing_list,
+    cmd_billing_merge as _cmd_billing_merge,
+    cmd_billing_update as _cmd_billing_update,
+    cmd_billing_usage as _cmd_billing_usage,
+    cmd_customer_create as _cmd_customer_create,
+    cmd_customer_delete as _cmd_customer_delete,
+    cmd_customer_duplicates as _cmd_customer_duplicates,
+    cmd_customer_list as _cmd_customer_list,
+    cmd_customer_merge as _cmd_customer_merge,
+    cmd_customer_update as _cmd_customer_update,
+    cmd_customer_usage as _cmd_customer_usage,
     register_customer_commands,
 )
 from app.cli.device_commands import (
-    cmd_device_approve,
-    cmd_device_issue_token,
-    cmd_device_list,
-    cmd_device_pending,
-    cmd_device_revoke,
-    cmd_device_validate,
+    cmd_device_approve as _cmd_device_approve,
+    cmd_device_issue_token as _cmd_device_issue_token,
+    cmd_device_list as _cmd_device_list,
+    cmd_device_pending as _cmd_device_pending,
+    cmd_device_revoke as _cmd_device_revoke,
+    cmd_device_validate as _cmd_device_validate,
     register_device_commands,
 )
 from app.cli.final_commands import (
-    cmd_final_set_correction,
-    cmd_final_set_final,
+    cmd_final_set_correction as _cmd_final_set_correction,
+    cmd_final_set_final as _cmd_final_set_final,
     register_final_commands,
 )
 from app.cli.inspect_commands import (
-    cmd_final_inspect,
-    cmd_job_inspect,
-    cmd_review_inspect,
-    cmd_round_inspect,
+    cmd_final_inspect as _cmd_final_inspect,
+    cmd_job_inspect as _cmd_job_inspect,
+    cmd_review_inspect as _cmd_review_inspect,
+    cmd_round_inspect as _cmd_round_inspect,
     register_inspect_commands,
 )
 from app.cli.job_commands import (
-    cmd_job_assign,
-    cmd_job_create,
-    cmd_job_list_assignments,
-    cmd_job_set_status,
-    cmd_job_unassign,
-    cmd_job_unlock,
-    cmd_job_update,
-    cmd_round_reopen,
+    cmd_job_assign as _cmd_job_assign,
+    cmd_job_create as _cmd_job_create,
+    cmd_job_list_assignments as _cmd_job_list_assignments,
+    cmd_job_set_status as _cmd_job_set_status,
+    cmd_job_unassign as _cmd_job_unassign,
+    cmd_job_unlock as _cmd_job_unlock,
+    cmd_job_update as _cmd_job_update,
+    cmd_round_reopen as _cmd_round_reopen,
     register_job_commands,
     register_round_commands,
 )
-from app.cli.net_commands import register_net_commands
-from app.cli.tree_commands import cmd_tree_identify, register_tree_commands
+from app.cli.net_commands import (
+    cmd_net_ipv4 as _cmd_net_ipv4_impl,
+    cmd_net_ipv6 as _cmd_net_ipv6_impl,
+    register_net_commands,
+)
+from app.cli.tree_commands import cmd_tree_identify as _cmd_tree_identify, register_tree_commands
+from app.db import create_schema, init_database
+from app.db_store import DatabaseStore
 from app.config import load_settings
+from app.services.artifact_fetch_service import ArtifactFetchService
+from app.services.customer_service import CustomerService
+from app.services.final_mutation_service import FinalMutationService
+from app.services.inspection_service import InspectionService
+from app.services.job_mutation_service import JobMutationService
+from app.artifact_storage import create_artifact_store
 
 _HISTORY_PATH = Path.home() / ".traq_admin_history"
 _CONTEXT_NAMES = {"local", "cloud", "remote"}
@@ -76,6 +91,52 @@ _CONTEXT_NAMES = {"local", "cloud", "remote"}
 
 def _settings():
     return load_settings()
+
+
+def _store() -> DatabaseStore:
+    settings = _settings()
+    init_database(settings)
+    create_schema()
+    return DatabaseStore()
+
+
+def _inspection_service() -> InspectionService:
+    settings = _settings()
+    init_database(settings)
+    create_schema()
+    return InspectionService(settings=settings, db_store=DatabaseStore())
+
+
+def _customer_service() -> CustomerService:
+    settings = _settings()
+    init_database(settings)
+    create_schema()
+    return CustomerService()
+
+
+def _job_mutation_service() -> JobMutationService:
+    settings = _settings()
+    init_database(settings)
+    create_schema()
+    return JobMutationService()
+
+
+def _final_mutation_service() -> FinalMutationService:
+    settings = _settings()
+    init_database(settings)
+    create_schema()
+    return FinalMutationService()
+
+
+def _artifact_fetch_service() -> ArtifactFetchService:
+    settings = _settings()
+    init_database(settings)
+    create_schema()
+    return ArtifactFetchService(
+        settings=settings,
+        db_store=DatabaseStore(),
+        artifact_store=create_artifact_store(settings),
+    )
 
 
 def _context_defaults(name: str) -> tuple[str | None, str | None]:
@@ -181,7 +242,10 @@ def _build_backend(*, context_name: str, host: str | None = None, api_key: str |
         return build_local_backend(http=_http)
     from app.cli.remote_backend import build_remote_backend
 
-    resolved_host, resolved_api_key = _context_defaults(context_name)
+    if host and api_key:
+        resolved_host, resolved_api_key = host, api_key
+    else:
+        resolved_host, resolved_api_key = _context_defaults(context_name)
     return build_remote_backend(
         host=(host or resolved_host or "").rstrip("/"),
         api_key=api_key or resolved_api_key or "",
@@ -189,92 +253,284 @@ def _build_backend(*, context_name: str, host: str | None = None, api_key: str |
     )
 
 
+def _pending_devices() -> list[dict[str, Any]]:
+    rows = _store().list_devices(status="pending")
+    rows.sort(key=lambda r: str(r.get("updated_at") or r.get("created_at") or ""))
+    return rows
+
+
+def _resolve_device_id(device_ref: str) -> str:
+    normalized = (device_ref or "").strip()
+    if not normalized:
+        raise RuntimeError("Device id is required")
+    rows = _store().list_devices()
+    exact = [row for row in rows if str(row.get("device_id") or "") == normalized]
+    if exact:
+        return normalized
+    matches = [
+        str(row.get("device_id") or "")
+        for row in rows
+        if str(row.get("device_id") or "").startswith(normalized)
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    if not matches:
+        raise RuntimeError(f"Device not found: {device_ref}")
+    raise RuntimeError(f"Device id prefix is ambiguous: {device_ref}")
+
+
+def _resolve_job_id(host: str, api_key: str, job_ref: str) -> str:
+    del host, api_key
+    if job_ref.startswith("job_"):
+        return job_ref
+    return _inspection_service().resolve_job_id(job_ref)
+
+
+def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list[str]:
+    if not tokens:
+        return tokens
+    top = tokens[0]
+    sub = tokens[1] if len(tokens) > 1 else ""
+    augmented = list(tokens)
+    needs_http_defaults = (
+        (top == "device" and sub in {"list", "pending", "validate", "approve", "revoke", "issue-token"})
+        or (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status", "unlock"})
+        or (top == "round" and sub == "reopen")
+        or (top == "tree" and sub == "identify")
+    )
+    if needs_http_defaults:
+        if "--host" not in augmented:
+            augmented.extend(["--host", host])
+        if "--api-key" not in augmented:
+            augmented.extend(["--api-key", api_key])
+    return augmented
+
+
 def _make_handlers(backend):
-    def _net_ipv4(args: argparse.Namespace) -> int:
-        try:
-            payload = backend.net.ipv4()
-        except Exception as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        if args.json:
-            _print_json(payload)
-            return 0
-        print("Likely IPv4 addresses (best first):")
-        rows = list(payload.get("ipv4_candidates") or []) if isinstance(payload, dict) else []
-        if not rows:
-            print("  none found")
-        for idx, row in enumerate(rows, start=1):
-            print(
-                f" {idx}. {row['ipv4']}/{row['prefix']} "
-                f"iface={row['interface']} scope={row['scope']} dynamic={row['dynamic']}"
-            )
-        return 0
-
-    def _net_ipv6(args: argparse.Namespace) -> int:
-        try:
-            payload = backend.net.ipv6()
-        except Exception as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        if args.json:
-            _print_json(payload)
-            return 0
-        print("Likely IPv6 addresses (best first):")
-        rows = list(payload.get("ipv6_candidates") or []) if isinstance(payload, dict) else []
-        if not rows:
-            print("  none found")
-        for idx, row in enumerate(rows, start=1):
-            print(
-                f" {idx}. {row['ipv6']}/{row['prefix']} "
-                f"iface={row['interface']} scope={row['scope']} temporary={row['temporary']} dynamic={row['dynamic']}"
-            )
-        print("URL form: http://[IPv6]:8000")
-        return 0
-
     return {
-        "device_list": lambda args: cmd_device_list(args, backend=backend, print_json=_print_json),
-        "device_pending": lambda args: cmd_device_pending(args, backend=backend, print_json=_print_json),
-        "device_validate": lambda args: cmd_device_validate(args, backend=backend, print_json=_print_json),
-        "device_approve": lambda args: cmd_device_approve(args, backend=backend, print_json=_print_json),
-        "device_revoke": lambda args: cmd_device_revoke(args, backend=backend, print_json=_print_json),
-        "device_issue_token": lambda args: cmd_device_issue_token(args, backend=backend, print_json=_print_json),
-        "customer_list": lambda args: cmd_customer_list(args, backend=backend, print_json=_print_json),
-        "customer_duplicates": lambda args: cmd_customer_duplicates(args, backend=backend, print_json=_print_json),
-        "customer_create": lambda args: cmd_customer_create(args, backend=backend, print_json=_print_json),
-        "customer_update": lambda args: cmd_customer_update(args, backend=backend, print_json=_print_json),
-        "customer_usage": lambda args: cmd_customer_usage(args, backend=backend, print_json=_print_json),
-        "customer_merge": lambda args: cmd_customer_merge(args, backend=backend, print_json=_print_json),
-        "customer_delete": lambda args: cmd_customer_delete(args, backend=backend, print_json=_print_json),
-        "billing_list": lambda args: cmd_billing_list(args, backend=backend, print_json=_print_json),
-        "billing_duplicates": lambda args: cmd_billing_duplicates(args, backend=backend, print_json=_print_json),
-        "billing_create": lambda args: cmd_billing_create(args, backend=backend, print_json=_print_json),
-        "billing_update": lambda args: cmd_billing_update(args, backend=backend, print_json=_print_json),
-        "billing_usage": lambda args: cmd_billing_usage(args, backend=backend, print_json=_print_json),
-        "billing_merge": lambda args: cmd_billing_merge(args, backend=backend, print_json=_print_json),
-        "billing_delete": lambda args: cmd_billing_delete(args, backend=backend, print_json=_print_json),
-        "job_create": lambda args: cmd_job_create(args, backend=backend, print_json=_print_json),
-        "job_update": lambda args: cmd_job_update(args, backend=backend, print_json=_print_json),
-        "job_list_assignments": lambda args: cmd_job_list_assignments(args, backend=backend, print_json=_print_json),
-        "job_assign": lambda args: cmd_job_assign(args, backend=backend, print_json=_print_json),
-        "job_unassign": lambda args: cmd_job_unassign(args, backend=backend, print_json=_print_json),
-        "job_set_status": lambda args: cmd_job_set_status(args, backend=backend, print_json=_print_json),
-        "job_unlock": lambda args: cmd_job_unlock(args, backend=backend, print_json=_print_json),
-        "job_inspect": lambda args: cmd_job_inspect(args, backend=backend, print_json=_print_json),
-        "round_reopen": lambda args: cmd_round_reopen(args, backend=backend, print_json=_print_json),
-        "round_inspect": lambda args: cmd_round_inspect(args, backend=backend, print_json=_print_json),
-        "review_inspect": lambda args: cmd_review_inspect(args, backend=backend, print_json=_print_json),
-        "final_inspect": lambda args: cmd_final_inspect(args, backend=backend, print_json=_print_json),
-        "final_set_final": lambda args: cmd_final_set_final(args, backend=backend, print_json=_print_json),
-        "final_set_correction": lambda args: cmd_final_set_correction(args, backend=backend, print_json=_print_json),
-        "tree_identify": lambda args: cmd_tree_identify(args, backend=backend, print_json=_print_json),
-        "artifact_fetch": lambda args: cmd_artifact_fetch(args, backend=backend, print_json=_print_json),
-        "net_ipv4": _net_ipv4,
-        "net_ipv6": _net_ipv6,
+        "device_list": cmd_device_list,
+        "device_pending": cmd_device_pending,
+        "device_validate": cmd_device_validate,
+        "device_approve": cmd_device_approve,
+        "device_revoke": cmd_device_revoke,
+        "device_issue_token": cmd_device_issue_token,
+        "customer_list": cmd_customer_list,
+        "customer_duplicates": cmd_customer_duplicates,
+        "customer_create": cmd_customer_create,
+        "customer_update": cmd_customer_update,
+        "customer_usage": cmd_customer_usage,
+        "customer_merge": cmd_customer_merge,
+        "customer_delete": cmd_customer_delete,
+        "billing_list": cmd_billing_list,
+        "billing_duplicates": cmd_billing_duplicates,
+        "billing_create": cmd_billing_create,
+        "billing_update": cmd_billing_update,
+        "billing_usage": cmd_billing_usage,
+        "billing_merge": cmd_billing_merge,
+        "billing_delete": cmd_billing_delete,
+        "job_create": cmd_job_create,
+        "job_update": cmd_job_update,
+        "job_list_assignments": cmd_job_list_assignments,
+        "job_assign": cmd_job_assign,
+        "job_unassign": cmd_job_unassign,
+        "job_set_status": cmd_job_set_status,
+        "job_unlock": cmd_job_unlock,
+        "job_inspect": cmd_job_inspect,
+        "round_reopen": cmd_round_reopen,
+        "round_inspect": cmd_round_inspect,
+        "review_inspect": cmd_review_inspect,
+        "final_inspect": cmd_final_inspect,
+        "final_set_final": cmd_final_set_final,
+        "final_set_correction": cmd_final_set_correction,
+        "tree_identify": cmd_tree_identify,
+        "artifact_fetch": cmd_artifact_fetch,
+        "net_ipv4": cmd_net_ipv4,
+        "net_ipv6": cmd_net_ipv6,
     }
 
 
-def build_parser(*, backend) -> argparse.ArgumentParser:
+def _legacy_backend_for_args(args: argparse.Namespace):
+    host = getattr(args, "host", None)
+    api_key = getattr(args, "api_key", None)
+    if host and api_key:
+        return _build_backend(context_name="cloud", host=host, api_key=api_key)
+    return _build_backend(context_name="local")
+
+
+def cmd_device_list(args: argparse.Namespace) -> int:
+    return _cmd_device_list(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_device_pending(args: argparse.Namespace) -> int:
+    return _cmd_device_pending(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_device_validate(args: argparse.Namespace) -> int:
+    backend = _legacy_backend_for_args(args)
+    if backend.mode_name == "remote":
+        rc = _cmd_device_validate(args, backend=backend, print_json=_print_json)
+        if rc == 0:
+            print(f"Validated device using remote admin API as role={args.role}")
+        return rc
+    rows = _pending_devices()
+    if not rows:
+        print("No pending devices.")
+        return 1
+    index = max(1, int(args.index))
+    if index > len(rows):
+        print(f"Invalid index {index}; pending count={len(rows)}")
+        return 1
+    target = rows[index - 1]
+    device_id = str(target.get("device_id") or "")
+    rc = _cmd_device_validate(args, backend=backend, print_json=_print_json)
+    if rc == 0:
+        print(f"Validated device {device_id[:8]} as role={args.role}")
+    return rc
+
+
+def cmd_device_approve(args: argparse.Namespace) -> int:
+    return _cmd_device_approve(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_device_revoke(args: argparse.Namespace) -> int:
+    return _cmd_device_revoke(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_device_issue_token(args: argparse.Namespace) -> int:
+    return _cmd_device_issue_token(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_customer_list(args: argparse.Namespace) -> int:
+    return _cmd_customer_list(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_customer_duplicates(args: argparse.Namespace) -> int:
+    return _cmd_customer_duplicates(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_customer_create(args: argparse.Namespace) -> int:
+    return _cmd_customer_create(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_customer_update(args: argparse.Namespace) -> int:
+    return _cmd_customer_update(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_customer_usage(args: argparse.Namespace) -> int:
+    return _cmd_customer_usage(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_customer_merge(args: argparse.Namespace) -> int:
+    return _cmd_customer_merge(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_customer_delete(args: argparse.Namespace) -> int:
+    return _cmd_customer_delete(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_billing_list(args: argparse.Namespace) -> int:
+    return _cmd_billing_list(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_billing_duplicates(args: argparse.Namespace) -> int:
+    return _cmd_billing_duplicates(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_billing_create(args: argparse.Namespace) -> int:
+    return _cmd_billing_create(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_billing_update(args: argparse.Namespace) -> int:
+    return _cmd_billing_update(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_billing_usage(args: argparse.Namespace) -> int:
+    return _cmd_billing_usage(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_billing_merge(args: argparse.Namespace) -> int:
+    return _cmd_billing_merge(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_billing_delete(args: argparse.Namespace) -> int:
+    return _cmd_billing_delete(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_create(args: argparse.Namespace) -> int:
+    return _cmd_job_create(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_update(args: argparse.Namespace) -> int:
+    return _cmd_job_update(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_list_assignments(args: argparse.Namespace) -> int:
+    return _cmd_job_list_assignments(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_assign(args: argparse.Namespace) -> int:
+    return _cmd_job_assign(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_unassign(args: argparse.Namespace) -> int:
+    return _cmd_job_unassign(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_set_status(args: argparse.Namespace) -> int:
+    return _cmd_job_set_status(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_unlock(args: argparse.Namespace) -> int:
+    return _cmd_job_unlock(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_job_inspect(args: argparse.Namespace) -> int:
+    return _cmd_job_inspect(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_round_reopen(args: argparse.Namespace) -> int:
+    return _cmd_round_reopen(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_round_inspect(args: argparse.Namespace) -> int:
+    return _cmd_round_inspect(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_review_inspect(args: argparse.Namespace) -> int:
+    return _cmd_review_inspect(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_final_inspect(args: argparse.Namespace) -> int:
+    return _cmd_final_inspect(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_final_set_final(args: argparse.Namespace) -> int:
+    return _cmd_final_set_final(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_final_set_correction(args: argparse.Namespace) -> int:
+    return _cmd_final_set_correction(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_tree_identify(args: argparse.Namespace) -> int:
+    return _cmd_tree_identify(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_artifact_fetch(args: argparse.Namespace) -> int:
+    return _cmd_artifact_fetch(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_net_ipv4(args: argparse.Namespace) -> int:
+    return _cmd_net_ipv4_impl(args, print_json=_print_json)
+
+
+def cmd_net_ipv6(args: argparse.Namespace) -> int:
+    return _cmd_net_ipv6_impl(args, print_json=_print_json)
+
+
+def build_parser(*, backend=None) -> argparse.ArgumentParser:
     settings = _settings()
+    backend = backend or _build_backend(context_name="local")
     handlers = _make_handlers(backend)
     parser = argparse.ArgumentParser(description="TRAQ admin CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -454,7 +710,7 @@ def _save_repl_history() -> None:
         pass
 
 
-def _run_repl(*, context_name: str | None = None) -> int:
+def _run_repl(parser: argparse.ArgumentParser | None = None, *, context_name: str | None = None) -> int:
     active_context = context_name or "local"
     host, api_key = _context_defaults(active_context)
     backend = _build_backend(context_name=active_context, host=host, api_key=api_key)
@@ -551,6 +807,8 @@ def main() -> int:
     if not argv:
         return _run_repl(context_name=context_name)
     host, api_key = _context_defaults(context_name)
+    if context_name != "local":
+        argv = _inject_http_defaults(argv, host=host or "", api_key=api_key or "")
     backend = _build_backend(context_name=context_name, host=host, api_key=api_key)
     parser = build_parser(backend=backend)
     args = parser.parse_args(argv)

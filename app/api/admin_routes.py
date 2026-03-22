@@ -25,8 +25,8 @@ def build_admin_router(
     list_job_assignments: Callable[[], list[dict[str, Any]]],
     save_job_record: Callable[[Any], None],
     db_store: Any,
-    inspection_service: Any,
-    artifact_fetch_service: Any,
+    inspection_service: Any | None = None,
+    artifact_fetch_service: Any | None = None,
     round_record_factory: Callable[..., Any],
     logger: Any,
 ) -> APIRouter:
@@ -204,6 +204,8 @@ def build_admin_router(
     ) -> dict[str, Any]:
         """Admin endpoint returning job inspection payload."""
         require_api_key(x_api_key, required_role="admin")
+        if inspection_service is None:
+            raise HTTPException(status_code=501, detail="Inspection service not configured")
         try:
             return inspection_service.inspect_job(job_id)
         except RuntimeError as exc:
@@ -217,6 +219,8 @@ def build_admin_router(
     ) -> dict[str, Any]:
         """Admin endpoint returning round inspection payload."""
         require_api_key(x_api_key, required_role="admin")
+        if inspection_service is None:
+            raise HTTPException(status_code=501, detail="Inspection service not configured")
         try:
             return inspection_service.inspect_round(job_id, round_id)
         except RuntimeError as exc:
@@ -230,6 +234,8 @@ def build_admin_router(
     ) -> dict[str, Any]:
         """Admin endpoint returning review inspection payload."""
         require_api_key(x_api_key, required_role="admin")
+        if inspection_service is None:
+            raise HTTPException(status_code=501, detail="Inspection service not configured")
         try:
             return inspection_service.inspect_review(job_id, round_id)
         except RuntimeError as exc:
@@ -242,6 +248,8 @@ def build_admin_router(
     ) -> dict[str, Any]:
         """Admin endpoint returning final/correction inspection payload."""
         require_api_key(x_api_key, required_role="admin")
+        if inspection_service is None:
+            raise HTTPException(status_code=501, detail="Inspection service not configured")
         try:
             return inspection_service.inspect_final(job_id)
         except RuntimeError as exc:
@@ -255,6 +263,8 @@ def build_admin_router(
     ):
         """Admin endpoint exporting one preferred artifact variant for a job."""
         require_api_key(x_api_key, required_role="admin")
+        if artifact_fetch_service is None:
+            raise HTTPException(status_code=501, detail="Artifact fetch service not configured")
         try:
             payload = artifact_fetch_service.fetch(job_id, kind=kind)
         except RuntimeError as exc:
