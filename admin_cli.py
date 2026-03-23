@@ -537,6 +537,11 @@ def cmd_net_ipv6(args: argparse.Namespace) -> int:
 def build_parser(*, backend=None) -> argparse.ArgumentParser:
     settings = _settings()
     backend = backend or _build_backend(context_name="local")
+    default_host = settings.admin_base_url
+    default_api_key = settings.api_key
+    if getattr(backend, "mode_name", "local") == "remote":
+        default_host = getattr(getattr(backend, "device", None), "_host", default_host)
+        default_api_key = getattr(getattr(backend, "device", None), "_api_key", default_api_key)
     handlers = _make_handlers(backend)
     parser = argparse.ArgumentParser(description="TRAQ admin CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -570,8 +575,8 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
             "billing_merge": handlers["billing_merge"],
             "billing_delete": handlers["billing_delete"],
         },
-        default_host=settings.admin_base_url,
-        default_api_key=settings.api_key,
+        default_host=default_host,
+        default_api_key=default_api_key,
     )
     register_job_commands(
         sub,
@@ -584,14 +589,14 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
             "unassign": handlers["job_unassign"],
             "set_status": handlers["job_set_status"],
         },
-        default_host=settings.admin_base_url,
-        default_api_key=settings.api_key,
+        default_host=default_host,
+        default_api_key=default_api_key,
     )
     register_round_commands(
         sub,
         {"reopen": handlers["round_reopen"]},
-        default_host=settings.admin_base_url,
-        default_api_key=settings.api_key,
+        default_host=default_host,
+        default_api_key=default_api_key,
     )
     register_inspect_commands(
         sub,
@@ -601,8 +606,8 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
             "review_inspect": handlers["review_inspect"],
             "final_inspect": handlers["final_inspect"],
         },
-        default_host=settings.admin_base_url,
-        default_api_key=settings.api_key,
+        default_host=default_host,
+        default_api_key=default_api_key,
     )
     register_final_commands(
         sub,
@@ -621,14 +626,14 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
     register_tree_commands(
         sub,
         {"identify": handlers["tree_identify"]},
-        default_host=settings.admin_base_url,
-        default_api_key=settings.api_key,
+        default_host=default_host,
+        default_api_key=default_api_key,
     )
     register_artifact_commands(
         sub,
         {"fetch": handlers["artifact_fetch"]},
-        default_host=settings.admin_base_url,
-        default_api_key=settings.api_key,
+        default_host=default_host,
+        default_api_key=default_api_key,
     )
     return parser
 

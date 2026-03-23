@@ -1069,6 +1069,17 @@ class AdminCliTests(unittest.TestCase):
         self.assertIn("context=cloud", output)
         self.assertIn("host=https://cloud.example.run.app", output)
 
+    def test_build_parser_uses_remote_backend_defaults_for_customer_commands(self) -> None:
+        backend = admin_cli._build_backend(
+            context_name="cloud",
+            host="https://cloud.example.run.app",
+            api_key="cloud-key",
+        )
+        parser = admin_cli.build_parser(backend=backend)
+        args = parser.parse_args(["customer", "list"])
+        self.assertEqual(args.host, "https://cloud.example.run.app")
+        self.assertEqual(args.api_key, "cloud-key")
+
     def test_final_set_final_and_set_correction_commands(self) -> None:
         customer = json.loads(
             self._stdout_for(
