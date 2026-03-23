@@ -1,255 +1,236 @@
-CLI Operations Model
-====================
+CLI User Guide
+==============
 
 Purpose
 -------
 
-This note defines the intended operational model for ``admin_cli.py``.
-The CLI is not a separate admin toy. It should exercise the same workflow
-surfaces that the mobile client depends on, using the same service boundaries
-and the same underlying state model.
+``traq-admin`` is the operator CLI for the server. It is meant to help with:
 
-Why this matters
-----------------
+- device approval and token issuance
+- customer, billing, and job administration
+- round lifecycle testing
+- inspection of review/final state
+- artifact download
+- standalone tree identification
 
-The operational runtime is now DB-backed. Local storage exists for binary
-artifacts and debug/export copies only. The CLI should inspect and control that
-runtime model without treating exported JSON on disk as an authoritative
-workflow source.
+This document is a user manual. It explains what the CLI covers today, what is
+still missing, and how to run the common workflows.
 
-The CLI should let an operator inspect and control the same lifecycle in a way
-that is modular, service-backed, and easy to debug.
 
-Client contract boundary
-------------------------
+Modes
+-----
 
-The CLI must not invent a parallel operational model. The client contract is
-defined by the live FastAPI API. Any payload change exposed by the server must
-be reflected in the client/UI specification.
+The CLI has two execution modes.
 
-Current client-facing workflow surfaces are:
+``local``
+  Uses local services, the local database, and local artifact access.
 
-- device registration / approval / token issuance
-- assigned-job listing
-- job create
-- job status lookup
-- round create
-- manifest upload
-- round submit / reprocess
-- review fetch
-- final submit / correction outputs
+``cloud``
+  Uses HTTP against the deployed server only.
 
-The CLI is a server operator tool for driving and inspecting that same model.
+Examples::
 
-Operational layers
-------------------
+   uv run traq-admin local
+   uv run traq-admin cloud
+   uv run traq-admin cloud device pending
+   uv run traq-admin local tree identify --image ./leaf.jpg
 
-The intended server layering is:
+Mode rule:
 
-- CLI layer
-  - thin command parser and presentation
-- service layer
-  - device/auth service
-  - job/assignment service
-  - round/review service
-  - final/correction/archive service
-  - import/query service
-- persistence layer
-  - PostgreSQL for runtime metadata/state
-  - local artifact storage for uploaded media and generated outputs
+- local mode should not silently use remote HTTP as its execution boundary
+- cloud mode should not silently inspect the local database or local files as
+  its execution boundary
+- if a cloud command is not implemented remotely yet, it should fail
+  explicitly
 
-Business rules should live in services, not in the CLI.
 
-Mode purity rule
-----------------
+Prerequisites
+-------------
 
-The CLI execution boundary must be explicit and mode-pure.
+For local mode:
 
-``local`` mode
-  Uses only local services, local database access, and local artifact access.
+- a working local database configuration
+- the usual local server environment variables in ``.env`` or the shell
 
-``remote`` mode
-  Uses only HTTP against the live server.
+For cloud mode:
 
-Operational consequence:
+- ``TRAQ_CLOUD_ADMIN_BASE_URL``
+- ``TRAQ_CLOUD_API_KEY``
 
-- no command may silently fall back from remote mode to local DB/service/file
-  access
-- no command may silently fall back from local mode to remote HTTP as its
-  execution boundary
-- unsupported remote commands should fail explicitly until the server endpoint
-  exists
+The CLI reads those automatically for ``uv run traq-admin cloud ...``.
 
-Current CLI command set
------------------------
 
-Implemented command groups:
+Interactive Use
+---------------
+
+Start the REPL::
+
+   uv run traq-admin local
+   uv run traq-admin cloud
+
+Useful meta-commands inside the REPL::
+
+   show
+   use local
+   use cloud
+   set host https://example.run.app
+   set api-key <admin-key>
+   help
+   exit
+
+Operational commands use the same syntax as one-shot commands. A leading
+``/`` is optional.
+
+
+What Is Covered
+---------------
+
+The current CLI surface is:
 
 ``device``
-  - ``list``
-  - ``pending``
-  - ``validate``
-  - ``approve``
-  - ``revoke``
-  - ``issue-token``
+  ``list``, ``pending``, ``validate``, ``approve``, ``revoke``,
+  ``issue-token``
+
+``customer``
+  ``list``, ``duplicates``, ``create``, ``update``, ``usage``, ``merge``,
+  ``delete``
+
+``customer billing``
+  ``list``, ``duplicates``, ``create``, ``update``, ``usage``, ``merge``,
+  ``delete``
 
 ``job``
-  - ``list-assignments``
-  - ``assign``
-  - ``unassign``
-  - ``set-status``
-  - ``inspect``
+  ``create``, ``update``, ``list-assignments``, ``assign``, ``unassign``,
+  ``set-status``, ``unlock``, ``inspect``
 
 ``round``
-  - ``reopen``
-  - ``inspect``
+  ``create``, ``manifest get``, ``manifest set``, ``submit``, ``reprocess``,
+  ``reopen``, ``inspect``
 
 ``review``
-  - ``inspect``
+  ``inspect``
 
 ``final``
-  - ``inspect``
+  ``inspect``
+
+``artifact``
+  ``fetch``
+
+``tree``
+  ``identify``
 
 ``net``
-  - ``ipv4``
-  - ``ipv6``
+  ``ipv4``, ``ipv6``
 
-Current command-to-boundary map
--------------------------------
-The correct mapping is now by mode, not by individual command fallback.
 
-Local mode:
+Known Limits
+------------
 
-- device commands use local store/service boundaries
-- customer and billing commands use ``CustomerService``
-- job create/update use ``JobMutationService``
-- inspect commands use ``InspectionService``
-- final mutation commands use ``FinalMutationService``
-- artifact fetch uses ``ArtifactFetchService``
-- net commands are local utility commands
+These areas are still intentionally incomplete:
 
-Remote mode:
+``final set-final`` / ``final set-correction``
+  Present locally, but not yet part of the current cloud parity work.
 
-- device commands use HTTP admin endpoints
-- job assignment/status/unlock commands use HTTP admin endpoints
-- round reopen uses HTTP admin endpoint
-- job inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/inspect``
-- round inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/rounds/{round_id}/inspect``
-- review inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/rounds/{round_id}/review/inspect``
-- final inspect uses HTTP ``GET /v1/admin/jobs/{job_id}/final/inspect``
-- artifact fetch uses HTTP ``GET /v1/admin/jobs/{job_id}/artifacts/{kind}``
-- tree identify uses HTTP ``POST /v1/trees/identify``
+``archive`` workflows
+  No dedicated CLI command group yet for archive inspection or retention
+  decisions.
 
-Remote helper endpoint:
+``round submit`` and ``round reprocess`` in local mode
+  These currently fail explicitly. The remote HTTP contract exists and is the
+  supported testing path today. A clean local service seam for those flows has
+  not been extracted yet.
 
-- job reference resolution uses HTTP ``GET /v1/admin/jobs/resolve`` so remote
-  CLI commands do not depend on local database lookup
 
-What is structurally sound already
-----------------------------------
+Common Cloud Workflows
+----------------------
 
-- Mode selection now defines the execution boundary instead of individual
-  commands making ad hoc local/remote decisions.
-- Assignment administration has a clear contract surface via admin endpoints.
-- Remote job reference resolution now has an explicit admin endpoint rather
-  than depending on local database lookup.
-- Lifecycle inspection for jobs, rounds, reviews, and final/correction outputs
-  now exists both as local ``InspectionService`` behavior and as remote admin
-  read endpoints backed by that service.
-- The tree identity contract is now live in the FastAPI job/create/status/review
-  paths.
-- Import/query tooling exists to validate the schema against real job data.
+Device approval::
 
-What is still missing from the CLI
-----------------------------------
+   uv run traq-admin cloud device pending
+   uv run traq-admin cloud device approve <device_id> --role arborist
+   uv run traq-admin cloud device issue-token <device_id> --ttl 604800
 
-The CLI does not yet cover the full operational lifecycle that the client uses.
+Customer and billing administration::
 
-Missing command groups or subcommands:
+   uv run traq-admin cloud customer list --search Arboretum
+   uv run traq-admin cloud customer create --name "Customer Name" --phone "555-1212"
+   uv run traq-admin cloud customer billing list --search Customer
+   uv run traq-admin cloud customer billing create --billing-name "Customer Billing"
 
-``job create``
-  Create a job through the same service/contract path used by the client.
+Job administration::
 
-``round list``
-  List all rounds for a job with statuses and revision ids.
+   uv run traq-admin cloud job create --job-id job_1 --job-number J0001 --customer-id C0001
+   uv run traq-admin cloud job update --job J0001 --job-name "Valley Oak Revisit"
+   uv run traq-admin cloud job inspect --job J0001
+   uv run traq-admin cloud job list-assignments
+   uv run traq-admin cloud job assign --job J0001 --device-id <device_id>
 
-``round submit``
-  Drive the same contract surface as the client submit path for controlled
-  testing.
+Round lifecycle::
 
-``round reprocess``
-  Trigger reprocess through the same contract surface and inspect the result.
+   uv run traq-admin cloud round create --job J0001
+   uv run traq-admin cloud round manifest set --job J0001 --round-id round_1 --file ./manifest_smoke.json
+   uv run traq-admin cloud round manifest get --job J0001 --round-id round_1
+   uv run traq-admin cloud round submit --job J0001 --round-id round_1 --file ./templates/round_submit.template.json
+   uv run traq-admin cloud round reprocess --job J0001 --round-id round_1
+   uv run traq-admin cloud round inspect --job J0001 --round-id round_1
 
-``archive inspect``
-  Show prune candidates, retained rounds, transcript retention, and artifact
-  retention decision for a job.
+Review, final, and artifact inspection::
 
-``geojson inspect``
-  Show stored/exported GeoJSON payload summary for a job.
+   uv run traq-admin cloud review inspect --job J0001 --round-id round_1
+   uv run traq-admin cloud final inspect --job J0001
+   uv run traq-admin cloud artifact fetch --job J0001 --kind final-json
+   uv run traq-admin cloud artifact fetch --job J0001 --kind report-pdf
 
-Recommended next service boundaries
+Standalone tree identification::
+
+   uv run traq-admin cloud tree identify --image ./bark.jpg
+
+
+Round Test Files
+----------------
+
+Two files in the repo are meant to make round smoke tests easier:
+
+``manifest_smoke.json``
+  Minimal example manifest for ``round manifest set``.
+
+``templates/round_submit.template.json``
+  Minimal example submit payload for ``round submit --file``.
+
+Recommended smoke-test sequence:
+
+1. create a round
+2. set manifest from ``manifest_smoke.json``
+3. copy and edit ``templates/round_submit.template.json`` if needed
+4. submit the round
+5. inspect the round and review payload
+6. reprocess if needed
+
+
+How To Read Failures
+--------------------
+
+For most cloud commands, the useful question is:
+
+- did the CLI fail locally, or
+- did the server reject/process the request and return a real response?
+
+Examples:
+
+- ``HTTP 404`` usually means the job or round could not be resolved remotely
+- ``HTTP 405`` usually means the deployed server revision does not yet have the
+  requested route/method
+- an ``accepted`` or ``status`` response from ``round submit`` / ``round
+  reprocess`` means the CLI path worked and any remaining issue is in runtime
+  processing rather than command dispatch
+
+
+What To Update When Commands Change
 -----------------------------------
 
-To support the missing commands cleanly, the next service modules should be:
+If the CLI command surface changes, keep this document current by updating:
 
-``device_service``
-  registration, approval, revoke, issue token, status/list
-
-``job_service``
-  create, inspect, assign, unassign, status, tree resolution
-
-``round_service``
-  create, manifest write/read, submit, reprocess, inspect
-
-``review_service``
-  review fetch/inspect and transcript/form payload inspection
-
-``final_service``
-  final inspect, correction inspect, retained artifact summary
-
-``archive_service``
-  retention decision and prune candidate inspection
-
-The CLI should call these services directly where possible, or call the same
-HTTP contract that the client uses when the purpose is contract verification.
-
-Recommended command discipline
-------------------------------
-
-Use direct service calls when the goal is:
-
-- administrative control
-- local inspection
-- debugging persistence and state transitions
-
-Use HTTP-backed CLI calls when the goal is:
-
-- verifying the live client contract
-- confirming payload shapes and endpoint behavior
-
-This distinction should now be explicit per mode rather than hidden inside
-individual command implementations.
-
-Reference operational example
------------------------------
-
-Use a real imported job under ``local_data/jobs/<job_id>`` as the reference
-example for:
-
-- job record shape
-- round manifest/review lifecycle
-- final vs correction outputs
-- audio/image artifact layout
-- the artifact layout the database references, but does not replace
-
-Definition of done for the CLI layer
-------------------------------------
-
-The CLI is in good shape when:
-
-- every major client workflow surface has a corresponding server operator
-  command or inspect command
-- each command maps to a defined service boundary
-- no unique business logic is trapped only in the CLI
-- current payload changes are reflected in the client/UI spec
-- the CLI can inspect a full job lifecycle from assigned job to final/correction
+- covered command groups
+- known limits
+- smoke-test examples
+- any committed fixture/template paths used for testing

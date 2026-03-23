@@ -84,6 +84,9 @@ Mode rule:
 - remote mode must not silently use local DB/service/file inspection as its execution boundary
 - if a remote command is unsupported because the server endpoint does not exist, the CLI should fail explicitly
 
+For covered workflows, current limitations, and smoke-test examples, see
+`docs/cli_operations_model.rst`.
+
 ## Key docs
 
 - `docs/architecture.rst`
