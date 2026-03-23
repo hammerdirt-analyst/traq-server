@@ -4,6 +4,7 @@ import json
 import unittest
 from unittest.mock import patch
 from urllib import error
+from urllib.parse import parse_qs, urlparse
 
 from app.services.tree_identification_service import (
     MAX_TREE_IDENTIFICATION_IMAGES,
@@ -223,6 +224,59 @@ class TreeIdentificationServiceTests(unittest.TestCase):
                         )
                     ]
                 )
+
+    def test_identify_does_not_forward_nb_results_upstream(self) -> None:
+        service = TreeIdentificationService(
+            api_key="demo-key",
+            base_url="https://my-api.plantnet.org",
+            default_project="all",
+        )
+        captured: dict[str, object] = {}
+
+        class DummyResponse:
+            def read(self) -> bytes:
+                return json.dumps(
+                    {
+                        "query": {"project": "all"},
+                        "predictedOrgans": [],
+                        "bestMatch": "Test Tree",
+                        "results": [],
+                        "otherResults": [],
+                        "version": "2026-03-23",
+                        "remainingIdentificationRequests": 1,
+                    }
+                ).encode("utf-8")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb) -> None:
+                return None
+
+        def fake_urlopen(req, timeout=60):
+            del timeout
+            captured["url"] = req.full_url
+            captured["body"] = req.data
+            captured["content_type"] = req.headers.get("Content-Type")
+            return DummyResponse()
+
+        with patch("app.services.tree_identification_service.request.urlopen", side_effect=fake_urlopen):
+            service.identify(
+                images=[
+                    TreeIdentificationImage(
+                        filename="leaf.jpg",
+                        content_type="image/jpeg",
+                        data=b"jpeg",
+                    )
+                ],
+                organs=["leaf"],
+                nb_results=3,
+                lang="en",
+            )
+
+        self.assertEqual(parse_qs(urlparse(str(captured["url"])).query), {"api-key": ["demo-key"]})
+        body_text = bytes(captured["body"]).decode("utf-8", errors="replace")
+        self.assertNotIn('name="nb-results"', body_text)
 
 
 if __name__ == "__main__":

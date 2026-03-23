@@ -62,6 +62,7 @@ class TreeIdentificationService:
         lang: str | None = None,
     ) -> dict[str, Any]:
         """Identify a tree from up to five images."""
+        del nb_results
         if not self._api_key:
             raise TreeIdentificationConfigError("TRAQ_PLANTNET_API_KEY is not set")
         if not images:
@@ -83,7 +84,6 @@ class TreeIdentificationService:
             organs=normalized_organs,
             include_related_images=include_related_images,
             no_reject=no_reject,
-            nb_results=nb_results,
             lang=lang,
         )
         req = request.Request(
@@ -153,7 +153,6 @@ class TreeIdentificationService:
         organs: list[str],
         include_related_images: bool,
         no_reject: bool,
-        nb_results: int | None,
         lang: str | None,
     ) -> tuple[bytes, str]:
         boundary = f"----traq-{uuid.uuid4().hex}"
@@ -175,8 +174,6 @@ class TreeIdentificationService:
             add_field("include-related-images", "true")
         if no_reject:
             add_field("no-reject", "true")
-        if nb_results is not None:
-            add_field("nb-results", str(nb_results))
         if lang:
             add_field("lang", lang)
 
