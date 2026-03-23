@@ -28,3 +28,24 @@ Operational impact:
 - Better deterministic merges into section-specific form structures.
 - Cleaner review loops when users iterate with additional targeted recordings.
 
+
+Standalone Tree Identification
+------------------------------
+
+Tree identification is intentionally outside the job/round/review/final
+workflow.
+
+The boundary is:
+
+- route layer in ``app/api/tree_identification_routes.py``
+- service layer in ``app/services/tree_identification_service.py``
+
+Responsibilities:
+
+- the route accepts authenticated multipart image uploads and translates service
+  exceptions to HTTP
+- the service validates input, calls the upstream Pl@ntNet API, and normalizes
+  the response to the server contract
+
+This keeps tree identification as a standalone utility capability rather than a
+hidden side effect of review or finalization flows.

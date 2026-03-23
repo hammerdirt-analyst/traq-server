@@ -47,6 +47,13 @@ Recommended secret handling:
 - do not bake secrets into the image
 - do not commit secrets to ``.env`` in the repo
 
+Standalone tree-identification policy:
+
+- ``POST /v1/trees/identify`` is a standalone service route
+- it depends on ``TRAQ_PLANTNET_API_KEY`` and the configured Pl@ntNet upstream
+- when the upstream configuration or upstream service is unavailable, the
+  server returns the normalized upstream failure response
+
 Migration workflow
 ------------------
 

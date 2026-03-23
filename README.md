@@ -65,6 +65,58 @@ uv run traq-admin local
 - Normal client requests use issued device tokens.
 - Operator workflows use `traq-admin` and the server admin key.
 
+Standalone tree identification notes:
+
+- this route is separate from job, round, review, and final workflows
+- when enabled, it relies on `TRAQ_PLANTNET_API_KEY` and the configured
+  Pl@ntNet upstream
+
+## Tree Identification
+
+Tree identification is a standalone server capability. It is not part of job
+creation, round submit, review generation, or finalization.
+
+Route:
+
+- `POST /v1/trees/identify`
+
+Server-side behavior:
+
+- accepts `1` to `5` uploaded images
+- identification works better when images are labeled by organ
+- recommended frontend UI uses one optional image slot each for:
+  - `leaf`
+  - `flower`
+  - `fruit`
+  - `bark`
+- the client should serialize filled slots to the multipart `images` and
+  `organs` fields in a stable order
+- normalizes the upstream Pl@ntNet response to a stable top-level server
+  contract
+- returns explicit upstream/config failures instead of mutating job state
+
+CLI smoke test:
+
+```bash
+uv run traq-admin cloud tree identify --image ./bark.jpg
+uv run traq-admin cloud tree identify --image ./bark.jpg --organ bark
+```
+
+Required runtime config:
+
+- `TRAQ_PLANTNET_API_KEY`
+- optional `TRAQ_PLANTNET_BASE_URL`
+- optional `TRAQ_PLANTNET_PROJECT`
+
+Implementation notes:
+
+- server architecture note:
+  - `docs/architecture.rst`
+- deployment/runtime note:
+  - `docs/deployment_operations.rst`
+- frontend contract note:
+  - `TREE_IDENTIFICATION_FRONTEND_NOTE.md`
+
 ## Admin CLI contexts
 
 - `uv run traq-admin local`

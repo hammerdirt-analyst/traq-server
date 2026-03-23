@@ -28,6 +28,7 @@ from app.api.round_reprocess_routes import build_round_reprocess_router
 from app.api.round_submit_routes import build_round_submit_router
 from app.api.tree_identification_routes import build_tree_identification_router
 from app.services.round_submit_service import RoundSubmitService
+from app.services.tree_identification_service import TreeIdentificationUpstreamError
 
 
 class ApiRouterTests(unittest.TestCase):
@@ -425,6 +426,82 @@ class ApiRouterTests(unittest.TestCase):
         result = asyncio.run(invoke())
         self.assertEqual(result["bestMatch"], "Ajuga genevensis L.")
         self.assertEqual(result["remainingIdentificationRequests"], 498)
+
+    def test_tree_identification_router_maps_validation_to_http_400(self) -> None:
+        router = build_tree_identification_router(
+            require_api_key=lambda key: {"api_key": key},
+            tree_identification_service=type(
+                "TreeIdentificationService",
+                (),
+                {"identify": lambda self, **kwargs: (_ for _ in ()).throw(ValueError("Invalid organs: needle"))},
+            )(),
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
+        )
+        identify = self._router_endpoint(router, "/v1/trees/identify", "POST")
+
+        class DummyUpload:
+            filename = "leaf.jpg"
+            content_type = "image/jpeg"
+
+            async def read(self) -> bytes:
+                return b"jpeg"
+
+        async def invoke():
+            return await identify(
+                images=[DummyUpload()],
+                organs=["needle"],
+                project="all",
+                include_related_images=False,
+                no_reject=False,
+                nb_results=3,
+                lang="en",
+                x_api_key="test-key",
+            )
+
+        with self.assertRaises(HTTPException) as exc:
+            asyncio.run(invoke())
+        self.assertEqual(exc.exception.status_code, 400)
+        self.assertEqual(exc.exception.detail, "Invalid organs: needle")
+
+    def test_tree_identification_router_maps_upstream_failure_to_http_502(self) -> None:
+        router = build_tree_identification_router(
+            require_api_key=lambda key: {"api_key": key},
+            tree_identification_service=type(
+                "TreeIdentificationService",
+                (),
+                {
+                    "identify": lambda self, **kwargs: (_ for _ in ()).throw(
+                        TreeIdentificationUpstreamError("Pl@ntNet API request failed: timeout")
+                    )
+                },
+            )(),
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
+        )
+        identify = self._router_endpoint(router, "/v1/trees/identify", "POST")
+
+        class DummyUpload:
+            filename = "leaf.jpg"
+            content_type = "image/jpeg"
+
+            async def read(self) -> bytes:
+                return b"jpeg"
+
+        async def invoke():
+            return await identify(
+                images=[DummyUpload()],
+                organs=["leaf"],
+                project="all",
+                include_related_images=False,
+                no_reject=False,
+                nb_results=3,
+                lang="en",
+                x_api_key="test-key",
+            )
+
+        with self.assertRaises(HTTPException) as exc:
+            asyncio.run(invoke())
+        self.assertEqual(exc.exception.status_code, 502)
+        self.assertEqual(exc.exception.detail, "Pl@ntNet API request failed: timeout")
 
     def test_job_read_router_builds_expected_endpoints(self) -> None:
         class DummyRound:
