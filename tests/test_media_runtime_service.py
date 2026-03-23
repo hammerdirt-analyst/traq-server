@@ -78,6 +78,26 @@ class MediaRuntimeServiceTests(unittest.TestCase):
 
         self.assertEqual(images, [{"path": str(report_path), "caption": "Canopy", "uploaded_at": "2026-03-19T10:00:00Z"}])
 
+    def test_merge_report_images_preserves_prior_and_appends_new(self) -> None:
+        merged = self.service.merge_report_images(
+            [
+                {"path": "/tmp/img_1.jpg", "caption": "Existing 1", "uploaded_at": "2026-03-19T09:00:00Z"},
+                {"path": "/tmp/img_2.jpg", "caption": "Existing 2", "uploaded_at": "2026-03-19T09:05:00Z"},
+            ],
+            [
+                {"path": "/tmp/img_3.jpg", "caption": "New", "uploaded_at": "2026-03-19T09:10:00Z"},
+            ],
+        )
+
+        self.assertEqual(
+            merged,
+            [
+                {"path": "/tmp/img_1.jpg", "caption": "Existing 1", "uploaded_at": "2026-03-19T09:00:00Z"},
+                {"path": "/tmp/img_2.jpg", "caption": "Existing 2", "uploaded_at": "2026-03-19T09:05:00Z"},
+                {"path": "/tmp/img_3.jpg", "caption": "New", "uploaded_at": "2026-03-19T09:10:00Z"},
+            ],
+        )
+
     def test_save_recording_runtime_state_updates_db_and_writes_transcript(self) -> None:
         self.service.save_recording_runtime_state(
             job_id="job_1",

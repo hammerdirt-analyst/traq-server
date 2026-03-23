@@ -121,10 +121,42 @@ def build_final_router(
                 and str(profile_payload.get("isa_number") or "").strip()
                 else None
             )
-            report_images = media_runtime_service.load_job_report_images(
+            current_report_images = media_runtime_service.load_job_report_images(
                 job_id=job_id,
                 round_id=record.latest_round_id or "",
             )
+            archived_final_payload = None
+            archived_correction_payload = None
+            if correction_mode:
+                archived_final = db_store.get_job_final(job_id, "final")
+                archived_correction = db_store.get_job_final(job_id, "correction")
+                archived_final_payload = (
+                    archived_final.get("payload")
+                    if isinstance(archived_final, dict)
+                    else None
+                )
+                archived_correction_payload = (
+                    archived_correction.get("payload")
+                    if isinstance(archived_correction, dict)
+                    else None
+                )
+            merge_report_images = getattr(media_runtime_service, "merge_report_images", None)
+            if callable(merge_report_images):
+                report_images = merge_report_images(
+                    (
+                        archived_final_payload.get("report_images")
+                        if isinstance(archived_final_payload, dict)
+                        else None
+                    ),
+                    (
+                        archived_correction_payload.get("report_images")
+                        if isinstance(archived_correction_payload, dict)
+                        else None
+                    ),
+                    current_report_images,
+                )
+            else:
+                report_images = current_report_images
             report_letter.generate_report_letter_pdf(
                 letter_text,
                 str(report_path),

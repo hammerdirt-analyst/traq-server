@@ -212,6 +212,34 @@ class MediaRuntimeService:
         images.sort(key=lambda item: item.get("uploaded_at", ""))
         return images[:5]
 
+    @staticmethod
+    def merge_report_images(*image_lists: list[dict[str, Any]] | None) -> list[dict[str, str]]:
+        """Merge archived/current report images without dropping earlier entries.
+
+        The report pipeline should preserve previously archived report images when
+        a correction round adds only one new image. Later lists override earlier
+        duplicates by path while preserving a stable append order.
+        """
+        merged: list[dict[str, str]] = []
+        by_path: dict[str, int] = {}
+        for images in image_lists:
+            for item in images or []:
+                path = str(item.get("path") or "").strip()
+                if not path:
+                    continue
+                normalized = {
+                    "path": path,
+                    "caption": str(item.get("caption") or "").strip(),
+                    "uploaded_at": str(item.get("uploaded_at") or "").strip(),
+                }
+                existing_index = by_path.get(path)
+                if existing_index is not None:
+                    merged[existing_index] = normalized
+                    continue
+                by_path[path] = len(merged)
+                merged.append(normalized)
+        return merged[:5]
+
     def recording_meta(
         self,
         *,
