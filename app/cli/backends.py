@@ -96,8 +96,6 @@ class TreeBackend(Protocol):
         project: str | None = None,
         include_related_images: bool = False,
         no_reject: bool = False,
-        nb_results: int | None = None,
-        lang: str | None = None,
     ) -> Any: ...
 
 

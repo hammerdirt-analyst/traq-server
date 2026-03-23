@@ -30,8 +30,6 @@ def build_tree_identification_router(
         project: str | None = Form(default=None),
         include_related_images: bool = Form(default=False),
         no_reject: bool = Form(default=False),
-        nb_results: int | None = Form(default=None),
-        lang: str | None = Form(default=None),
         x_api_key: str | None = Header(default=None),
     ) -> dict[str, Any]:
         """Identify tree species from up to five uploaded images."""
@@ -57,8 +55,6 @@ def build_tree_identification_router(
                 project=project,
                 include_related_images=include_related_images,
                 no_reject=no_reject,
-                nb_results=nb_results,
-                lang=lang,
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

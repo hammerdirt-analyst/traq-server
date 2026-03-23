@@ -44,8 +44,6 @@ Transport request
   - `project`
   - `include_related_images`
   - `no_reject`
-  - `nb_results`
-  - `lang`
 
 Recommended frontend serialization rule
 

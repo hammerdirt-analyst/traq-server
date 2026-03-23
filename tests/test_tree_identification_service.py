@@ -91,7 +91,6 @@ class TreeIdentificationServiceTests(unittest.TestCase):
                     )
                 ],
                 organs=["leaf"],
-                nb_results=3,
             )
 
         self.assertEqual(result["bestMatch"], "Ajuga genevensis L.")
@@ -225,7 +224,7 @@ class TreeIdentificationServiceTests(unittest.TestCase):
                     ]
                 )
 
-    def test_identify_does_not_forward_nb_results_upstream(self) -> None:
+    def test_identify_does_not_forward_unsupported_upstream_fields(self) -> None:
         service = TreeIdentificationService(
             api_key="demo-key",
             base_url="https://my-api.plantnet.org",
@@ -270,13 +269,12 @@ class TreeIdentificationServiceTests(unittest.TestCase):
                     )
                 ],
                 organs=["leaf"],
-                nb_results=3,
-                lang="en",
             )
 
         self.assertEqual(parse_qs(urlparse(str(captured["url"])).query), {"api-key": ["demo-key"]})
         body_text = bytes(captured["body"]).decode("utf-8", errors="replace")
         self.assertNotIn('name="nb-results"', body_text)
+        self.assertNotIn('name="lang"', body_text)
 
 
 if __name__ == "__main__":

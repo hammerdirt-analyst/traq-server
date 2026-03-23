@@ -418,8 +418,6 @@ class ApiRouterTests(unittest.TestCase):
                 project="all",
                 include_related_images=False,
                 no_reject=False,
-                nb_results=3,
-                lang="en",
                 x_api_key="test-key",
             )
 
@@ -453,8 +451,6 @@ class ApiRouterTests(unittest.TestCase):
                 project="all",
                 include_related_images=False,
                 no_reject=False,
-                nb_results=3,
-                lang="en",
                 x_api_key="test-key",
             )
 
@@ -493,8 +489,6 @@ class ApiRouterTests(unittest.TestCase):
                 project="all",
                 include_related_images=False,
                 no_reject=False,
-                nb_results=3,
-                lang="en",
                 x_api_key="test-key",
             )
 

@@ -24,8 +24,6 @@ def cmd_tree_identify(
             project=args.project,
             include_related_images=args.include_related_images,
             no_reject=args.no_reject,
-            nb_results=args.nb_results,
-            lang=args.lang,
         )
     except Exception as exc:
         print(f"ERROR: {exc}")
@@ -51,8 +49,6 @@ def register_tree_commands(
     identify_cmd.add_argument("--project", default="all")
     identify_cmd.add_argument("--include-related-images", action="store_true")
     identify_cmd.add_argument("--no-reject", action="store_true")
-    identify_cmd.add_argument("--nb-results", type=int, default=None)
-    identify_cmd.add_argument("--lang", default=None)
     identify_cmd.add_argument("--host", default=default_host)
     identify_cmd.add_argument("--api-key", default=default_api_key)
     identify_cmd.set_defaults(func=handlers["identify"])

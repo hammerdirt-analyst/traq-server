@@ -537,8 +537,6 @@ class RemoteTreeBackend(_RemoteBase):
         project: str | None = None,
         include_related_images: bool = False,
         no_reject: bool = False,
-        nb_results: int | None = None,
-        lang: str | None = None,
     ) -> Any:
         paths = [Path(item) for item in image_paths]
         missing = [str(path) for path in paths if not path.exists()]
@@ -560,8 +558,6 @@ class RemoteTreeBackend(_RemoteBase):
             "project": project,
             "include_related_images": include_related_images,
             "no_reject": no_reject,
-            "nb_results": nb_results,
-            "lang": lang,
         }
         for organ in organs or []:
             payload.setdefault("organs", []).append(organ)

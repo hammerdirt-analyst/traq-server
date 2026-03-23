@@ -363,8 +363,6 @@ class LocalTreeBackend:
         project: str | None = None,
         include_related_images: bool = False,
         no_reject: bool = False,
-        nb_results: int | None = None,
-        lang: str | None = None,
     ) -> Any:
         settings = _settings()
         service = TreeIdentificationService(
@@ -390,8 +388,6 @@ class LocalTreeBackend:
             project=project,
             include_related_images=include_related_images,
             no_reject=no_reject,
-            nb_results=nb_results,
-            lang=lang,
         )
 
 

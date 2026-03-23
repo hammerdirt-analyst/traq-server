@@ -355,8 +355,6 @@ class AdminCliTests(unittest.TestCase):
                 project="all",
                 include_related_images=False,
                 no_reject=False,
-                nb_results=3,
-                lang="en",
                 host="https://example.test",
                 api_key="demo-key",
             ),
