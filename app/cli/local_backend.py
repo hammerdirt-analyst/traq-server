@@ -16,7 +16,7 @@ from app.services.inspection_service import InspectionService
 from app.services.job_mutation_service import JobMutationService
 from app.services.tree_identification_service import TreeIdentificationImage, TreeIdentificationService
 
-from .backends import CliBackendBundle
+from .backends import CliBackendBundle, UnsupportedInModeError
 from .net_commands import _collect_ipv4_candidates, _collect_ipv6_candidates
 
 
@@ -305,6 +305,18 @@ class LocalRoundBackend:
             review_payload=payload.get("review_payload"),
         )
         return {"ok": True, "round_id": round_id, "manifest_count": len(items)}
+
+    def submit(self, *, job_ref: str, round_id: str, payload: dict[str, Any] | None) -> Any:
+        raise UnsupportedInModeError(
+            "round submit is not available in local mode yet. "
+            "The local round submit service seam has not been extracted."
+        )
+
+    def reprocess(self, *, job_ref: str, round_id: str) -> Any:
+        raise UnsupportedInModeError(
+            "round reprocess is not available in local mode yet. "
+            "The local round reprocess service seam has not been extracted."
+        )
 
     def reopen(self, *, job_id: str, round_id: str) -> Any:
         code, body = self._http(

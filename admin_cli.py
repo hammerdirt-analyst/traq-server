@@ -76,6 +76,8 @@ from app.cli.round_commands import (
     cmd_round_create as _cmd_round_create,
     cmd_round_manifest_get as _cmd_round_manifest_get,
     cmd_round_manifest_set as _cmd_round_manifest_set,
+    cmd_round_reprocess as _cmd_round_reprocess,
+    cmd_round_submit as _cmd_round_submit,
     cmd_round_reopen as _cmd_round_reopen,
     register_round_commands,
 )
@@ -302,7 +304,7 @@ def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list
         or (top == "customer" and sub in {"list", "duplicates", "create", "update", "usage", "merge", "delete", "billing"})
         or (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status", "unlock"})
         or (top == "job" and sub in {"create", "update", "inspect"})
-        or (top == "round" and sub in {"create", "reopen", "manifest"})
+        or (top == "round" and sub in {"create", "reopen", "manifest", "submit", "reprocess"})
         or (top == "round" and sub == "inspect")
         or (top == "review" and sub == "inspect")
         or (top == "final" and sub == "inspect")
@@ -350,6 +352,8 @@ def _make_handlers(backend):
         "round_create": cmd_round_create,
         "round_manifest_get": cmd_round_manifest_get,
         "round_manifest_set": cmd_round_manifest_set,
+        "round_submit": cmd_round_submit,
+        "round_reprocess": cmd_round_reprocess,
         "round_reopen": cmd_round_reopen,
         "round_inspect": cmd_round_inspect,
         "review_inspect": cmd_review_inspect,
@@ -514,6 +518,14 @@ def cmd_round_manifest_set(args: argparse.Namespace) -> int:
     return _cmd_round_manifest_set(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
 
+def cmd_round_submit(args: argparse.Namespace) -> int:
+    return _cmd_round_submit(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_round_reprocess(args: argparse.Namespace) -> int:
+    return _cmd_round_reprocess(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
 def cmd_round_reopen(args: argparse.Namespace) -> int:
     return _cmd_round_reopen(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
@@ -618,6 +630,8 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
             "create": handlers["round_create"],
             "manifest_get": handlers["round_manifest_get"],
             "manifest_set": handlers["round_manifest_set"],
+            "submit": handlers["round_submit"],
+            "reprocess": handlers["round_reprocess"],
             "reopen": handlers["round_reopen"],
         },
         default_host=default_host,

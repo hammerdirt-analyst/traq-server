@@ -77,6 +77,37 @@ def cmd_round_manifest_set(
     return _wrap(action, print_json)
 
 
+def cmd_round_submit(
+    args: argparse.Namespace,
+    *,
+    backend: CliBackendBundle,
+    print_json: JsonPrinter,
+) -> int:
+    """Submit one round for processing using a JSON payload file."""
+
+    def action() -> object:
+        path = Path(args.file)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise RuntimeError("Submit file must contain a JSON object")
+        return backend.round.submit(job_ref=args.job, round_id=args.round_id, payload=payload)
+
+    return _wrap(action, print_json)
+
+
+def cmd_round_reprocess(
+    args: argparse.Namespace,
+    *,
+    backend: CliBackendBundle,
+    print_json: JsonPrinter,
+) -> int:
+    """Force reprocess one round using server-stored recordings."""
+    return _wrap(
+        lambda: backend.round.reprocess(job_ref=args.job, round_id=args.round_id),
+        print_json,
+    )
+
+
 def register_round_commands(
     subparsers,
     handlers: dict[str, Callable[[argparse.Namespace], int]],
@@ -118,3 +149,18 @@ def register_round_commands(
     manifest_set_cmd.add_argument("--host", default=default_host)
     manifest_set_cmd.add_argument("--api-key", default=default_api_key)
     manifest_set_cmd.set_defaults(func=handlers["manifest_set"])
+
+    submit_cmd = round_sub.add_parser("submit", help="Submit one round using a JSON payload file")
+    submit_cmd.add_argument("--job", required=True, help="job_id or job_number")
+    submit_cmd.add_argument("--round-id", required=True)
+    submit_cmd.add_argument("--file", required=True, help="path to submit JSON object")
+    submit_cmd.add_argument("--host", default=default_host)
+    submit_cmd.add_argument("--api-key", default=default_api_key)
+    submit_cmd.set_defaults(func=handlers["submit"])
+
+    reprocess_cmd = round_sub.add_parser("reprocess", help="Force reprocess one round")
+    reprocess_cmd.add_argument("--job", required=True, help="job_id or job_number")
+    reprocess_cmd.add_argument("--round-id", required=True)
+    reprocess_cmd.add_argument("--host", default=default_host)
+    reprocess_cmd.add_argument("--api-key", default=default_api_key)
+    reprocess_cmd.set_defaults(func=handlers["reprocess"])

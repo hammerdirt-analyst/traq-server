@@ -627,6 +627,90 @@ class AdminCliTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn('"artifact_id": "rec_1"', output)
 
+    def test_round_submit_local_is_explicitly_unsupported(self) -> None:
+        submit_path = self.storage_root / "submit_local.json"
+        submit_path.write_text(
+            json.dumps({"client_revision_id": "cli-local", "form": {"data": {}}, "narrative": {"text": ""}}),
+            encoding="utf-8",
+        )
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_submit,
+            argparse.Namespace(job="J0001", round_id="round_1", file=str(submit_path)),
+        )
+        self.assertEqual(rc, 1)
+        self.assertIn("not available in local mode yet", output)
+
+    @patch("admin_cli._http")
+    def test_round_submit_remote(self, http_mock) -> None:
+        submit_path = self.storage_root / "submit_remote.json"
+        submit_path.write_text(
+            json.dumps({"client_revision_id": "cli-remote", "form": {"data": {}}, "narrative": {"text": ""}}),
+            encoding="utf-8",
+        )
+        http_mock.side_effect = [
+            (200, {"ok": True, "job_id": "job_1", "job_number": "J0001", "status": "DRAFT"}),
+            (
+                200,
+                {
+                    "ok": True,
+                    "accepted": True,
+                    "round_id": "round_1",
+                    "status": "REVIEW_RETURNED",
+                    "processed_count": 1,
+                    "failed_count": 0,
+                },
+            ),
+        ]
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_submit,
+            argparse.Namespace(
+                job="J0001",
+                round_id="round_1",
+                file=str(submit_path),
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"accepted": true', output.lower())
+        self.assertIn('"status": "REVIEW_RETURNED"', output)
+
+    def test_round_reprocess_local_is_explicitly_unsupported(self) -> None:
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_reprocess,
+            argparse.Namespace(job="J0001", round_id="round_1"),
+        )
+        self.assertEqual(rc, 1)
+        self.assertIn("not available in local mode yet", output)
+
+    @patch("admin_cli._http")
+    def test_round_reprocess_remote(self, http_mock) -> None:
+        http_mock.side_effect = [
+            (200, {"ok": True, "job_id": "job_1", "job_number": "J0001", "status": "REVIEW_RETURNED"}),
+            (
+                200,
+                {
+                    "ok": True,
+                    "round_id": "round_1",
+                    "status": "REVIEW_RETURNED",
+                    "manifest_count": 1,
+                    "transcription_failures": [],
+                },
+            ),
+        ]
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_reprocess,
+            argparse.Namespace(
+                job="J0001",
+                round_id="round_1",
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"manifest_count": 1', output)
+        self.assertIn('"status": "REVIEW_RETURNED"', output)
+
     @patch("app.cli.net_commands.subprocess.check_output")
     def test_net_ipv4_and_ipv6(self, check_output_mock) -> None:
         check_output_mock.side_effect = [

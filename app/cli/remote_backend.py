@@ -407,6 +407,26 @@ class RemoteRoundBackend(_RemoteBase):
         )
         return self._expect_ok(code, body)
 
+    def submit(self, *, job_ref: str, round_id: str, payload: dict[str, Any] | None) -> Any:
+        job_id = self._job_backend._resolve_job_id(job_ref)
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/jobs/{parse.quote(job_id)}/rounds/{parse.quote(round_id)}/submit",
+            api_key=self._api_key,
+            payload=payload or {},
+        )
+        return self._expect_ok(code, body)
+
+    def reprocess(self, *, job_ref: str, round_id: str) -> Any:
+        job_id = self._job_backend._resolve_job_id(job_ref)
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/jobs/{parse.quote(job_id)}/rounds/{parse.quote(round_id)}/reprocess",
+            api_key=self._api_key,
+            payload={},
+        )
+        return self._expect_ok(code, body)
+
     def reopen(self, *, job_id: str, round_id: str) -> Any:
         code, body = self._http(
             "POST",
