@@ -135,16 +135,6 @@ def cmd_job_unlock(
     )
 
 
-def cmd_round_reopen(
-    args: argparse.Namespace,
-    *,
-    backend: CliBackendBundle,
-    print_json: JsonPrinter,
-) -> int:
-    """Reopen one round to DRAFT through the admin API."""
-    return _wrap(lambda: backend.round.reopen(job_id=args.job_id, round_id=args.round_id), print_json)
-
-
 def register_job_commands(
     subparsers,
     handlers: dict[str, Callable[[argparse.Namespace], int]],
@@ -257,16 +247,3 @@ def register_job_commands(
     status_cmd.add_argument("--host", default=default_host)
     status_cmd.add_argument("--api-key", default=default_api_key)
     status_cmd.set_defaults(func=handlers["set_status"])
-
-
-def register_round_commands(subparsers, handlers: dict[str, Callable[[argparse.Namespace], int]], *, default_host: str, default_api_key: str) -> None:
-    """Register round command group."""
-    round_cmd = subparsers.add_parser("round", help="Round admin operations")
-    round_sub = round_cmd.add_subparsers(dest="round_cmd", required=True)
-
-    reopen_cmd = round_sub.add_parser("reopen", help="Reopen a round to DRAFT")
-    reopen_cmd.add_argument("--job-id", required=True)
-    reopen_cmd.add_argument("--round-id", required=True)
-    reopen_cmd.add_argument("--host", default=default_host)
-    reopen_cmd.add_argument("--api-key", default=default_api_key)
-    reopen_cmd.set_defaults(func=handlers["reopen"])

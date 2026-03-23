@@ -65,14 +65,19 @@ from app.cli.job_commands import (
     cmd_job_unassign as _cmd_job_unassign,
     cmd_job_unlock as _cmd_job_unlock,
     cmd_job_update as _cmd_job_update,
-    cmd_round_reopen as _cmd_round_reopen,
     register_job_commands,
-    register_round_commands,
 )
 from app.cli.net_commands import (
     cmd_net_ipv4 as _cmd_net_ipv4_impl,
     cmd_net_ipv6 as _cmd_net_ipv6_impl,
     register_net_commands,
+)
+from app.cli.round_commands import (
+    cmd_round_create as _cmd_round_create,
+    cmd_round_manifest_get as _cmd_round_manifest_get,
+    cmd_round_manifest_set as _cmd_round_manifest_set,
+    cmd_round_reopen as _cmd_round_reopen,
+    register_round_commands,
 )
 from app.cli.tree_commands import cmd_tree_identify as _cmd_tree_identify, register_tree_commands
 from app.db import create_schema, init_database
@@ -297,7 +302,7 @@ def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list
         or (top == "customer" and sub in {"list", "duplicates", "create", "update", "usage", "merge", "delete", "billing"})
         or (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status", "unlock"})
         or (top == "job" and sub in {"create", "update", "inspect"})
-        or (top == "round" and sub == "reopen")
+        or (top == "round" and sub in {"create", "reopen", "manifest"})
         or (top == "round" and sub == "inspect")
         or (top == "review" and sub == "inspect")
         or (top == "final" and sub == "inspect")
@@ -342,6 +347,9 @@ def _make_handlers(backend):
         "job_set_status": cmd_job_set_status,
         "job_unlock": cmd_job_unlock,
         "job_inspect": cmd_job_inspect,
+        "round_create": cmd_round_create,
+        "round_manifest_get": cmd_round_manifest_get,
+        "round_manifest_set": cmd_round_manifest_set,
         "round_reopen": cmd_round_reopen,
         "round_inspect": cmd_round_inspect,
         "review_inspect": cmd_review_inspect,
@@ -494,6 +502,18 @@ def cmd_job_inspect(args: argparse.Namespace) -> int:
     return _cmd_job_inspect(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
 
+def cmd_round_create(args: argparse.Namespace) -> int:
+    return _cmd_round_create(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_round_manifest_get(args: argparse.Namespace) -> int:
+    return _cmd_round_manifest_get(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_round_manifest_set(args: argparse.Namespace) -> int:
+    return _cmd_round_manifest_set(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
 def cmd_round_reopen(args: argparse.Namespace) -> int:
     return _cmd_round_reopen(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
@@ -594,7 +614,12 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
     )
     register_round_commands(
         sub,
-        {"reopen": handlers["round_reopen"]},
+        {
+            "create": handlers["round_create"],
+            "manifest_get": handlers["round_manifest_get"],
+            "manifest_set": handlers["round_manifest_set"],
+            "reopen": handlers["round_reopen"],
+        },
         default_host=default_host,
         default_api_key=default_api_key,
     )

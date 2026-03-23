@@ -257,6 +257,55 @@ class LocalRoundBackend:
         self._host = host.rstrip("/")
         self._api_key = api_key
 
+    def create(self, *, job_ref: str) -> Any:
+        job_id = _inspection_service().resolve_job_id(job_ref) if not job_ref.startswith("job_") else job_ref
+        job = _store().get_job(job_id)
+        if not isinstance(job, dict):
+            raise RuntimeError(f"Job not found: {job_ref}")
+        latest = str(job.get("latest_round_status") or "").strip().upper()
+        if latest == "SUBMITTED_FOR_PROCESSING":
+            raise RuntimeError("Job is locked while processing. Wait for review.")
+        if latest == "ARCHIVED":
+            raise RuntimeError("Job is archived. Admin must reopen to DRAFT.")
+        rounds = _store().list_job_rounds(job_id)
+        round_id = f"round_{len(rounds) + 1}"
+        _store().upsert_job_round(job_id=job_id, round_id=round_id, status="DRAFT")
+        details = dict(job)
+        details["latest_round_id"] = round_id
+        details["latest_round_status"] = "DRAFT"
+        _store().upsert_job(
+            job_id=job_id,
+            job_number=str(job.get("job_number") or job_id),
+            status="DRAFT",
+            latest_round_id=round_id,
+            latest_round_status="DRAFT",
+            details=details,
+        )
+        return {"round_id": round_id, "status": "DRAFT"}
+
+    def manifest_get(self, *, job_ref: str, round_id: str) -> Any:
+        job_id = _inspection_service().resolve_job_id(job_ref) if not job_ref.startswith("job_") else job_ref
+        payload = _store().get_job_round(job_id, round_id)
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"Round not found: {job_ref}/{round_id}")
+        manifest = list(payload.get("manifest") or [])
+        return {"ok": True, "round_id": round_id, "manifest": manifest, "manifest_count": len(manifest)}
+
+    def manifest_set(self, *, job_ref: str, round_id: str, items: list[dict[str, Any]]) -> Any:
+        job_id = _inspection_service().resolve_job_id(job_ref) if not job_ref.startswith("job_") else job_ref
+        payload = _store().get_job_round(job_id, round_id)
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"Round not found: {job_ref}/{round_id}")
+        _store().upsert_job_round(
+            job_id=job_id,
+            round_id=round_id,
+            status=str(payload.get("status") or "DRAFT"),
+            server_revision_id=payload.get("server_revision_id"),
+            manifest=items,
+            review_payload=payload.get("review_payload"),
+        )
+        return {"ok": True, "round_id": round_id, "manifest_count": len(items)}
+
     def reopen(self, *, job_id: str, round_id: str) -> Any:
         code, body = self._http(
             "POST",

@@ -584,7 +584,7 @@ def build_summary_prompts(
         "Use extracted form data as the primary source of truth (this reflects user-reviewed corrections).\n"
         "Use transcript only as supporting context to explain observations and values.\n"
         "Keep language conservative and factual for a legal document; do not overstate certainty.\n"
-        "Do not add conclusions or recommendations not supported by form data/transcript.\n\n"
+        "Do not add conclusions or recommendations.\n\n"
         "Extracted form data (JSON):\n"
         f"{json.dumps(form_data, ensure_ascii=True)}\n\n"
         "Transcript:\n"

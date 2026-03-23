@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, HTTPException
 
 from .models import ManifestItem
 
@@ -21,6 +21,30 @@ def build_round_manifest_router(
     """Build the round manifest update route."""
 
     router = APIRouter()
+
+    @router.get("/v1/jobs/{job_id}/rounds/{round_id}/manifest")
+    def get_manifest(
+        job_id: str,
+        round_id: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Return the current round manifest payload."""
+        auth = require_api_key(x_api_key)
+        assert_job_assignment(job_id, auth)
+        try:
+            _, round_record = ensure_round_record(job_id, round_id)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        manifest = list(round_record.manifest or [])
+        logger.info(
+            "GET /v1/jobs/%s/rounds/%s/manifest (%s items)",
+            job_id,
+            round_id,
+            len(manifest),
+        )
+        return {"ok": True, "round_id": round_id, "manifest": manifest, "manifest_count": len(manifest)}
 
     @router.put("/v1/jobs/{job_id}/rounds/{round_id}/manifest")
     def set_manifest(

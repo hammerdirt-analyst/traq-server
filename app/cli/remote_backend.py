@@ -378,6 +378,35 @@ class RemoteRoundBackend(_RemoteBase):
         super().__init__(host=host, api_key=api_key, http=http)
         self._job_backend = job_backend
 
+    def create(self, *, job_ref: str) -> Any:
+        job_id = self._job_backend._resolve_job_id(job_ref)
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/jobs/{parse.quote(job_id)}/rounds",
+            api_key=self._api_key,
+            payload={},
+        )
+        return self._expect_ok(code, body)
+
+    def manifest_get(self, *, job_ref: str, round_id: str) -> Any:
+        job_id = self._job_backend._resolve_job_id(job_ref)
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/jobs/{parse.quote(job_id)}/rounds/{parse.quote(round_id)}/manifest",
+            api_key=self._api_key,
+        )
+        return self._expect_ok(code, body)
+
+    def manifest_set(self, *, job_ref: str, round_id: str, items: list[dict[str, Any]]) -> Any:
+        job_id = self._job_backend._resolve_job_id(job_ref)
+        code, body = self._http(
+            "PUT",
+            f"{self._host}/v1/jobs/{parse.quote(job_id)}/rounds/{parse.quote(round_id)}/manifest",
+            api_key=self._api_key,
+            payload=items,
+        )
+        return self._expect_ok(code, body)
+
     def reopen(self, *, job_id: str, round_id: str) -> Any:
         code, body = self._http(
             "POST",

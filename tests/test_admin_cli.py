@@ -473,6 +473,160 @@ class AdminCliTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn('"status": "DRAFT"', output)
 
+    def test_round_create_local(self) -> None:
+        customer = json.loads(
+            self._stdout_for(
+                admin_cli.cmd_customer_create,
+                argparse.Namespace(name="Customer Tree Owner", phone=None, address=None),
+            )[1]
+        )
+        self._stdout_for(
+            admin_cli.cmd_job_create,
+            argparse.Namespace(
+                job_id="job_1",
+                job_number="J0001",
+                customer_id=customer["customer_id"],
+                billing_profile_id=None,
+                tree_number="4",
+                job_name="Customer Tree",
+                job_address="123 Oak St",
+                reason=None,
+                location_notes=None,
+                tree_species=None,
+                status="DRAFT",
+            ),
+        )
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_create,
+            argparse.Namespace(job="J0001"),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        self.assertEqual(payload["round_id"], "round_1")
+        self.assertEqual(payload["status"], "DRAFT")
+        job = self.store.get_job("job_1")
+        self.assertEqual(job["latest_round_id"], "round_1")
+        self.assertEqual(job["latest_round_status"], "DRAFT")
+
+    @patch("admin_cli._http")
+    def test_round_create_remote(self, http_mock) -> None:
+        http_mock.side_effect = [
+            (200, {"ok": True, "job_id": "job_1", "job_number": "J0001", "status": "DRAFT"}),
+            (200, {"round_id": "round_1", "status": "DRAFT"}),
+        ]
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_create,
+            argparse.Namespace(
+                job="J0001",
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"round_id": "round_1"', output)
+
+    def test_round_manifest_get_and_set_local(self) -> None:
+        customer = json.loads(
+            self._stdout_for(
+                admin_cli.cmd_customer_create,
+                argparse.Namespace(name="Customer Tree Owner", phone=None, address=None),
+            )[1]
+        )
+        self._stdout_for(
+            admin_cli.cmd_job_create,
+            argparse.Namespace(
+                job_id="job_1",
+                job_number="J0001",
+                customer_id=customer["customer_id"],
+                billing_profile_id=None,
+                tree_number="4",
+                job_name="Customer Tree",
+                job_address="123 Oak St",
+                reason=None,
+                location_notes=None,
+                tree_species=None,
+                status="DRAFT",
+            ),
+        )
+        self._stdout_for(admin_cli.cmd_round_create, argparse.Namespace(job="J0001"))
+        manifest_path = self.storage_root / "manifest.json"
+        manifest_path.write_text(
+            json.dumps(
+                [
+                    {
+                        "artifact_id": "rec_1",
+                        "section_id": "site_factors",
+                        "client_order": 0,
+                        "kind": "recording",
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_manifest_set,
+            argparse.Namespace(job="J0001", round_id="round_1", file=str(manifest_path)),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"manifest_count": 1', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_manifest_get,
+            argparse.Namespace(job="J0001", round_id="round_1"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"artifact_id": "rec_1"', output)
+
+    @patch("admin_cli._http")
+    def test_round_manifest_get_and_set_remote(self, http_mock) -> None:
+        manifest_path = self.storage_root / "manifest_remote.json"
+        manifest_path.write_text(
+            json.dumps(
+                [
+                    {
+                        "artifact_id": "rec_1",
+                        "section_id": "site_factors",
+                        "client_order": 0,
+                        "kind": "recording",
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+        http_mock.side_effect = [
+            (200, {"ok": True, "job_id": "job_1", "job_number": "J0001", "status": "DRAFT"}),
+            (200, {"ok": True, "round_id": "round_1", "manifest_count": 1}),
+            (200, {"ok": True, "job_id": "job_1", "job_number": "J0001", "status": "DRAFT"}),
+            (200, {"ok": True, "round_id": "round_1", "manifest": [{"artifact_id": "rec_1"}], "manifest_count": 1}),
+        ]
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_manifest_set,
+            argparse.Namespace(
+                job="J0001",
+                round_id="round_1",
+                file=str(manifest_path),
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"manifest_count": 1', output)
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_round_manifest_get,
+            argparse.Namespace(
+                job="J0001",
+                round_id="round_1",
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"artifact_id": "rec_1"', output)
+
     @patch("app.cli.net_commands.subprocess.check_output")
     def test_net_ipv4_and_ipv6(self, check_output_mock) -> None:
         check_output_mock.side_effect = [

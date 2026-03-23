@@ -623,6 +623,11 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(payload["manifest_count"], 1)
         self.assertEqual(round_record.manifest[0]["artifact_id"], "rec_1")
 
+        get_manifest = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}/manifest", "GET")
+        payload = get_manifest("job_1", "round_1", x_api_key="test-key")
+        self.assertEqual(payload["manifest_count"], 1)
+        self.assertEqual(payload["manifest"][0]["artifact_id"], "rec_1")
+
     def test_round_submit_router_builds_expected_endpoint(self) -> None:
         class DummyAuth:
             is_admin = False
