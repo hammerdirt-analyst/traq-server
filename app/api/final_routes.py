@@ -121,9 +121,9 @@ def build_final_router(
                 and str(profile_payload.get("isa_number") or "").strip()
                 else None
             )
-            current_report_images = media_runtime_service.load_job_report_images(
+            current_report_images = media_runtime_service.load_effective_job_report_images(
                 job_id=job_id,
-                round_id=record.latest_round_id or "",
+                preferred_round_id=payload.round_id,
             )
             archived_final_payload = None
             archived_correction_payload = None
@@ -196,6 +196,7 @@ def build_final_router(
             form=payload.form,
             narrative=payload.narrative,
             user_name=user_name,
+            profile=profile_payload if isinstance(profile_payload, dict) else None,
             report_images=report_images,
         )
         final_json_key = job_artifact_key(job_id, artifact_names.final_json_name)

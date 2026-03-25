@@ -184,8 +184,43 @@ class MediaRuntimeService:
         round_id: str,
     ) -> list[dict[str, str]]:
         """Load report-image metadata for a job from DB-backed image state."""
+        return self._report_images_for_rows(
+            self._db_store.list_round_images(job_id, round_id=round_id)
+        )
+
+    def load_effective_job_report_images(
+        self,
+        *,
+        job_id: str,
+        preferred_round_id: str | None = None,
+    ) -> list[dict[str, str]]:
+        """Load effective report images for a job across rounds.
+
+        Images are job-scoped for finalization purposes. Prefer the submitted
+        round first, then merge in prior round images without dropping earlier
+        captures that still belong in the report.
+        """
+        round_rows = list(self._db_store.list_job_rounds(job_id) or [])
+        ordered_round_ids: list[str] = []
+        if preferred_round_id:
+            ordered_round_ids.append(str(preferred_round_id))
+        for row in reversed(round_rows):
+            round_id = str(row.get("round_id") or "").strip()
+            if round_id and round_id not in ordered_round_ids:
+                ordered_round_ids.append(round_id)
+        image_lists: list[list[dict[str, str]]] = []
+        for round_id in ordered_round_ids:
+            image_lists.append(
+                self._report_images_for_rows(
+                    self._db_store.list_round_images(job_id, round_id=round_id)
+                )
+            )
+        return self.merge_report_images(*image_lists)
+
+    def _report_images_for_rows(self, rows: list[dict[str, Any]]) -> list[dict[str, str]]:
+        """Normalize stored round-image rows into report-image inputs."""
         images: list[dict[str, str]] = []
-        for row in self._db_store.list_round_images(job_id, round_id=round_id):
+        for row in rows:
             meta = dict(row.get("metadata_json") or {})
             report_path = str(meta.get("report_image_path") or "").strip()
             stored_path = str(meta.get("stored_path") or row.get("artifact_path") or "").strip()
