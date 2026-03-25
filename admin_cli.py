@@ -45,6 +45,12 @@ from app.cli.device_commands import (
     cmd_device_validate as _cmd_device_validate,
     register_device_commands,
 )
+from app.cli.export_commands import (
+    cmd_export_changes as _cmd_export_changes,
+    cmd_export_geojson_fetch as _cmd_export_geojson_fetch,
+    cmd_export_image_fetch as _cmd_export_image_fetch,
+    register_export_commands,
+)
 from app.cli.final_commands import (
     cmd_final_set_correction as _cmd_final_set_correction,
     cmd_final_set_final as _cmd_final_set_final,
@@ -310,6 +316,7 @@ def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list
         or (top == "final" and sub == "inspect")
         or (top == "tree" and sub == "identify")
         or (top == "artifact" and sub == "fetch")
+        or (top == "export" and sub in {"changes", "image-fetch", "geojson-fetch"})
     )
     if needs_http_defaults:
         if "--host" not in augmented:
@@ -362,6 +369,9 @@ def _make_handlers(backend):
         "final_set_correction": cmd_final_set_correction,
         "tree_identify": cmd_tree_identify,
         "artifact_fetch": cmd_artifact_fetch,
+        "export_changes": cmd_export_changes,
+        "export_image_fetch": cmd_export_image_fetch,
+        "export_geojson_fetch": cmd_export_geojson_fetch,
         "net_ipv4": cmd_net_ipv4,
         "net_ipv6": cmd_net_ipv6,
     }
@@ -558,6 +568,18 @@ def cmd_artifact_fetch(args: argparse.Namespace) -> int:
     return _cmd_artifact_fetch(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
 
+def cmd_export_changes(args: argparse.Namespace) -> int:
+    return _cmd_export_changes(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_export_image_fetch(args: argparse.Namespace) -> int:
+    return _cmd_export_image_fetch(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_export_geojson_fetch(args: argparse.Namespace) -> int:
+    return _cmd_export_geojson_fetch(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
 def cmd_net_ipv4(args: argparse.Namespace) -> int:
     return _cmd_net_ipv4_impl(args, print_json=_print_json)
 
@@ -674,6 +696,16 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
         default_host=default_host,
         default_api_key=default_api_key,
     )
+    register_export_commands(
+        sub,
+        {
+            "changes": handlers["export_changes"],
+            "image_fetch": handlers["export_image_fetch"],
+            "geojson_fetch": handlers["export_geojson_fetch"],
+        },
+        default_host=default_host,
+        default_api_key=default_api_key,
+    )
     return parser
 
 
@@ -722,6 +754,9 @@ def _repl_command_catalog() -> list[str]:
             "final set-final",
             "final set-correction",
             "artifact fetch",
+            "export changes",
+            "export image-fetch",
+            "export geojson-fetch",
             "tree identify",
             "net ipv4",
             "net ipv6",

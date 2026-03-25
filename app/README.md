@@ -176,6 +176,7 @@ Covered command groups:
 - round create, manifest get/set, submit, reprocess, inspect, and reopen
 - review inspect
 - final inspect and artifact fetch
+- export sync and artifact fetch for downstream reporting clients
 - standalone tree identification
 
 Current limits:
@@ -206,9 +207,23 @@ uv run traq-admin cloud review inspect --job J0001 --round-id round_1
 uv run traq-admin cloud final inspect --job J0001
 uv run traq-admin cloud artifact fetch --job J0001 --kind final-json
 
+# Export sync for downstream reporting clients
+uv run traq-admin cloud export changes
+uv run traq-admin cloud export changes --cursor 2026-03-24T18:45:00Z
+uv run traq-admin cloud export image-fetch --job-id job_123 --image-ref img_1 --variant report
+uv run traq-admin cloud export geojson-fetch --job-id job_456
+
 # Standalone tree identification
 uv run traq-admin cloud tree identify --image ./bark.jpg
 ```
+
+Export notes:
+
+- run export commands from `server/`
+- use the same admin cloud configuration as other remote CLI commands
+- `export changes` returns the current sync payload with `in_process`, `completed`, and `transitioned_to_completed`
+- `export image-fetch` downloads one image referenced by the export payload
+- `export geojson-fetch` downloads archived GeoJSON for a completed job
 
 Smoke-test helpers kept in this repo:
 

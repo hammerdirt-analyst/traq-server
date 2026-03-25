@@ -528,6 +528,59 @@ class RemoteArtifactBackend(_RemoteBase):
         }
 
 
+class RemoteExportBackend(_RemoteBase):
+    def changes(self, *, cursor: str | None = None) -> Any:
+        query = f"?cursor={parse.quote(cursor)}" if cursor else ""
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/export/changes{query}",
+            api_key=self._api_key,
+        )
+        return self._expect_ok(code, body)
+
+    def image_fetch(
+        self,
+        *,
+        job_id: str,
+        image_ref: str,
+        variant: str = "auto",
+        output_path: str | None = None,
+    ) -> Any:
+        payload, headers = self._download(
+            f"/v1/export/jobs/{parse.quote(job_id)}/images/{parse.quote(image_ref)}?variant={parse.quote(variant)}"
+        )
+        filename = ""
+        content_disposition = headers.get("Content-Disposition") or headers.get("content-disposition") or ""
+        if "filename=" in content_disposition:
+            filename = content_disposition.split("filename=", 1)[1].strip().strip('"')
+        if not filename:
+            filename = f"{image_ref}"
+        saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / filename)
+        saved_path.parent.mkdir(parents=True, exist_ok=True)
+        saved_path.write_bytes(payload)
+        return {
+            "job_id": job_id,
+            "image_ref": image_ref,
+            "variant": variant,
+            "saved_path": str(saved_path),
+        }
+
+    def geojson_fetch(self, *, job_id: str, output_path: str | None = None) -> Any:
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/export/jobs/{parse.quote(job_id)}/geojson",
+            api_key=self._api_key,
+        )
+        payload = self._expect_ok(code, body)
+        saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / "export.geojson")
+        saved_path.parent.mkdir(parents=True, exist_ok=True)
+        saved_path.write_text(__import__("json").dumps(payload, indent=2), encoding="utf-8")
+        return {
+            "job_id": job_id,
+            "saved_path": str(saved_path),
+        }
+
+
 class RemoteTreeBackend(_RemoteBase):
     def identify(
         self,
@@ -591,6 +644,7 @@ def build_remote_backend(*, host: str, api_key: str, http: HttpCaller) -> CliBac
         review=RemoteReviewBackend(host=host, api_key=api_key, http=http, job_backend=job_backend),
         final=RemoteFinalBackend(host=host, api_key=api_key, http=http, job_backend=job_backend),
         artifact=RemoteArtifactBackend(host=host, api_key=api_key, http=http, job_backend=job_backend),
+        export=RemoteExportBackend(host=host, api_key=api_key, http=http),
         tree=RemoteTreeBackend(host=host, api_key=api_key, http=http),
         net=RemoteNetBackend(host=host, api_key=api_key, http=http),
     )

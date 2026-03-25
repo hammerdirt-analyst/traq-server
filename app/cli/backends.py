@@ -87,6 +87,19 @@ class ArtifactBackend(Protocol):
     def fetch(self, *, job_ref: str, kind: str) -> Any: ...
 
 
+class ExportBackend(Protocol):
+    def changes(self, *, cursor: str | None = None) -> Any: ...
+    def image_fetch(
+        self,
+        *,
+        job_id: str,
+        image_ref: str,
+        variant: str = "auto",
+        output_path: str | None = None,
+    ) -> Any: ...
+    def geojson_fetch(self, *, job_id: str, output_path: str | None = None) -> Any: ...
+
+
 class TreeBackend(Protocol):
     def identify(
         self,
@@ -115,5 +128,6 @@ class CliBackendBundle:
     review: ReviewBackend
     final: FinalBackend
     artifact: ArtifactBackend
+    export: ExportBackend
     tree: TreeBackend
     net: NetBackend

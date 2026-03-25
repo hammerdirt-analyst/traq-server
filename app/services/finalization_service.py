@@ -100,6 +100,7 @@ class FinalizationService:
         form: dict[str, Any],
         narrative: Any,
         user_name: str | None,
+        profile: dict[str, Any] | None,
         report_images: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Build the archived final/correction payload written to storage and DB."""
@@ -113,5 +114,6 @@ class FinalizationService:
             "form": form,
             "narrative": narrative,
             "user_name": user_name,
+            "profile": dict(profile or {}) if isinstance(profile, dict) else None,
             "report_images": report_images,
         }

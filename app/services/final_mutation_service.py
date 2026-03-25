@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -12,6 +13,20 @@ from ..db_models import Job, JobFinal, JobGeoJSONExport, JobStatus
 
 class FinalMutationService:
     """Write archived final and correction snapshots into the database."""
+
+    @staticmethod
+    def _parse_archived_at(payload: dict[str, Any]) -> datetime:
+        """Parse archived-at timestamp from payload or default to current UTC."""
+        raw = str(payload.get("archived_at") or "").strip()
+        if raw:
+            try:
+                parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=timezone.utc)
+                return parsed.astimezone(timezone.utc)
+            except ValueError:
+                pass
+        return datetime.now(timezone.utc)
 
     @staticmethod
     def _job_to_dict(job: Job) -> dict[str, Any]:
@@ -88,6 +103,7 @@ class FinalMutationService:
             else:
                 job.correction_snapshot = payload
             job.status = JobStatus.archived
+            job.archived_at = self._parse_archived_at(payload)
 
             if geojson_payload is not None:
                 geojson_row = session.scalar(

@@ -26,6 +26,7 @@ from fastapi import Body, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
 from .api.admin_routes import build_admin_router
 from .api.core_routes import build_core_router
+from .api.export_routes import build_export_router
 from .api.extraction_routes import build_extraction_router
 from .api.final_routes import build_final_router
 from .api.image_routes import build_image_router
@@ -70,6 +71,7 @@ from .fs_utils import write_json_file
 from .security_store import AuthContext
 from .services.assigned_job_service import AssignedJobService
 from .services.artifact_fetch_service import ArtifactFetchService
+from .services.export_sync_service import ExportSyncService
 from .services.inspection_service import InspectionService
 from .services.report_render_service import ReportRenderService
 from .services.review_state_service import ReviewStateService
@@ -249,6 +251,11 @@ def create_app() -> FastAPI:
     def _materialize_artifact_path(key: str) -> Path:
         """Return a readable local path for one artifact key."""
         return artifact_store.materialize_path(key)
+
+    export_sync_service = ExportSyncService(
+        normalize_form_schema=review_form_service.normalize_form_schema,
+        materialize_artifact_path=_materialize_artifact_path,
+    )
 
     _to_assigned_job = assigned_job_service.to_assigned_job
 
@@ -644,6 +651,13 @@ def create_app() -> FastAPI:
             inspection_service=InspectionService(settings=settings, db_store=db_store),
             artifact_fetch_service=artifact_fetch_service,
             round_record_factory=RoundRecord,
+            logger=logger,
+        )
+    )
+    app.include_router(
+        build_export_router(
+            require_api_key=require_api_key,
+            export_sync_service=export_sync_service,
             logger=logger,
         )
     )

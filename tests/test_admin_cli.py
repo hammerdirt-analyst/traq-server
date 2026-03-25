@@ -268,6 +268,83 @@ class AdminCliTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn('"job_name": "Updated"', output)
 
+    @patch("app.cli.remote_backend.request.urlopen")
+    @patch("admin_cli._http")
+    def test_remote_export_commands(self, http_mock, urlopen_mock) -> None:
+        class _Response:
+            def __init__(self, payload: bytes, *, filename: str) -> None:
+                self._payload = payload
+                self.headers = self
+                self._filename = filename
+
+            def read(self) -> bytes:
+                return self._payload
+
+            def get_filename(self) -> str:
+                return self._filename
+
+            def items(self):
+                return [("Content-Disposition", f'attachment; filename="{self._filename}"')]
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        http_mock.side_effect = [
+            (
+                200,
+                {
+                    "cursor": "2026-03-24T18:45:00Z",
+                    "server_time": "2026-03-24T18:45:00Z",
+                    "in_process": [],
+                    "completed": [],
+                    "transitioned_to_completed": [],
+                },
+            ),
+            (200, {"type": "FeatureCollection", "features": []}),
+        ]
+        urlopen_mock.return_value = _Response(b"image-bytes", filename="img_1.jpg")
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_export_changes,
+            argparse.Namespace(cursor=None, host="https://example.test", api_key="demo-key"),
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn('"cursor": "2026-03-24T18:45:00Z"', output)
+
+        image_output = self.storage_root / "downloaded.jpg"
+        rc, output = self._stdout_for(
+            admin_cli.cmd_export_image_fetch,
+            argparse.Namespace(
+                job_id="job_1",
+                image_ref="img_1",
+                variant="report",
+                output=str(image_output),
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertTrue(image_output.exists())
+        self.assertEqual(image_output.read_bytes(), b"image-bytes")
+        self.assertIn('"saved_path"', output)
+
+        geojson_output = self.storage_root / "export.geojson"
+        rc, output = self._stdout_for(
+            admin_cli.cmd_export_geojson_fetch,
+            argparse.Namespace(
+                job_id="job_1",
+                output=str(geojson_output),
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        self.assertTrue(geojson_output.exists())
+        self.assertIn('"saved_path"', output)
+
     def test_context_defaults_select_local_and_cloud(self) -> None:
         os.environ["TRAQ_ADMIN_BASE_URL"] = "http://127.0.0.1:8000"
         os.environ["TRAQ_API_KEY"] = "demo-key"

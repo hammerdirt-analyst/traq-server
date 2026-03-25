@@ -37,6 +37,19 @@ For this repo, progress should follow this order:
 3. verify what is live
 4. then change it
 
+## Python environment rule
+
+For all Python work in `server/`, use `uv`.
+
+- run tests from the `server/` directory
+- prefer `uv run ...` over direct `python ...`
+- do not assume the global Python environment matches the project environment
+
+Examples:
+
+- `env UV_CACHE_DIR=/tmp/uv-cache uv run python -m unittest tests.test_export_sync_service`
+- `env UV_CACHE_DIR=/tmp/uv-cache uv run python -m unittest tests.test_api_routers`
+
 ## Failure framing
 
 When something goes wrong, first ask:

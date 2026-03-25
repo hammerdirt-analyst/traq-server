@@ -354,6 +354,67 @@ class LocalArtifactBackend:
         return _artifact_fetch_service().fetch(job_ref, kind=kind)
 
 
+class LocalExportBackend:
+    def __init__(self, *, http: HttpCaller, host: str, api_key: str) -> None:
+        self._http = http
+        self._host = host.rstrip("/")
+        self._api_key = api_key
+
+    def changes(self, *, cursor: str | None = None) -> Any:
+        query = f"?cursor={cursor}" if cursor else ""
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/export/changes{query}",
+            api_key=self._api_key,
+        )
+        if code != 200:
+            raise RuntimeError(f"HTTP {code}: {body}")
+        return body
+
+    def image_fetch(
+        self,
+        *,
+        job_id: str,
+        image_ref: str,
+        variant: str = "auto",
+        output_path: str | None = None,
+    ) -> Any:
+        from urllib import parse, request
+
+        req = request.Request(
+            f"{self._host}/v1/export/jobs/{parse.quote(job_id)}/images/{parse.quote(image_ref)}?variant={parse.quote(variant)}",
+            method="GET",
+            headers={"x-api-key": self._api_key},
+        )
+        with request.urlopen(req, timeout=30) as resp:
+            payload = resp.read()
+            saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / resp.headers.get_filename())
+            saved_path.parent.mkdir(parents=True, exist_ok=True)
+            saved_path.write_bytes(payload)
+            return {
+                "job_id": job_id,
+                "image_ref": image_ref,
+                "variant": variant,
+                "saved_path": str(saved_path),
+            }
+
+    def geojson_fetch(self, *, job_id: str, output_path: str | None = None) -> Any:
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/export/jobs/{job_id}/geojson",
+            api_key=self._api_key,
+        )
+        if code != 200:
+            raise RuntimeError(f"HTTP {code}: {body}")
+        saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / "export.geojson")
+        saved_path.parent.mkdir(parents=True, exist_ok=True)
+        saved_path.write_text(__import__("json").dumps(body, indent=2), encoding="utf-8")
+        return {
+            "job_id": job_id,
+            "saved_path": str(saved_path),
+        }
+
+
 class LocalTreeBackend:
     def identify(
         self,
@@ -421,6 +482,7 @@ def build_local_backend(*, http: HttpCaller) -> CliBackendBundle:
         review=LocalReviewBackend(),
         final=LocalFinalBackend(),
         artifact=LocalArtifactBackend(),
+        export=LocalExportBackend(http=http, host=host, api_key=api_key),
         tree=LocalTreeBackend(),
         net=LocalNetBackend(),
     )
