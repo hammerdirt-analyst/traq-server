@@ -360,10 +360,14 @@ class AdminCliTests(unittest.TestCase):
         )
 
     def test_cloud_context_requires_explicit_settings(self) -> None:
-        os.environ.pop("TRAQ_CLOUD_ADMIN_BASE_URL", None)
-        os.environ.pop("TRAQ_CLOUD_API_KEY", None)
-        with self.assertRaises(RuntimeError):
-            admin_cli._context_defaults("cloud")
+        with patch("admin_cli._settings") as settings_mock:
+            settings_mock.return_value = type(
+                "Settings",
+                (),
+                {"cloud_admin_base_url": None, "cloud_api_key": None},
+            )()
+            with self.assertRaises(RuntimeError):
+                admin_cli._context_defaults("cloud")
 
     def test_http_defaults_cover_device_commands(self) -> None:
         self.assertEqual(
@@ -1037,6 +1041,42 @@ class AdminCliTests(unittest.TestCase):
         updated_billing = json.loads(output)
         self.assertEqual(updated_billing["billing_contact_name"], "B. Manager")
         self.assertEqual(updated_billing["contact_preference"], "phone")
+
+    def test_artifact_fetch_command_exports_geo_json(self) -> None:
+        service = admin_cli._job_mutation_service()
+        final_service = admin_cli._final_mutation_service()
+        service.create_job(
+            job_id="job_artifact_geo",
+            job_number="J0012",
+            status="ARCHIVED",
+            customer_id=None,
+            billing_profile_id=None,
+            tree_number=None,
+            job_name="Artifact GeoJSON",
+            job_address="125 Export St",
+            reason=None,
+            location_notes=None,
+            tree_species=None,
+        )
+        final_service.set_final(
+            "J0012",
+            payload={"round_id": "round_1", "transcript": "Geo transcript"},
+        )
+        job_dir = self.storage_root / "jobs" / "job_artifact_geo"
+        job_dir.mkdir(parents=True, exist_ok=True)
+        (job_dir / "final.geojson").write_text('{"type":"FeatureCollection","features":[]}', encoding="utf-8")
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_artifact_fetch,
+            argparse.Namespace(job="J0012", kind="geo-json"),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        exported = Path(payload["saved_path"])
+        self.assertTrue(exported.exists())
+        self.assertEqual(exported.name, "J0012_final.geojson")
+        exported_payload = json.loads(exported.read_text(encoding="utf-8"))
+        self.assertEqual(exported_payload["type"], "FeatureCollection")
 
     def test_customer_and_billing_duplicates_commands(self) -> None:
         self._stdout_for(

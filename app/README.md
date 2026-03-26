@@ -206,6 +206,7 @@ uv run traq-admin cloud round reprocess --job J0001 --round-id round_1
 uv run traq-admin cloud review inspect --job J0001 --round-id round_1
 uv run traq-admin cloud final inspect --job J0001
 uv run traq-admin cloud artifact fetch --job J0001 --kind final-json
+uv run traq-admin cloud artifact fetch --job J0001 --kind geo-json
 
 # Export sync for downstream reporting clients
 uv run traq-admin cloud export changes

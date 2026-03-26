@@ -71,6 +71,7 @@ class ArtifactFetchServiceTests(unittest.TestCase):
         job_dir.mkdir(parents=True, exist_ok=True)
         (job_dir / "final_report_letter.pdf").write_bytes(b"final-report")
         (job_dir / "final_traq_page1.pdf").write_bytes(b"final-traq")
+        (job_dir / "final.geojson").write_text('{"type":"FeatureCollection","features":[]}', encoding="utf-8")
         if correction:
             self.final_service.set_correction(
                 "J0001",
@@ -78,6 +79,10 @@ class ArtifactFetchServiceTests(unittest.TestCase):
             )
             (job_dir / "final_report_letter_correction.pdf").write_bytes(b"corr-report")
             (job_dir / "final_traq_page1_correction.pdf").write_bytes(b"corr-traq")
+            (job_dir / "final_correction.geojson").write_text(
+                '{"type":"FeatureCollection","features":[{"type":"Feature"}]}',
+                encoding="utf-8",
+            )
         return "job_1"
 
     def test_fetch_report_pdf_exports_canonical_filename(self) -> None:
@@ -121,3 +126,16 @@ class ArtifactFetchServiceTests(unittest.TestCase):
         self.assertEqual(saved_path.name, "J0001_correction.json")
         exported = json.loads(saved_path.read_text(encoding="utf-8"))
         self.assertEqual(exported["transcript"], "Correction transcript")
+
+    def test_fetch_geo_json_exports_preferred_geojson_artifact(self) -> None:
+        self._create_finalized_job(correction=True)
+
+        result = self.fetch_service.fetch("J0001", kind="geo-json")
+
+        self.assertEqual(result["variant"], "correction")
+        saved_path = Path(result["saved_path"])
+        self.assertTrue(saved_path.exists())
+        self.assertEqual(saved_path.name, "J0001_correction.geojson")
+        exported = json.loads(saved_path.read_text(encoding="utf-8"))
+        self.assertEqual(exported["type"], "FeatureCollection")
+        self.assertEqual(len(exported["features"]), 1)

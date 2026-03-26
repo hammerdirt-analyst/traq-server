@@ -31,7 +31,7 @@ class ArtifactFetchService:
     def fetch(self, job_ref: str, *, kind: str) -> dict[str, Any]:
         """Export one artifact kind for the provided job reference."""
         normalized_kind = (kind or "").strip().lower()
-        if normalized_kind not in {"report-pdf", "traq-pdf", "transcript", "final-json"}:
+        if normalized_kind not in {"report-pdf", "traq-pdf", "transcript", "final-json", "geo-json"}:
             raise ValueError(f"Unsupported artifact kind: {kind}")
 
         job = self._resolve_job(job_ref)
@@ -89,6 +89,10 @@ class ArtifactFetchService:
                 ("correction", "final_traq_page1_correction.pdf"),
                 ("final", "final_traq_page1.pdf"),
             ],
+            "geo-json": [
+                ("correction", "final_correction.geojson"),
+                ("final", "final.geojson"),
+            ],
         }[kind]
         for variant, filename in candidate_names:
             key = self._job_artifact_key(job_id, filename)
@@ -130,6 +134,12 @@ class ArtifactFetchService:
                 f"{job_number}_correction_traq_page1.pdf"
                 if variant == "correction"
                 else f"{job_number}_traq_page1.pdf"
+            )
+        if kind == "geo-json":
+            return (
+                f"{job_number}_correction.geojson"
+                if variant == "correction"
+                else f"{job_number}_final.geojson"
             )
         raise ValueError(f"Unsupported export filename kind: {kind}")
 

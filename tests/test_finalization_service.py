@@ -66,6 +66,7 @@ class FinalizationServiceTests(unittest.TestCase):
             form={"data": {}},
             narrative={"text": "Narrative"},
             user_name="Tester",
+            profile=None,
             report_images=[{"id": "img_1"}],
         )
 

@@ -42,7 +42,7 @@ def register_artifact_commands(
     fetch_cmd.add_argument(
         "--kind",
         required=True,
-        choices=["report-pdf", "traq-pdf", "transcript", "final-json"],
+        choices=["report-pdf", "traq-pdf", "transcript", "final-json", "geo-json"],
     )
     fetch_cmd.add_argument("--host", default=default_host)
     fetch_cmd.add_argument("--api-key", default=default_api_key)

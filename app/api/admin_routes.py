@@ -602,6 +602,22 @@ def build_admin_router(
             except (OSError, json.JSONDecodeError) as exc:
                 raise HTTPException(status_code=500, detail="Failed to read final JSON artifact") from exc
 
+        if kind == "geo-json":
+            try:
+                from pathlib import Path
+                import json
+
+                path = Path(saved_path)
+                return JSONResponse(
+                    json.loads(path.read_text(encoding="utf-8")),
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{path.name}"',
+                        "X-Artifact-Variant": variant,
+                    },
+                )
+            except (OSError, json.JSONDecodeError) as exc:
+                raise HTTPException(status_code=500, detail="Failed to read GeoJSON artifact") from exc
+
         return FileResponse(
             path=saved_path,
             filename=saved_path.rsplit("/", 1)[-1],
