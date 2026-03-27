@@ -49,6 +49,7 @@ from app.cli.export_commands import (
     cmd_export_changes as _cmd_export_changes,
     cmd_export_geojson_fetch as _cmd_export_geojson_fetch,
     cmd_export_image_fetch as _cmd_export_image_fetch,
+    cmd_export_images_fetch_all as _cmd_export_images_fetch_all,
     register_export_commands,
 )
 from app.cli.final_commands import (
@@ -316,7 +317,7 @@ def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list
         or (top == "final" and sub == "inspect")
         or (top == "tree" and sub == "identify")
         or (top == "artifact" and sub == "fetch")
-        or (top == "export" and sub in {"changes", "image-fetch", "geojson-fetch"})
+        or (top == "export" and sub in {"changes", "image-fetch", "geojson-fetch", "images-fetch-all"})
     )
     if needs_http_defaults:
         if "--host" not in augmented:
@@ -372,6 +373,7 @@ def _make_handlers(backend):
         "export_changes": cmd_export_changes,
         "export_image_fetch": cmd_export_image_fetch,
         "export_geojson_fetch": cmd_export_geojson_fetch,
+        "export_images_fetch_all": cmd_export_images_fetch_all,
         "net_ipv4": cmd_net_ipv4,
         "net_ipv6": cmd_net_ipv6,
     }
@@ -580,6 +582,10 @@ def cmd_export_geojson_fetch(args: argparse.Namespace) -> int:
     return _cmd_export_geojson_fetch(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
 
+def cmd_export_images_fetch_all(args: argparse.Namespace) -> int:
+    return _cmd_export_images_fetch_all(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
 def cmd_net_ipv4(args: argparse.Namespace) -> int:
     return _cmd_net_ipv4_impl(args, print_json=_print_json)
 
@@ -702,6 +708,7 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
             "changes": handlers["export_changes"],
             "image_fetch": handlers["export_image_fetch"],
             "geojson_fetch": handlers["export_geojson_fetch"],
+            "images_fetch_all": handlers["export_images_fetch_all"],
         },
         default_host=default_host,
         default_api_key=default_api_key,
@@ -757,6 +764,7 @@ def _repl_command_catalog() -> list[str]:
             "export changes",
             "export image-fetch",
             "export geojson-fetch",
+            "export images-fetch-all",
             "tree identify",
             "net ipv4",
             "net ipv6",

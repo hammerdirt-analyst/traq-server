@@ -212,6 +212,7 @@ uv run traq-admin cloud artifact fetch --job J0001 --kind geo-json
 uv run traq-admin cloud export changes
 uv run traq-admin cloud export changes --cursor 2026-03-24T18:45:00Z
 uv run traq-admin cloud export image-fetch --job-id job_123 --image-ref img_1 --variant report
+uv run traq-admin cloud export images-fetch-all --job J0001 --variant report
 uv run traq-admin cloud export geojson-fetch --job-id job_456
 
 # Standalone tree identification
@@ -224,6 +225,7 @@ Export notes:
 - use the same admin cloud configuration as other remote CLI commands
 - `export changes` returns the current sync payload with `in_process`, `completed`, and `transitioned_to_completed`
 - `export image-fetch` downloads one image referenced by the export payload
+- `export images-fetch-all` resolves all export-visible image refs for one job and downloads them in one command
 - `export geojson-fetch` downloads archived GeoJSON for a completed job
 
 Smoke-test helpers kept in this repo:
