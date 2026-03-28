@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_arboretum_003",
+        "job_number": "J0007",
+        "project": "Arboretum",
+        "tree_number": "3",
+        "species": "Ulmus parvifolia",
+        "risk_rating": "low"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.289724,
+          38.622357
+        ]
+      }
+    }
+  ]
+}

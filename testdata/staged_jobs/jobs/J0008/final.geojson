@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_americanriver_001",
+        "job_number": "J0008",
+        "project": "American River",
+        "tree_number": "1",
+        "species": "Populus fremontii",
+        "risk_rating": "moderate"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.289624,
+          38.623157
+        ]
+      }
+    }
+  ]
+}

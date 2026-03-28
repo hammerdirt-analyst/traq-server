@@ -1,0 +1,69 @@
+{
+  "archived_at": "2026-03-25T10:10:08.608364Z",
+  "client_revision_id": "rev_arboretum_001",
+  "job_id": "job_arboretum_001",
+  "job_number": "J0005",
+  "project": "Arboretum",
+  "project_slug": "arboretum",
+  "round_id": "round_j0005",
+  "server_revision_id": "rev_j0005",
+  "user_name": "Roger Erismann",
+  "narrative": {
+    "text": "Arboretum cedar with recurring pedestrian-target exposure and moderate residual risk."
+  },
+  "transcript": "[client_tree_details]\nArboretum tree 1 transcript.\n\n[risk_categorization]\nConditions of concern involve branch extension over pedestrian area.",
+  "profile": {
+    "name": "Roger Erismann",
+    "isa_number": "WE-380138A",
+    "phone": "916 699 1113",
+    "correspondence_email": "roger@hammerdirt.solutions"
+  },
+  "form": {
+    "schema_name": "demo",
+    "schema_version": "0.0",
+    "data": {
+      "client_tree_details": {
+        "section_id": "client_tree_details",
+        "client": "Arboretum",
+        "tree_number": "1",
+        "tree_species": "Cedrus deodara",
+        "dbh": 30,
+        "height": 72,
+        "gps": {
+          "latitude": 38.622157,
+          "longitude": -121.289924
+        }
+      },
+      "overall_tree_risk_rating": {
+        "section_id": "overall_tree_risk_rating",
+        "rating": "moderate"
+      },
+      "overall_residual_risk": {
+        "section_id": "overall_residual_risk",
+        "rating": "moderate"
+      },
+      "recommended_inspection_interval": {
+        "section_id": "recommended_inspection_interval",
+        "text": "12 months"
+      },
+      "crown_and_branches": {
+        "section_id": "crown_and_branches",
+        "main_concerns": "Conditions of concern involve branch extension over pedestrian area"
+      }
+    }
+  },
+  "report_images": [
+    {
+      "caption": "The tree: pedestrian path view",
+      "stored_path": "artifacts/jobs/job_arboretum_001/report_images/report_1.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0005/images/report_1.svg",
+      "uploaded_at": "2026-03-25T10:10:08.608364Z"
+    },
+    {
+      "caption": "branch extension",
+      "stored_path": "artifacts/jobs/job_arboretum_001/report_images/report_2.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0005/images/report_2.svg",
+      "uploaded_at": "2026-03-25T10:10:08.608364Z"
+    }
+  ]
+}

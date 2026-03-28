@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_briarwood_004",
+        "job_number": "J0004",
+        "project": "Briarwood",
+        "tree_number": "4",
+        "species": "Sequoia sempervirens",
+        "risk_rating": "low"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.290024,
+          38.621157
+        ]
+      }
+    }
+  ]
+}

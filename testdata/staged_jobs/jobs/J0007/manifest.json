@@ -1,0 +1,28 @@
+{
+  "job_id": "job_arboretum_003",
+  "job_number": "J0007",
+  "project": "Arboretum",
+  "project_slug": "arboretum",
+  "client_revision_id": "rev_arboretum_003",
+  "archived_at": "2026-03-25T10:30:08.608364Z",
+  "staged_at": "2026-03-28T12:45:00Z",
+  "artifacts": {
+    "final_json": "./final.json",
+    "final_geojson": "./final.geojson",
+    "traq_pdf": "./traq_page1.pdf"
+  },
+  "images": [
+    {
+      "image_ref": "report_1",
+      "variant": "report",
+      "source_path": "./images/report_1.svg",
+      "caption": "The tree: entry path view"
+    },
+    {
+      "image_ref": "report_2",
+      "variant": "report",
+      "source_path": "./images/report_2.svg",
+      "caption": "trunk texture"
+    }
+  ]
+}

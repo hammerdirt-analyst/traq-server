@@ -1,0 +1,28 @@
+{
+  "job_id": "job_briarwood_003",
+  "job_number": "J0003",
+  "project": "Briarwood",
+  "project_slug": "briarwood",
+  "client_revision_id": "rev_briarwood_003",
+  "archived_at": "2026-03-25T09:30:08.608364Z",
+  "staged_at": "2026-03-28T12:45:00Z",
+  "artifacts": {
+    "final_json": "./final.json",
+    "final_geojson": "./final.geojson",
+    "traq_pdf": "./traq_page1.pdf"
+  },
+  "images": [
+    {
+      "image_ref": "report_1",
+      "variant": "report",
+      "source_path": "./images/report_1.svg",
+      "caption": "The tree: south-facing view"
+    },
+    {
+      "image_ref": "report_2",
+      "variant": "report",
+      "source_path": "./images/report_2.svg",
+      "caption": "root flare"
+    }
+  ]
+}

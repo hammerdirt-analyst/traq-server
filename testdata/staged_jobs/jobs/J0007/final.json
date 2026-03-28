@@ -1,0 +1,69 @@
+{
+  "archived_at": "2026-03-25T10:30:08.608364Z",
+  "client_revision_id": "rev_arboretum_003",
+  "job_id": "job_arboretum_003",
+  "job_number": "J0007",
+  "project": "Arboretum",
+  "project_slug": "arboretum",
+  "round_id": "round_j0007",
+  "server_revision_id": "rev_j0007",
+  "user_name": "Roger Erismann",
+  "narrative": {
+    "text": "Arboretum elm with minor trunk observations and no significant current hazards."
+  },
+  "transcript": "[client_tree_details]\nArboretum tree 3 transcript.\n\n[trunk]\nObserved minor bark texture variation.",
+  "profile": {
+    "name": "Roger Erismann",
+    "isa_number": "WE-380138A",
+    "phone": "916 699 1113",
+    "correspondence_email": "roger@hammerdirt.solutions"
+  },
+  "form": {
+    "schema_name": "demo",
+    "schema_version": "0.0",
+    "data": {
+      "client_tree_details": {
+        "section_id": "client_tree_details",
+        "client": "Arboretum",
+        "tree_number": "3",
+        "tree_species": "Ulmus parvifolia",
+        "dbh": 16,
+        "height": 38,
+        "gps": {
+          "latitude": 38.622357,
+          "longitude": -121.289724
+        }
+      },
+      "overall_tree_risk_rating": {
+        "section_id": "overall_tree_risk_rating",
+        "rating": "low"
+      },
+      "overall_residual_risk": {
+        "section_id": "overall_residual_risk",
+        "rating": "low"
+      },
+      "recommended_inspection_interval": {
+        "section_id": "recommended_inspection_interval",
+        "text": "24 months"
+      },
+      "crown_and_branches": {
+        "section_id": "crown_and_branches",
+        "main_concerns": "Observed minor bark texture variation"
+      }
+    }
+  },
+  "report_images": [
+    {
+      "caption": "The tree: entry path view",
+      "stored_path": "artifacts/jobs/job_arboretum_003/report_images/report_1.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0007/images/report_1.svg",
+      "uploaded_at": "2026-03-25T10:30:08.608364Z"
+    },
+    {
+      "caption": "trunk texture",
+      "stored_path": "artifacts/jobs/job_arboretum_003/report_images/report_2.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0007/images/report_2.svg",
+      "uploaded_at": "2026-03-25T10:30:08.608364Z"
+    }
+  ]
+}

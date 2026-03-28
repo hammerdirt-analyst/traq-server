@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_americanriver_002",
+        "job_number": "J0009",
+        "project": "American River",
+        "tree_number": "2",
+        "species": "Salix gooddingii",
+        "risk_rating": "low"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.289524,
+          38.623257
+        ]
+      }
+    }
+  ]
+}

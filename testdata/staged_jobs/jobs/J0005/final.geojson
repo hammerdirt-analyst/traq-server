@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_arboretum_001",
+        "job_number": "J0005",
+        "project": "Arboretum",
+        "tree_number": "1",
+        "species": "Cedrus deodara",
+        "risk_rating": "moderate"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.289924,
+          38.622157
+        ]
+      }
+    }
+  ]
+}
