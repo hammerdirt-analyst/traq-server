@@ -80,18 +80,52 @@ class MediaRuntimeServiceTests(unittest.TestCase):
 
         images = self.service.load_job_report_images(job_id="job_1", round_id="round_1")
 
-        self.assertEqual(images, [{"path": str(report_path), "caption": "Canopy", "uploaded_at": "2026-03-19T10:00:00Z"}])
+        self.assertEqual(
+            images,
+            [
+                {
+                    "path": str(report_path),
+                    "stored_path": report_key,
+                    "caption": "Canopy",
+                    "uploaded_at": "2026-03-19T10:00:00Z",
+                }
+            ],
+        )
 
     def test_merge_report_images_preserves_prior_and_appends_new(self) -> None:
         merged = self.service.merge_report_images(
             [
-                {"path": "/tmp/img_1.jpg", "caption": "Existing 1", "uploaded_at": "2026-03-19T09:00:00Z"},
-                {"path": "/tmp/img_2.jpg", "caption": "Existing 2", "uploaded_at": "2026-03-19T09:05:00Z"},
+                {
+                    "path": "/tmp/img_1.jpg",
+                    "stored_path": "jobs/job_1/sections/job_photos/images/img_1.report.jpg",
+                    "caption": "Existing 1",
+                    "uploaded_at": "2026-03-19T09:00:00Z",
+                },
+                {
+                    "path": "/tmp/img_2.jpg",
+                    "stored_path": "jobs/job_1/sections/job_photos/images/img_2.report.jpg",
+                    "caption": "Existing 2",
+                    "uploaded_at": "2026-03-19T09:05:00Z",
+                },
             ],
             [
-                {"path": "/tmp/img_3.jpg", "caption": "New", "uploaded_at": "2026-03-19T09:10:00Z"},
+                {
+                    "path": "/tmp/other-location.jpg",
+                    "stored_path": "jobs/job_1/sections/job_photos/images/img_2.report.jpg",
+                    "caption": "Updated Existing 2",
+                    "uploaded_at": "2026-03-19T09:07:00Z",
+                },
+                {
+                    "path": "/tmp/img_3.jpg",
+                    "stored_path": "jobs/job_1/sections/job_photos/images/img_3.report.jpg",
+                    "caption": "New",
+                    "uploaded_at": "2026-03-19T09:10:00Z",
+                },
             ],
         )
+        self.assertEqual(len(merged), 3)
+        self.assertEqual(merged[1]["path"], "/tmp/other-location.jpg")
+        self.assertEqual(merged[1]["stored_path"], "jobs/job_1/sections/job_photos/images/img_2.report.jpg")
 
     def test_load_effective_job_report_images_merges_preferred_and_prior_rounds(self) -> None:
         report_key_round_1 = "jobs/job_1/sections/job_photos/images/img_1.report.jpg"
@@ -139,8 +173,18 @@ class MediaRuntimeServiceTests(unittest.TestCase):
         self.assertEqual(
             images,
             [
-                {"path": str(report_path_round_2), "caption": "Newer", "uploaded_at": "2026-03-19T11:00:00Z"},
-                {"path": str(report_path_round_1), "caption": "Older", "uploaded_at": "2026-03-19T10:00:00Z"},
+                {
+                    "path": str(report_path_round_2),
+                    "stored_path": report_key_round_2,
+                    "caption": "Newer",
+                    "uploaded_at": "2026-03-19T11:00:00Z",
+                },
+                {
+                    "path": str(report_path_round_1),
+                    "stored_path": report_key_round_1,
+                    "caption": "Older",
+                    "uploaded_at": "2026-03-19T10:00:00Z",
+                },
             ],
         )
 
