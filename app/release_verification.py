@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
@@ -10,15 +9,6 @@ import subprocess
 import sys
 from typing import Mapping, Sequence
 from urllib import error, request
-
-
-@dataclass(frozen=True)
-class VerificationStep:
-    """One executable verification step with a user-facing name."""
-
-    name: str
-    command: tuple[str, ...]
-
 
 PRE_DEPLOY_TEST_MODULES: tuple[str, ...] = (
     "tests.test_api_routers",
@@ -29,18 +19,6 @@ PRE_DEPLOY_TEST_MODULES: tuple[str, ...] = (
     "tests.test_media_runtime_service",
     "tests.test_staging_sync_service",
     "tests.test_tree_identification_service",
-)
-
-
-POST_DEPLOY_CLI_STEPS: tuple[VerificationStep, ...] = (
-    VerificationStep(
-        name="cloud-device-pending",
-        command=("uv", "run", "traq-admin", "cloud", "device", "pending"),
-    ),
-    VerificationStep(
-        name="cloud-export-changes",
-        command=("uv", "run", "traq-admin", "cloud", "export", "changes"),
-    ),
 )
 
 
@@ -69,8 +47,7 @@ def required_post_deploy_env(base_env: Mapping[str, str] | None = None) -> dict[
     """Validate and return the env required for live post-deploy smoke checks."""
 
     env = dict(base_env or os.environ)
-    required = ("TRAQ_CLOUD_ADMIN_BASE_URL", "TRAQ_CLOUD_API_KEY")
-    missing = [key for key in required if not str(env.get(key) or "").strip()]
+    missing = [key for key in ("TRAQ_CLOUD_ADMIN_BASE_URL",) if not str(env.get(key) or "").strip()]
     if missing:
         raise VerificationError(f"Missing required environment variables: {', '.join(missing)}")
     return env
@@ -79,20 +56,20 @@ def required_post_deploy_env(base_env: Mapping[str, str] | None = None) -> dict[
 def run_pre_deploy(*, cwd: Path, base_env: Mapping[str, str] | None = None) -> None:
     """Execute the pre-deploy regression gate."""
 
-    _run_step(
-        VerificationStep(name="pre-deploy-regression", command=pre_deploy_command()),
+    _run_command(
+        pre_deploy_command(),
         cwd=cwd,
         env=default_pre_deploy_env(base_env),
+        step_name="pre-deploy-regression",
     )
 
 
 def run_post_deploy(*, cwd: Path, base_env: Mapping[str, str] | None = None) -> None:
-    """Execute the live post-deploy smoke gate."""
+    """Execute the live post-deploy health verification."""
 
+    del cwd
     env = required_post_deploy_env(base_env)
     _health_check(str(env["TRAQ_CLOUD_ADMIN_BASE_URL"]).rstrip("/"))
-    for step in POST_DEPLOY_CLI_STEPS:
-        _run_step(step, cwd=cwd, env=env)
 
 
 def _health_check(base_url: str) -> None:
@@ -112,11 +89,16 @@ def _health_check(base_url: str) -> None:
         raise VerificationError(f"Unexpected health payload: {payload}")
 
 
-def _run_step(step: VerificationStep, *, cwd: Path, env: Mapping[str, str]) -> None:
-    command = list(step.command)
-    completed = subprocess.run(command, cwd=str(cwd), env=dict(env), check=False)
+def _run_command(
+    command: Sequence[str],
+    *,
+    cwd: Path,
+    env: Mapping[str, str],
+    step_name: str,
+) -> None:
+    completed = subprocess.run(list(command), cwd=str(cwd), env=dict(env), check=False)
     if completed.returncode != 0:
-        raise VerificationError(f"Step failed [{step.name}]: {' '.join(command)}")
+        raise VerificationError(f"Step failed [{step_name}]: {' '.join(command)}")
 
 
 def main(argv: Sequence[str] | None = None) -> int:

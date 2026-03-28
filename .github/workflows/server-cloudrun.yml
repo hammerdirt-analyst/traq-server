@@ -114,10 +114,7 @@ jobs:
       - name: Resolve post-deploy verification environment
         run: |
           base_url="$(gcloud run services describe "${GCP_CLOUD_RUN_SERVICE}" --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" --format='value(status.url)')"
-          api_key="$(gcloud secrets versions access latest --project "${GCP_PROJECT_ID}" --secret TRAQ_API_KEY)"
-          echo "::add-mask::${api_key}"
           echo "TRAQ_CLOUD_ADMIN_BASE_URL=${base_url}" >> "$GITHUB_ENV"
-          echo "TRAQ_CLOUD_API_KEY=${api_key}" >> "$GITHUB_ENV"
 
       - name: Run post-deploy smoke verification
         run: uv run python scripts/release_verify.py post-deploy

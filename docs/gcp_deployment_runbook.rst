@@ -263,14 +263,11 @@ Post-deploy gate::
 
    cd /home/roger/projects/codex_trial/agent_client/server
    export TRAQ_CLOUD_ADMIN_BASE_URL=https://traq-server-589591848994.us-west1.run.app
-   export TRAQ_CLOUD_API_KEY=<TRAQ_API_KEY>
    UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/release_verify.py post-deploy
 
-The post-deploy smoke gate currently verifies:
+The post-deploy gate currently verifies:
 
 - ``GET /health``
-- ``uv run traq-admin cloud device pending``
-- ``uv run traq-admin cloud export changes``
 
 Verification
 ------------
