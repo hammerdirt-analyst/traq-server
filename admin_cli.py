@@ -17,7 +17,11 @@ from urllib import error, request
 
 from app.cli.artifact_commands import (
     cmd_artifact_fetch as _cmd_artifact_fetch,
-    register_artifact_commands,
+)
+from app.cli.command_registry import (
+    build_handler_lookup,
+    command_requires_http_defaults,
+    register_command_groups,
 )
 from app.cli.customer_commands import (
     cmd_billing_create as _cmd_billing_create,
@@ -34,7 +38,6 @@ from app.cli.customer_commands import (
     cmd_customer_merge as _cmd_customer_merge,
     cmd_customer_update as _cmd_customer_update,
     cmd_customer_usage as _cmd_customer_usage,
-    register_customer_commands,
 )
 from app.cli.device_commands import (
     cmd_device_approve as _cmd_device_approve,
@@ -43,26 +46,22 @@ from app.cli.device_commands import (
     cmd_device_pending as _cmd_device_pending,
     cmd_device_revoke as _cmd_device_revoke,
     cmd_device_validate as _cmd_device_validate,
-    register_device_commands,
 )
 from app.cli.export_commands import (
     cmd_export_changes as _cmd_export_changes,
     cmd_export_geojson_fetch as _cmd_export_geojson_fetch,
     cmd_export_image_fetch as _cmd_export_image_fetch,
     cmd_export_images_fetch_all as _cmd_export_images_fetch_all,
-    register_export_commands,
 )
 from app.cli.final_commands import (
     cmd_final_set_correction as _cmd_final_set_correction,
     cmd_final_set_final as _cmd_final_set_final,
-    register_final_commands,
 )
 from app.cli.inspect_commands import (
     cmd_final_inspect as _cmd_final_inspect,
     cmd_job_inspect as _cmd_job_inspect,
     cmd_review_inspect as _cmd_review_inspect,
     cmd_round_inspect as _cmd_round_inspect,
-    register_inspect_commands,
 )
 from app.cli.job_commands import (
     cmd_job_assign as _cmd_job_assign,
@@ -72,12 +71,10 @@ from app.cli.job_commands import (
     cmd_job_unassign as _cmd_job_unassign,
     cmd_job_unlock as _cmd_job_unlock,
     cmd_job_update as _cmd_job_update,
-    register_job_commands,
 )
 from app.cli.net_commands import (
     cmd_net_ipv4 as _cmd_net_ipv4_impl,
     cmd_net_ipv6 as _cmd_net_ipv6_impl,
-    register_net_commands,
 )
 from app.cli.round_commands import (
     cmd_round_create as _cmd_round_create,
@@ -86,10 +83,9 @@ from app.cli.round_commands import (
     cmd_round_reprocess as _cmd_round_reprocess,
     cmd_round_submit as _cmd_round_submit,
     cmd_round_reopen as _cmd_round_reopen,
-    register_round_commands,
 )
-from app.cli.stage_commands import cmd_stage_sync as _cmd_stage_sync, register_stage_commands
-from app.cli.tree_commands import cmd_tree_identify as _cmd_tree_identify, register_tree_commands
+from app.cli.stage_commands import cmd_stage_sync as _cmd_stage_sync
+from app.cli.tree_commands import cmd_tree_identify as _cmd_tree_identify
 from app.db import create_schema, init_database
 from app.db_store import DatabaseStore
 from app.config import load_settings
@@ -304,24 +300,8 @@ def _resolve_job_id(host: str, api_key: str, job_ref: str) -> str:
 def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list[str]:
     if not tokens:
         return tokens
-    top = tokens[0]
-    sub = tokens[1] if len(tokens) > 1 else ""
     augmented = list(tokens)
-    needs_http_defaults = (
-        (top == "device" and sub in {"list", "pending", "validate", "approve", "revoke", "issue-token"})
-        or (top == "customer" and sub in {"list", "duplicates", "create", "update", "usage", "merge", "delete", "billing"})
-        or (top == "job" and sub in {"assign", "unassign", "list-assignments", "set-status", "unlock"})
-        or (top == "job" and sub in {"create", "update", "inspect"})
-        or (top == "round" and sub in {"create", "reopen", "manifest", "submit", "reprocess"})
-        or (top == "round" and sub == "inspect")
-        or (top == "review" and sub == "inspect")
-        or (top == "final" and sub == "inspect")
-        or (top == "tree" and sub == "identify")
-        or (top == "artifact" and sub == "fetch")
-        or (top == "export" and sub in {"changes", "image-fetch", "geojson-fetch", "images-fetch-all"})
-        or (top == "stage" and sub == "sync")
-    )
-    if needs_http_defaults:
+    if command_requires_http_defaults(tokens):
         if "--host" not in augmented:
             augmented.extend(["--host", host])
         if "--api-key" not in augmented:
@@ -330,56 +310,8 @@ def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list
 
 
 def _make_handlers(backend):
-    return {
-        "device_list": cmd_device_list,
-        "device_pending": cmd_device_pending,
-        "device_validate": cmd_device_validate,
-        "device_approve": cmd_device_approve,
-        "device_revoke": cmd_device_revoke,
-        "device_issue_token": cmd_device_issue_token,
-        "customer_list": cmd_customer_list,
-        "customer_duplicates": cmd_customer_duplicates,
-        "customer_create": cmd_customer_create,
-        "customer_update": cmd_customer_update,
-        "customer_usage": cmd_customer_usage,
-        "customer_merge": cmd_customer_merge,
-        "customer_delete": cmd_customer_delete,
-        "billing_list": cmd_billing_list,
-        "billing_duplicates": cmd_billing_duplicates,
-        "billing_create": cmd_billing_create,
-        "billing_update": cmd_billing_update,
-        "billing_usage": cmd_billing_usage,
-        "billing_merge": cmd_billing_merge,
-        "billing_delete": cmd_billing_delete,
-        "job_create": cmd_job_create,
-        "job_update": cmd_job_update,
-        "job_list_assignments": cmd_job_list_assignments,
-        "job_assign": cmd_job_assign,
-        "job_unassign": cmd_job_unassign,
-        "job_set_status": cmd_job_set_status,
-        "job_unlock": cmd_job_unlock,
-        "job_inspect": cmd_job_inspect,
-        "round_create": cmd_round_create,
-        "round_manifest_get": cmd_round_manifest_get,
-        "round_manifest_set": cmd_round_manifest_set,
-        "round_submit": cmd_round_submit,
-        "round_reprocess": cmd_round_reprocess,
-        "round_reopen": cmd_round_reopen,
-        "round_inspect": cmd_round_inspect,
-        "review_inspect": cmd_review_inspect,
-        "final_inspect": cmd_final_inspect,
-        "final_set_final": cmd_final_set_final,
-        "final_set_correction": cmd_final_set_correction,
-        "tree_identify": cmd_tree_identify,
-        "artifact_fetch": cmd_artifact_fetch,
-        "export_changes": cmd_export_changes,
-        "export_image_fetch": cmd_export_image_fetch,
-        "export_geojson_fetch": cmd_export_geojson_fetch,
-        "export_images_fetch_all": cmd_export_images_fetch_all,
-        "stage_sync": cmd_stage_sync,
-        "net_ipv4": cmd_net_ipv4,
-        "net_ipv6": cmd_net_ipv6,
-    }
+    del backend
+    return build_handler_lookup(globals())
 
 
 def _legacy_backend_for_args(args: argparse.Namespace):
@@ -612,117 +544,9 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
     handlers = _make_handlers(backend)
     parser = argparse.ArgumentParser(description="TRAQ admin CLI")
     sub = parser.add_subparsers(dest="command", required=True)
-
-    register_device_commands(
+    register_command_groups(
         sub,
-        {
-            "list": handlers["device_list"],
-            "pending": handlers["device_pending"],
-            "validate": handlers["device_validate"],
-            "approve": handlers["device_approve"],
-            "revoke": handlers["device_revoke"],
-            "issue_token": handlers["device_issue_token"],
-        },
-    )
-    register_customer_commands(
-        sub,
-        {
-            "customer_list": handlers["customer_list"],
-            "customer_duplicates": handlers["customer_duplicates"],
-            "customer_create": handlers["customer_create"],
-            "customer_update": handlers["customer_update"],
-            "customer_usage": handlers["customer_usage"],
-            "customer_merge": handlers["customer_merge"],
-            "customer_delete": handlers["customer_delete"],
-            "billing_list": handlers["billing_list"],
-            "billing_duplicates": handlers["billing_duplicates"],
-            "billing_create": handlers["billing_create"],
-            "billing_update": handlers["billing_update"],
-            "billing_usage": handlers["billing_usage"],
-            "billing_merge": handlers["billing_merge"],
-            "billing_delete": handlers["billing_delete"],
-        },
-        default_host=default_host,
-        default_api_key=default_api_key,
-    )
-    register_job_commands(
-        sub,
-        {
-            "create": handlers["job_create"],
-            "update": handlers["job_update"],
-            "list_assignments": handlers["job_list_assignments"],
-            "assign": handlers["job_assign"],
-            "unlock": handlers["job_unlock"],
-            "unassign": handlers["job_unassign"],
-            "set_status": handlers["job_set_status"],
-        },
-        default_host=default_host,
-        default_api_key=default_api_key,
-    )
-    register_round_commands(
-        sub,
-        {
-            "create": handlers["round_create"],
-            "manifest_get": handlers["round_manifest_get"],
-            "manifest_set": handlers["round_manifest_set"],
-            "submit": handlers["round_submit"],
-            "reprocess": handlers["round_reprocess"],
-            "reopen": handlers["round_reopen"],
-        },
-        default_host=default_host,
-        default_api_key=default_api_key,
-    )
-    register_inspect_commands(
-        sub,
-        {
-            "job_inspect": handlers["job_inspect"],
-            "round_inspect": handlers["round_inspect"],
-            "review_inspect": handlers["review_inspect"],
-            "final_inspect": handlers["final_inspect"],
-        },
-        default_host=default_host,
-        default_api_key=default_api_key,
-    )
-    register_final_commands(
-        sub,
-        {
-            "set_final": handlers["final_set_final"],
-            "set_correction": handlers["final_set_correction"],
-        },
-    )
-    register_net_commands(
-        sub,
-        {
-            "ipv4": handlers["net_ipv4"],
-            "ipv6": handlers["net_ipv6"],
-        },
-    )
-    register_tree_commands(
-        sub,
-        {"identify": handlers["tree_identify"]},
-        default_host=default_host,
-        default_api_key=default_api_key,
-    )
-    register_artifact_commands(
-        sub,
-        {"fetch": handlers["artifact_fetch"]},
-        default_host=default_host,
-        default_api_key=default_api_key,
-    )
-    register_export_commands(
-        sub,
-        {
-            "changes": handlers["export_changes"],
-            "image_fetch": handlers["export_image_fetch"],
-            "geojson_fetch": handlers["export_geojson_fetch"],
-            "images_fetch_all": handlers["export_images_fetch_all"],
-        },
-        default_host=default_host,
-        default_api_key=default_api_key,
-    )
-    register_stage_commands(
-        sub,
-        {"sync": handlers["stage_sync"]},
+        handlers,
         default_host=default_host,
         default_api_key=default_api_key,
     )
