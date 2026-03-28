@@ -246,6 +246,31 @@ Workflow behavior:
 3. deploy the migration job with the new image
 4. execute the migration job and wait for success
 5. deploy the Cloud Run service
+6. run post-deploy smoke verification against the live service
+
+Shared verification helper
+--------------------------
+
+The release gate is now codified in the repo and should be used both by CI and
+operators.
+
+Pre-deploy gate::
+
+   cd /home/roger/projects/codex_trial/agent_client/server
+   UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/release_verify.py pre-deploy
+
+Post-deploy gate::
+
+   cd /home/roger/projects/codex_trial/agent_client/server
+   export TRAQ_CLOUD_ADMIN_BASE_URL=https://traq-server-589591848994.us-west1.run.app
+   export TRAQ_CLOUD_API_KEY=<TRAQ_API_KEY>
+   UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/release_verify.py post-deploy
+
+The post-deploy smoke gate currently verifies:
+
+- ``GET /health``
+- ``uv run traq-admin cloud device pending``
+- ``uv run traq-admin cloud export changes``
 
 Verification
 ------------

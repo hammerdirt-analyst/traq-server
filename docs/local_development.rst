@@ -164,6 +164,17 @@ Core regression set::
 Use the narrower target first when iterating on one area. Run the broader suite
 before committing deployment-facing changes.
 
+Release verification helper
+---------------------------
+
+Use the shared release verification helper when you want the same pre-deploy
+gate that CI runs::
+
+   UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/release_verify.py pre-deploy
+
+This runs the current deployment-facing regression set with CI-safe local env
+defaults.
+
 Manual smoke testing
 --------------------
 
