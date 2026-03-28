@@ -88,6 +88,7 @@ from app.cli.round_commands import (
     cmd_round_reopen as _cmd_round_reopen,
     register_round_commands,
 )
+from app.cli.stage_commands import cmd_stage_sync as _cmd_stage_sync, register_stage_commands
 from app.cli.tree_commands import cmd_tree_identify as _cmd_tree_identify, register_tree_commands
 from app.db import create_schema, init_database
 from app.db_store import DatabaseStore
@@ -318,6 +319,7 @@ def _inject_http_defaults(tokens: list[str], *, host: str, api_key: str) -> list
         or (top == "tree" and sub == "identify")
         or (top == "artifact" and sub == "fetch")
         or (top == "export" and sub in {"changes", "image-fetch", "geojson-fetch", "images-fetch-all"})
+        or (top == "stage" and sub == "sync")
     )
     if needs_http_defaults:
         if "--host" not in augmented:
@@ -374,6 +376,7 @@ def _make_handlers(backend):
         "export_image_fetch": cmd_export_image_fetch,
         "export_geojson_fetch": cmd_export_geojson_fetch,
         "export_images_fetch_all": cmd_export_images_fetch_all,
+        "stage_sync": cmd_stage_sync,
         "net_ipv4": cmd_net_ipv4,
         "net_ipv6": cmd_net_ipv6,
     }
@@ -586,6 +589,10 @@ def cmd_export_images_fetch_all(args: argparse.Namespace) -> int:
     return _cmd_export_images_fetch_all(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
 
+def cmd_stage_sync(args: argparse.Namespace) -> int:
+    return _cmd_stage_sync(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
 def cmd_net_ipv4(args: argparse.Namespace) -> int:
     return _cmd_net_ipv4_impl(args, print_json=_print_json)
 
@@ -713,6 +720,12 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
         default_host=default_host,
         default_api_key=default_api_key,
     )
+    register_stage_commands(
+        sub,
+        {"sync": handlers["stage_sync"]},
+        default_host=default_host,
+        default_api_key=default_api_key,
+    )
     return parser
 
 
@@ -765,6 +778,7 @@ def _repl_command_catalog() -> list[str]:
             "export image-fetch",
             "export geojson-fetch",
             "export images-fetch-all",
+            "stage sync",
             "tree identify",
             "net ipv4",
             "net ipv6",
