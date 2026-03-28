@@ -164,6 +164,18 @@ Core regression set::
 Use the narrower target first when iterating on one area. Run the broader suite
 before committing deployment-facing changes.
 
+PostgreSQL parity lane
+----------------------
+
+GitHub Actions now has a dedicated PostgreSQL-backed integration lane. It:
+
+1. boots temporary PostgreSQL in CI
+2. runs ``uv run alembic upgrade head``
+3. executes ``tests.test_postgres_ci_smoke``
+
+That lane exists to catch migration and database-engine regressions that would
+not show up in the SQLite-backed fast regression path.
+
 Manual smoke testing
 --------------------
 
