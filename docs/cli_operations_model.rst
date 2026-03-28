@@ -182,6 +182,12 @@ Review, final, and artifact inspection::
    uv run traq-admin cloud artifact fetch --job J0001 --kind geo-json
    uv run traq-admin cloud artifact fetch --job J0001 --kind report-pdf
 
+Export image and GeoJSON retrieval for downstream reporting::
+
+   uv run traq-admin cloud export image-fetch --job-id job_1 --image-ref img_1 --variant report
+   uv run traq-admin cloud export images-fetch-all --job J0001 --variant report
+   uv run traq-admin cloud export geojson-fetch --job-id job_1
+
 Standalone tree identification::
 
    uv run traq-admin cloud tree identify --image ./bark.jpg

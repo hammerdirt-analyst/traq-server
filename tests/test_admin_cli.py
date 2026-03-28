@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -344,6 +345,162 @@ class AdminCliTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertTrue(geojson_output.exists())
         self.assertIn('"saved_path"', output)
+
+    @patch("admin_cli._legacy_backend_for_args")
+    def test_export_images_fetch_all_downloads_job_images_with_partial_failures(self, backend_for_args_mock) -> None:
+        workspace = self.storage_root / "scratch"
+        workspace.mkdir(parents=True, exist_ok=True)
+        image1 = workspace / "img_1.jpg"
+        image1.write_bytes(b"img-1")
+        report1 = workspace / "report_1.jpg"
+        report1.write_bytes(b"report-1")
+
+        class _Job:
+            @staticmethod
+            def inspect(*, job_ref: str):
+                self.assertEqual(job_ref, "J0001")
+                return {"job_id": "job_1", "job_number": "J0001"}
+
+        class _Export:
+            @staticmethod
+            def changes(*, cursor=None):
+                self.assertIsNone(cursor)
+                return {
+                    "in_process": [
+                        {
+                            "job_id": "job_1",
+                            "review": {
+                                "images": [
+                                    {"image_ref": "img_1"},
+                                    {"image_ref": "img_2"},
+                                ]
+                            },
+                        }
+                    ],
+                    "completed": [
+                        {
+                            "job_id": "job_1",
+                            "final": {
+                                "report_images": [
+                                    {"image_ref": "report_1"},
+                                    {"image_ref": "img_2"},
+                                ]
+                            },
+                        }
+                    ],
+                    "transitioned_to_completed": [],
+                }
+
+            @staticmethod
+            def image_fetch(*, job_id: str, image_ref: str, variant: str, output_path=None):
+                self.assertEqual(job_id, "job_1")
+                self.assertEqual(variant, "report")
+                self.assertIsNone(output_path)
+                if image_ref == "img_1":
+                    return {"saved_path": str(image1)}
+                if image_ref == "report_1":
+                    return {"saved_path": str(report1)}
+                raise RuntimeError("missing image")
+
+        backend_for_args_mock.return_value = SimpleNamespace(job=_Job(), export=_Export())
+        output_dir = self.storage_root / "exports" / "J0001" / "images"
+        rc, output = self._stdout_for(
+            admin_cli.cmd_export_images_fetch_all,
+            argparse.Namespace(
+                job="J0001",
+                variant="report",
+                output=str(output_dir),
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        self.assertEqual(payload["job_id"], "job_1")
+        self.assertEqual(payload["job_number"], "J0001")
+        self.assertEqual(payload["total_refs"], 3)
+        self.assertEqual(payload["skipped_duplicates"], 1)
+        self.assertEqual(payload["downloaded_count"], 2)
+        self.assertEqual(payload["failed_count"], 1)
+        self.assertTrue((output_dir / "img_1.jpg").exists())
+        self.assertTrue((output_dir / "report_1.jpg").exists())
+        self.assertEqual(payload["failed"][0]["image_ref"], "img_2")
+
+    @patch("admin_cli._legacy_backend_for_args")
+    def test_stage_sync_command_stages_completed_jobs(self, backend_for_args_mock) -> None:
+        workspace = self.storage_root / "stage_scratch"
+        workspace.mkdir(parents=True, exist_ok=True)
+        final_json = workspace / "J0003_final.json"
+        final_json.write_text(
+            json.dumps(
+                {
+                    "client_revision_id": "client-rev-1",
+                    "archived_at": "2026-03-28T12:00:00Z",
+                }
+            ),
+            encoding="utf-8",
+        )
+        final_geojson = workspace / "J0003_final.geojson"
+        final_geojson.write_text('{"type":"FeatureCollection","features":[]}', encoding="utf-8")
+        traq_pdf = workspace / "J0003_traq_page1.pdf"
+        traq_pdf.write_bytes(b"pdf")
+
+        class _Artifact:
+            @staticmethod
+            def fetch(*, job_ref: str, kind: str):
+                self.assertEqual(job_ref, "J0003")
+                return {
+                    "final-json": {"saved_path": str(final_json)},
+                    "geo-json": {"saved_path": str(final_geojson)},
+                    "traq-pdf": {"saved_path": str(traq_pdf)},
+                }[kind]
+
+        class _Export:
+            @staticmethod
+            def changes(*, cursor=None):
+                return {
+                    "cursor": "2026-03-28T12:30:00Z",
+                    "completed": [
+                        {
+                            "job_id": "job_1",
+                            "job_number": "J0003",
+                            "project": "Briarwood",
+                            "project_slug": "briarwood",
+                            "final": {
+                                "report_images": [
+                                    {"image_ref": "report_1", "caption": "The tree: east-facing view"}
+                                ]
+                            },
+                        }
+                    ],
+                }
+
+            @staticmethod
+            def image_fetch(*, job_id: str, image_ref: str, variant: str, output_path=None):
+                self.assertEqual(job_id, "job_1")
+                self.assertEqual(image_ref, "report_1")
+                self.assertEqual(variant, "report")
+                output = Path(str(output_path))
+                output.parent.mkdir(parents=True, exist_ok=True)
+                output.write_bytes(b"image")
+                return {"saved_path": str(output)}
+
+        backend_for_args_mock.return_value = SimpleNamespace(artifact=_Artifact(), export=_Export())
+        stage_root = self.storage_root / "staging"
+        rc, output = self._stdout_for(
+            admin_cli.cmd_stage_sync,
+            argparse.Namespace(
+                root=str(stage_root),
+                cursor=None,
+                host="https://example.test",
+                api_key="demo-key",
+            ),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        self.assertTrue(payload["cursor_updated"])
+        self.assertEqual(payload["jobs_staged"], 1)
+        self.assertTrue((stage_root / "jobs" / "J0003" / "manifest.json").exists())
 
     def test_context_defaults_select_local_and_cloud(self) -> None:
         os.environ["TRAQ_ADMIN_BASE_URL"] = "http://127.0.0.1:8000"

@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_americanriver_003",
+        "job_number": "J0010",
+        "project": "American River",
+        "tree_number": "3",
+        "species": "Fraxinus latifolia",
+        "risk_rating": "moderate"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.289424,
+          38.623357
+        ]
+      }
+    }
+  ]
+}

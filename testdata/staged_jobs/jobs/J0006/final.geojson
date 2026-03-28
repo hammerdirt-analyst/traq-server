@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_arboretum_002",
+        "job_number": "J0006",
+        "project": "Arboretum",
+        "tree_number": "2",
+        "species": "Quercus lobata",
+        "risk_rating": "low"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.289824,
+          38.622257
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_briarwood_003",
+        "job_number": "J0003",
+        "project": "Briarwood",
+        "tree_number": "3",
+        "species": "Acer macrophyllum",
+        "risk_rating": "low"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.290124,
+          38.621057
+        ]
+      }
+    }
+  ]
+}

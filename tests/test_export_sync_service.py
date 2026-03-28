@@ -244,6 +244,38 @@ class ExportSyncServiceTests(unittest.TestCase):
         self.assertEqual(resolved_report, report)
         self.assertEqual(resolved_completed, completed_path)
 
+    def test_resolve_image_path_for_completed_job_prefers_stored_path_key(self) -> None:
+        canonical_report = self._write_artifact("jobs/job_completed/final_report_image_1.jpg", b"completed")
+        self.final_mutation_service.set_final(
+            "J0002",
+            payload={
+                "round_id": "round_2",
+                "server_revision_id": "rev_round_2",
+                "client_revision_id": "client_rev_2",
+                "archived_at": "2026-03-24T18:41:00Z",
+                "transcript": "completed transcript",
+                "form": {"data": {}},
+                "narrative": {"text": "done"},
+                "user_name": "Jane Arborist",
+                "profile": {"name": "Jane Arborist"},
+                "report_images": [
+                    {
+                        "path": "/tmp/non-portable/location/final_report_image_1.jpg",
+                        "stored_path": "jobs/job_completed/final_report_image_1.jpg",
+                        "caption": "report image",
+                    }
+                ],
+            },
+            geojson_payload={"type": "FeatureCollection", "features": []},
+        )
+
+        resolved = self.export_service.resolve_image_path(
+            job_id="job_completed",
+            image_ref="report_1",
+            variant="report",
+        )
+        self.assertEqual(resolved, canonical_report)
+
     def test_resolve_geojson_payload_and_invalid_cursor(self) -> None:
         self.final_mutation_service.set_final(
             "J0002",

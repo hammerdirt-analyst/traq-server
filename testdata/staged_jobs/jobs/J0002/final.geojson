@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_briarwood_002",
+        "job_number": "J0002",
+        "project": "Briarwood",
+        "tree_number": "2",
+        "species": "Platanus racemosa",
+        "risk_rating": "moderate"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.290224,
+          38.620957
+        ]
+      }
+    }
+  ]
+}

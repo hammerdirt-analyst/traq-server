@@ -1,0 +1,69 @@
+{
+  "archived_at": "2026-03-25T11:20:08.608364Z",
+  "client_revision_id": "rev_americanriver_002",
+  "job_id": "job_americanriver_002",
+  "job_number": "J0009",
+  "project": "American River",
+  "project_slug": "american-river",
+  "round_id": "round_j0009",
+  "server_revision_id": "rev_j0009",
+  "user_name": "Roger Erismann",
+  "narrative": {
+    "text": "American River willow in healthy condition with low near-term concern."
+  },
+  "transcript": "[client_tree_details]\nAmerican River tree 2 transcript.\n\n[tree_health_and_species]\nObserved seasonal vigor and healthy foliage.",
+  "profile": {
+    "name": "Roger Erismann",
+    "isa_number": "WE-380138A",
+    "phone": "916 699 1113",
+    "correspondence_email": "roger@hammerdirt.solutions"
+  },
+  "form": {
+    "schema_name": "demo",
+    "schema_version": "0.0",
+    "data": {
+      "client_tree_details": {
+        "section_id": "client_tree_details",
+        "client": "American River",
+        "tree_number": "2",
+        "tree_species": "Salix gooddingii",
+        "dbh": 22,
+        "height": 44,
+        "gps": {
+          "latitude": 38.623257,
+          "longitude": -121.289524
+        }
+      },
+      "overall_tree_risk_rating": {
+        "section_id": "overall_tree_risk_rating",
+        "rating": "low"
+      },
+      "overall_residual_risk": {
+        "section_id": "overall_residual_risk",
+        "rating": "low"
+      },
+      "recommended_inspection_interval": {
+        "section_id": "recommended_inspection_interval",
+        "text": "18 months"
+      },
+      "crown_and_branches": {
+        "section_id": "crown_and_branches",
+        "main_concerns": "Observed seasonal vigor and healthy foliage"
+      }
+    }
+  },
+  "report_images": [
+    {
+      "caption": "The tree: trail-side view",
+      "stored_path": "artifacts/jobs/job_americanriver_002/report_images/report_1.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0009/images/report_1.svg",
+      "uploaded_at": "2026-03-25T11:20:08.608364Z"
+    },
+    {
+      "caption": "foliage detail",
+      "stored_path": "artifacts/jobs/job_americanriver_002/report_images/report_2.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0009/images/report_2.svg",
+      "uploaded_at": "2026-03-25T11:20:08.608364Z"
+    }
+  ]
+}

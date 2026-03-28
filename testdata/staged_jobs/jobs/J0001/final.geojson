@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "job_id": "job_briarwood_001",
+        "job_number": "J0001",
+        "project": "Briarwood",
+        "tree_number": "1",
+        "species": "Quercus agrifolia",
+        "risk_rating": "low"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.290324,
+          38.620857
+        ]
+      }
+    }
+  ]
+}

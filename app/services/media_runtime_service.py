@@ -240,6 +240,7 @@ class MediaRuntimeService:
             images.append(
                 {
                     "path": str(candidate),
+                    "stored_path": candidate_key,
                     "caption": caption,
                     "uploaded_at": uploaded_at,
                 }
@@ -256,22 +257,25 @@ class MediaRuntimeService:
         duplicates by path while preserving a stable append order.
         """
         merged: list[dict[str, str]] = []
-        by_path: dict[str, int] = {}
+        by_key: dict[str, int] = {}
         for images in image_lists:
             for item in images or []:
                 path = str(item.get("path") or "").strip()
-                if not path:
+                stored_path = str(item.get("stored_path") or "").strip()
+                dedupe_key = stored_path or path
+                if not dedupe_key:
                     continue
                 normalized = {
                     "path": path,
+                    "stored_path": stored_path,
                     "caption": str(item.get("caption") or "").strip(),
                     "uploaded_at": str(item.get("uploaded_at") or "").strip(),
                 }
-                existing_index = by_path.get(path)
+                existing_index = by_key.get(dedupe_key)
                 if existing_index is not None:
                     merged[existing_index] = normalized
                     continue
-                by_path[path] = len(merged)
+                by_key[dedupe_key] = len(merged)
                 merged.append(normalized)
         return merged[:5]
 

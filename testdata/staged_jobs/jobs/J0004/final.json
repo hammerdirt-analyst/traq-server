@@ -1,0 +1,69 @@
+{
+  "archived_at": "2026-03-25T09:40:08.608364Z",
+  "client_revision_id": "rev_briarwood_004",
+  "job_id": "job_briarwood_004",
+  "job_number": "J0004",
+  "project": "Briarwood",
+  "project_slug": "briarwood",
+  "round_id": "round_j0004",
+  "server_revision_id": "rev_j0004",
+  "user_name": "Roger Erismann",
+  "narrative": {
+    "text": "Briarwood redwood showing strong vigor and no immediate structural concerns."
+  },
+  "transcript": "[client_tree_details]\nBriarwood tree 4 transcript.\n\n[tree_health_and_species]\nObserved high vigor and normal foliage.",
+  "profile": {
+    "name": "Roger Erismann",
+    "isa_number": "WE-380138A",
+    "phone": "916 699 1113",
+    "correspondence_email": "roger@hammerdirt.solutions"
+  },
+  "form": {
+    "schema_name": "demo",
+    "schema_version": "0.0",
+    "data": {
+      "client_tree_details": {
+        "section_id": "client_tree_details",
+        "client": "Briarwood",
+        "tree_number": "4",
+        "tree_species": "Sequoia sempervirens",
+        "dbh": 32,
+        "height": 88,
+        "gps": {
+          "latitude": 38.621157,
+          "longitude": -121.290024
+        }
+      },
+      "overall_tree_risk_rating": {
+        "section_id": "overall_tree_risk_rating",
+        "rating": "low"
+      },
+      "overall_residual_risk": {
+        "section_id": "overall_residual_risk",
+        "rating": "low"
+      },
+      "recommended_inspection_interval": {
+        "section_id": "recommended_inspection_interval",
+        "text": "24 months"
+      },
+      "crown_and_branches": {
+        "section_id": "crown_and_branches",
+        "main_concerns": "Observed high vigor and normal foliage"
+      }
+    }
+  },
+  "report_images": [
+    {
+      "caption": "The tree: north-facing view",
+      "stored_path": "artifacts/jobs/job_briarwood_004/report_images/report_1.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0004/images/report_1.svg",
+      "uploaded_at": "2026-03-25T09:40:08.608364Z"
+    },
+    {
+      "caption": "canopy detail",
+      "stored_path": "artifacts/jobs/job_briarwood_004/report_images/report_2.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0004/images/report_2.svg",
+      "uploaded_at": "2026-03-25T09:40:08.608364Z"
+    }
+  ]
+}

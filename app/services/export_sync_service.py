@@ -157,10 +157,15 @@ class ExportSyncService:
                         ref = f"report_{index}"
                         if image_ref != ref:
                             continue
+                        key = str(item.get("stored_path") or "").strip()
+                        if key:
+                            materialized = self._materialize_artifact_path(key)
+                            if materialized.exists():
+                                return materialized
                         path = Path(str(item.get("path") or "").strip())
-                        if not path.exists():
-                            raise FileNotFoundError("Report image not found")
-                        return path
+                        if path.exists():
+                            return path
+                        raise FileNotFoundError("Report image not found")
                 raise KeyError("Image not found")
 
             round_row = self._latest_round(job)
