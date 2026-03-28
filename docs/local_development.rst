@@ -175,6 +175,18 @@ gate that CI runs::
 This runs the current deployment-facing regression set with CI-safe local env
 defaults.
 
+PostgreSQL parity lane
+----------------------
+
+GitHub Actions now has a dedicated PostgreSQL-backed integration lane. It:
+
+1. boots temporary PostgreSQL in CI
+2. runs ``uv run alembic upgrade head``
+3. executes ``tests.test_postgres_ci_smoke``
+
+That lane exists to catch migration and database-engine regressions that would
+not show up in the SQLite-backed fast regression path.
+
 Manual smoke testing
 --------------------
 
