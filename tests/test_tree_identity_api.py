@@ -139,6 +139,52 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertEqual(status_response.project_id, project["project_id"])
         self.assertEqual(status_response.project, "Briarwood")
 
+    def test_client_job_update_allows_project_change_after_review_returned(self) -> None:
+        token = self._register_and_approve_device("device-project-review")
+        project = ProjectService().create_project(project="Arboretum")
+
+        create_job = self._endpoint("/v1/jobs", "POST")
+        created = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Review",
+                job_name="Job Review",
+                job_address="123 Oak St",
+                job_phone="555-0100",
+                contact_preference="text",
+                billing_name="Customer Review",
+                billing_address="123 Oak St",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(created.job_id, x_api_key=token)
+
+        store = DatabaseStore()
+        current = store.get_job(created.job_id)
+        store.upsert_job(
+            job_id=created.job_id,
+            job_number=created.job_number,
+            status="REVIEW_RETURNED",
+            latest_round_id=round_response.round_id,
+            latest_round_status="REVIEW_RETURNED",
+            details=current,
+        )
+
+        update_job = self._endpoint("/v1/jobs/{job_id}", "PATCH")
+        updated = update_job(
+            created.job_id,
+            self.main_module.UpdateJobRequest(project_id=project["project_id"]),
+            x_api_key=token,
+        )
+        self.assertEqual(updated.project_id, project["project_id"])
+        self.assertEqual(updated.project, "Arboretum")
+        self.assertEqual(updated.status, "REVIEW_RETURNED")
+
+        get_job = self._endpoint("/v1/jobs/{job_id}", "GET")
+        status_response = get_job(created.job_id, x_api_key=token)
+        self.assertEqual(status_response.project_id, project["project_id"])
+        self.assertEqual(status_response.project, "Arboretum")
+
     def test_create_job_allocates_job_numbers_from_db_counter(self) -> None:
         create_job = self._endpoint("/v1/jobs", "POST")
         first = create_job(

@@ -102,11 +102,20 @@ class AccessControlService:
         auth: AuthContext,
         *,
         allow_correction: bool = False,
+        allow_metadata_update: bool = False,
     ) -> None:
         """Reject non-admin edits to locked jobs."""
         if auth.is_admin:
             return
-        if allow_correction and (record.status or "").strip().upper() == "ARCHIVED":
+        status = (record.status or "").strip().upper()
+        if allow_correction and status == "ARCHIVED":
+            return
+        if allow_metadata_update:
+            if status == "ARCHIVED":
+                raise HTTPException(
+                    status_code=409,
+                    detail="Archived jobs require admin reopen before metadata edits.",
+                )
             return
         latest = (record.latest_round_status or "").strip()
         if latest and latest != "DRAFT":

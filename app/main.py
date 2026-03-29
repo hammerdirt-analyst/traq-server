@@ -357,12 +357,14 @@ def create_app() -> FastAPI:
         auth: AuthContext,
         *,
         allow_correction: bool = False,
+        allow_metadata_update: bool = False,
     ) -> None:
         """Enforce job-level edit lock rules for non-admin callers."""
         access_control_service.assert_job_editable(
             record,
             auth,
             allow_correction=allow_correction,
+            allow_metadata_update=allow_metadata_update,
         )
 
     def _assert_job_assignment(job_id: str, auth: AuthContext) -> None:

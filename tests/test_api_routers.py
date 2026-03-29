@@ -248,6 +248,8 @@ class ApiRouterTests(unittest.TestCase):
                 return {"deleted": True, "billing_profile": {"billing_profile_id": billing_ref}}
 
         class DummyJobMutationService:
+            UNSET = object()
+
             def create_job(self, **kwargs):
                 created_jobs.append(kwargs)
                 return {"job_id": kwargs["job_id"], "job_number": kwargs["job_number"], "status": kwargs["status"]}
@@ -379,6 +381,79 @@ class ApiRouterTests(unittest.TestCase):
         )
         self.assertTrue(response["ok"])
         self.assertEqual(response["assignment"]["device_id"], "device-1")
+
+    def test_job_write_router_allows_metadata_updates_on_locked_jobs(self) -> None:
+        captured: dict[str, object] = {}
+
+        class DummyAuth:
+            is_admin = False
+            device_id = "device-1"
+
+        class DummyJobMutationService:
+            UNSET = object()
+
+            def update_job(self, job_ref, **kwargs):
+                captured["job_ref"] = job_ref
+                captured["kwargs"] = kwargs
+                return {
+                    "job_id": job_ref,
+                    "job_number": "J0001",
+                    "status": "REVIEW_RETURNED",
+                    "project_id": "project_briarwood",
+                    "project": "Briarwood",
+                    "project_slug": "briarwood",
+                    "job_name": "Job A",
+                    "job_address": "123 Oak St",
+                    "location_notes": "Front yard",
+                }
+
+        router = build_job_write_router(
+            require_api_key=lambda key: DummyAuth(),
+            jobs={},
+            next_job_number=lambda: "J0001",
+            customer_service=None,
+            job_mutation_service=DummyJobMutationService(),
+            load_job_record=lambda job_id: type(
+                "Record",
+                (),
+                {
+                    "job_id": job_id,
+                    "job_number": "J0001",
+                    "status": "REVIEW_RETURNED",
+                    "latest_round_status": "REVIEW_RETURNED",
+                },
+            )(),
+            assign_job_record=lambda **kwargs: None,
+            save_job_record=lambda record: None,
+            save_round_record=lambda job_id, record: None,
+            round_record_factory=lambda **kwargs: None,
+            logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
+            uuid_hex_supplier=lambda: "abc123",
+            assert_job_assignment=lambda job_id, auth: None,
+            assert_job_editable=lambda record, auth, **kwargs: captured.setdefault("editable_kwargs", kwargs),
+            ensure_job_record=lambda job_id: type(
+                "Record",
+                (),
+                {
+                    "job_id": job_id,
+                    "job_number": "J0001",
+                    "status": "REVIEW_RETURNED",
+                    "latest_round_status": "REVIEW_RETURNED",
+                },
+            )(),
+        )
+
+        update_job = self._router_endpoint(router, "/v1/jobs/{job_id}", "PATCH")
+        response = update_job(
+            "job_1",
+            self.main_module.UpdateJobRequest(project_id="project_briarwood", location_notes="Front yard"),
+            x_api_key="device-token",
+        )
+
+        self.assertEqual(captured["editable_kwargs"], {"allow_metadata_update": True})
+        self.assertEqual(captured["job_ref"], "job_1")
+        self.assertEqual(response.project_id, "project_briarwood")
+        self.assertEqual(response.project, "Briarwood")
 
     def test_tree_identification_router_builds_expected_endpoint(self) -> None:
         router = build_tree_identification_router(
@@ -665,7 +740,7 @@ class ApiRouterTests(unittest.TestCase):
             logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
             uuid_hex_supplier=lambda: "abc123def456",
             assert_job_assignment=lambda job_id, auth: None,
-            assert_job_editable=lambda record, auth: None,
+            assert_job_editable=lambda record, auth, **kwargs: None,
             ensure_job_record=lambda job_id: loaded_record,
         )
 

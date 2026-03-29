@@ -151,7 +151,7 @@ def build_job_write_router(
         record = ensure_job_record(job_id)
         if not record:
             raise HTTPException(status_code=404, detail="Job not found")
-        assert_job_editable(record, auth)
+        assert_job_editable(record, auth, allow_metadata_update=True)
         fields_set = getattr(payload, "model_fields_set", None) or getattr(payload, "__fields_set__", set())
         try:
             updated = job_mutation_service.update_job(
