@@ -276,6 +276,70 @@ class ExportSyncServiceTests(unittest.TestCase):
         )
         self.assertEqual(resolved, canonical_report)
 
+    def test_resolve_image_path_for_completed_job_reconstructs_legacy_cached_report_path(self) -> None:
+        canonical_report = self._write_artifact(
+            "jobs/job_completed/sections/job_photos/images/d754d568-5b72-418e-9e09-f84e8f6bc183.report.jpg",
+            b"completed",
+        )
+        self.final_mutation_service.set_final(
+            "J0002",
+            payload={
+                "round_id": "round_2",
+                "server_revision_id": "rev_round_2",
+                "client_revision_id": "client_rev_2",
+                "archived_at": "2026-03-24T18:41:00Z",
+                "transcript": "completed transcript",
+                "form": {"data": {}},
+                "narrative": {"text": "done"},
+                "user_name": "Jane Arborist",
+                "profile": {"name": "Jane Arborist"},
+                "report_images": [
+                    {
+                        "path": "/app/local_data/artifact_cache/jobs/job_completed/sections/job_photos/images/d754d568-5b72-418e-9e09-f84e8f6bc183.report.jpg",
+                        "caption": "report image",
+                    }
+                ],
+            },
+            geojson_payload={"type": "FeatureCollection", "features": []},
+        )
+
+        resolved = self.export_service.resolve_image_path(
+            job_id="job_completed",
+            image_ref="report_1",
+            variant="report",
+        )
+        self.assertEqual(resolved, canonical_report)
+
+    def test_resolve_image_path_for_completed_job_rejects_non_matching_legacy_path(self) -> None:
+        self.final_mutation_service.set_final(
+            "J0002",
+            payload={
+                "round_id": "round_2",
+                "server_revision_id": "rev_round_2",
+                "client_revision_id": "client_rev_2",
+                "archived_at": "2026-03-24T18:41:00Z",
+                "transcript": "completed transcript",
+                "form": {"data": {}},
+                "narrative": {"text": "done"},
+                "user_name": "Jane Arborist",
+                "profile": {"name": "Jane Arborist"},
+                "report_images": [
+                    {
+                        "path": "/app/local_data/artifact_cache/jobs/job_completed/sections/other/images/img_1.report.jpg",
+                        "caption": "report image",
+                    }
+                ],
+            },
+            geojson_payload={"type": "FeatureCollection", "features": []},
+        )
+
+        with self.assertRaises(FileNotFoundError):
+            self.export_service.resolve_image_path(
+                job_id="job_completed",
+                image_ref="report_1",
+                variant="report",
+            )
+
     def test_resolve_geojson_payload_and_invalid_cursor(self) -> None:
         self.final_mutation_service.set_final(
             "J0002",

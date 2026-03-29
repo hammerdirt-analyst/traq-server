@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Callable
 
 from sqlalchemy import select
@@ -19,6 +19,36 @@ def _iso(dt: datetime | None) -> str | None:
     if dt is None:
         return None
     return dt.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _legacy_report_image_key(*, job_id: str, raw_path: str) -> str | None:
+    """Rebuild one artifact key from a legacy cached report-image path.
+
+    Older archived finals stored only the local materialized cache path, for
+    example:
+
+    `/app/local_data/artifact_cache/jobs/<job_id>/sections/job_photos/images/<basename>.report.jpg`
+
+    That path is deterministically derived from the artifact key
+    `jobs/<job_id>/sections/job_photos/images/<basename>.report.jpg`.
+    """
+
+    path = PurePosixPath(str(raw_path or "").replace("\\", "/"))
+    parts = path.parts
+    try:
+        artifact_index = parts.index("artifact_cache")
+    except ValueError:
+        return None
+    key_parts = parts[artifact_index + 1 :]
+    expected_prefix = ("jobs", job_id, "sections", "job_photos", "images")
+    if len(key_parts) < len(expected_prefix) + 1:
+        return None
+    if tuple(key_parts[: len(expected_prefix)]) != expected_prefix:
+        return None
+    basename = key_parts[len(expected_prefix)]
+    if not basename.endswith(".report.jpg"):
+        return None
+    return "/".join((*expected_prefix, basename))
 
 
 class ExportSyncService:
@@ -160,6 +190,14 @@ class ExportSyncService:
                         key = str(item.get("stored_path") or "").strip()
                         if key:
                             materialized = self._materialize_artifact_path(key)
+                            if materialized.exists():
+                                return materialized
+                        legacy_key = _legacy_report_image_key(
+                            job_id=job_id,
+                            raw_path=str(item.get("path") or "").strip(),
+                        )
+                        if legacy_key:
+                            materialized = self._materialize_artifact_path(legacy_key)
                             if materialized.exists():
                                 return materialized
                         path = Path(str(item.get("path") or "").strip())
