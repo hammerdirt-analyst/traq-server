@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any, Callable
 
 from sqlalchemy import select
@@ -11,6 +11,10 @@ from sqlalchemy.orm import selectinload
 
 from ..db import session_scope
 from ..db_models import Job, JobFinal, JobGeoJSONExport, JobRound, JobStatus, RoundImage
+from .final_report_images_service import (
+    completed_report_image_exports,
+    resolve_completed_report_image_path,
+)
 
 UTC = timezone.utc
 
@@ -19,36 +23,6 @@ def _iso(dt: datetime | None) -> str | None:
     if dt is None:
         return None
     return dt.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-
-
-def _legacy_report_image_key(*, job_id: str, raw_path: str) -> str | None:
-    """Rebuild one artifact key from a legacy cached report-image path.
-
-    Older archived finals stored only the local materialized cache path, for
-    example:
-
-    `/app/local_data/artifact_cache/jobs/<job_id>/sections/job_photos/images/<basename>.report.jpg`
-
-    That path is deterministically derived from the artifact key
-    `jobs/<job_id>/sections/job_photos/images/<basename>.report.jpg`.
-    """
-
-    path = PurePosixPath(str(raw_path or "").replace("\\", "/"))
-    parts = path.parts
-    try:
-        artifact_index = parts.index("artifact_cache")
-    except ValueError:
-        return None
-    key_parts = parts[artifact_index + 1 :]
-    expected_prefix = ("jobs", job_id, "sections", "job_photos", "images")
-    if len(key_parts) < len(expected_prefix) + 1:
-        return None
-    if tuple(key_parts[: len(expected_prefix)]) != expected_prefix:
-        return None
-    basename = key_parts[len(expected_prefix)]
-    if not basename.endswith(".report.jpg"):
-        return None
-    return "/".join((*expected_prefix, basename))
 
 
 class ExportSyncService:
@@ -179,32 +153,12 @@ class ExportSyncService:
             if job.status == JobStatus.archived:
                 final_row = self._preferred_final(job)
                 payload = final_row.payload if final_row is not None else {}
-                report_images = payload.get("report_images") if isinstance(payload, dict) else []
-                if isinstance(report_images, list):
-                    for index, item in enumerate(report_images, start=1):
-                        if not isinstance(item, dict):
-                            continue
-                        ref = f"report_{index}"
-                        if image_ref != ref:
-                            continue
-                        key = str(item.get("stored_path") or "").strip()
-                        if key:
-                            materialized = self._materialize_artifact_path(key)
-                            if materialized.exists():
-                                return materialized
-                        legacy_key = _legacy_report_image_key(
-                            job_id=job_id,
-                            raw_path=str(item.get("path") or "").strip(),
-                        )
-                        if legacy_key:
-                            materialized = self._materialize_artifact_path(legacy_key)
-                            if materialized.exists():
-                                return materialized
-                        path = Path(str(item.get("path") or "").strip())
-                        if path.exists():
-                            return path
-                        raise FileNotFoundError("Report image not found")
-                raise KeyError("Image not found")
+                return resolve_completed_report_image_path(
+                    job_id=job_id,
+                    image_ref=image_ref,
+                    payload=payload if isinstance(payload, dict) else {},
+                    materialize_artifact_path=self._materialize_artifact_path,
+                )
 
             round_row = self._latest_round(job)
             if round_row is None:
@@ -348,18 +302,11 @@ class ExportSyncService:
         build_geojson_url: Callable[[str], str],
     ) -> dict[str, Any]:
         payload = dict(preferred_final.payload or {})
-        report_images: list[dict[str, Any]] = []
-        for index, item in enumerate(payload.get("report_images") or [], start=1):
-            if not isinstance(item, dict):
-                continue
-            report_images.append(
-                {
-                    "image_ref": f"report_{index}",
-                    "caption": str(item.get("caption") or "").strip(),
-                    "uploaded_at": str(item.get("uploaded_at") or "").strip(),
-                    "download_url": build_image_url(job.job_id, f"report_{index}"),
-                }
-            )
+        report_images = completed_report_image_exports(
+            payload=payload,
+            job_id=job.job_id,
+            build_image_url=build_image_url,
+        )
         return {
             "job_id": job.job_id,
             "job_number": job.job_number,

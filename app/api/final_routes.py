@@ -9,6 +9,7 @@ from fastapi import APIRouter, Body, Header, HTTPException
 from fastapi.responses import FileResponse
 
 from .models import FinalSubmitRequest
+from ..services.final_report_images_service import merge_completed_report_images
 
 
 def build_final_router(
@@ -140,23 +141,12 @@ def build_final_router(
                     if isinstance(archived_correction, dict)
                     else None
                 )
-            merge_report_images = getattr(media_runtime_service, "merge_report_images", None)
-            if callable(merge_report_images):
-                report_images = merge_report_images(
-                    (
-                        archived_final_payload.get("report_images")
-                        if isinstance(archived_final_payload, dict)
-                        else None
-                    ),
-                    (
-                        archived_correction_payload.get("report_images")
-                        if isinstance(archived_correction_payload, dict)
-                        else None
-                    ),
-                    current_report_images,
-                )
-            else:
-                report_images = current_report_images
+            report_images = merge_completed_report_images(
+                media_runtime_service=media_runtime_service,
+                current_report_images=current_report_images,
+                archived_final_payload=archived_final_payload if isinstance(archived_final_payload, dict) else None,
+                archived_correction_payload=archived_correction_payload if isinstance(archived_correction_payload, dict) else None,
+            )
             report_letter.generate_report_letter_pdf(
                 letter_text,
                 str(report_path),
