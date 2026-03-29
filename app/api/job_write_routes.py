@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from fastapi import APIRouter, Header, HTTPException
 
-from .models import CreateJobRequest, CreateJobResponse, CreateRoundResponse
+from .models import CreateJobRequest, CreateJobResponse, CreateRoundResponse, UpdateJobRequest
 
 
 def build_job_write_router(
@@ -24,6 +24,7 @@ def build_job_write_router(
     logger: Any,
     uuid_hex_supplier: Callable[[], str],
     assert_job_assignment: Callable[[str, Any], None],
+    assert_job_editable: Callable[[Any, Any], None],
     ensure_job_record: Callable[[str], Any],
 ) -> APIRouter:
     """Build job/round creation routes."""
@@ -137,5 +138,55 @@ def build_job_write_router(
         save_round_record(job_id, round_record)
         logger.info("POST /v1/jobs/%s/rounds -> %s", job_id, round_id)
         return CreateRoundResponse(round_id=round_id, status="DRAFT")
+
+    @router.patch("/v1/jobs/{job_id}", response_model=CreateJobResponse)
+    def update_job(
+        job_id: str,
+        payload: UpdateJobRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> CreateJobResponse:
+        """Update editable job metadata for the assigned caller."""
+        auth = require_api_key(x_api_key)
+        assert_job_assignment(job_id, auth)
+        record = ensure_job_record(job_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Job not found")
+        assert_job_editable(record, auth)
+        fields_set = getattr(payload, "model_fields_set", None) or getattr(payload, "__fields_set__", set())
+        try:
+            updated = job_mutation_service.update_job(
+                job_id,
+                project_id=getattr(payload, "project_id", None) if "project_id" in fields_set else job_mutation_service.UNSET,
+                job_name=payload.job_name,
+                job_address=payload.job_address,
+                location_notes=payload.location_notes,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        refreshed = load_job_record(job_id)
+        if refreshed is not None:
+            jobs[job_id] = refreshed
+        logger.info("PATCH /v1/jobs/%s", job_id)
+        return CreateJobResponse(
+            job_id=updated["job_id"],
+            job_number=updated["job_number"],
+            status=updated["status"],
+            project_id=updated.get("project_id"),
+            project=updated.get("project"),
+            project_slug=updated.get("project_slug"),
+            customer_name=updated.get("customer_name"),
+            tree_number=updated.get("tree_number"),
+            address=updated.get("address"),
+            job_name=updated.get("job_name"),
+            job_address=updated.get("job_address"),
+            job_phone=updated.get("job_phone"),
+            contact_preference=updated.get("contact_preference"),
+            billing_name=updated.get("billing_name"),
+            billing_address=updated.get("billing_address"),
+            billing_contact_name=updated.get("billing_contact_name"),
+            location_notes=updated.get("location_notes"),
+        )
 
     return router

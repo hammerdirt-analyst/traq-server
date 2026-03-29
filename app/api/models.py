@@ -120,6 +120,21 @@ class CreateJobRequest(BaseModel):
     )
 
 
+class UpdateJobRequest(BaseModel):
+    """Authenticated client payload for editable job metadata."""
+
+    project_id: str | None = Field(
+        default=None,
+        description="Optional server-managed project identifier selected from the project registry.",
+    )
+    job_name: str | None = Field(default=None, description="Editable job display name.")
+    job_address: str | None = Field(default=None, description="Editable job site address.")
+    location_notes: str | None = Field(
+        default=None,
+        description="Free text notes describing the tree location on the property.",
+    )
+
+
 class ProfilePayload(BaseModel):
     """Persisted profile payload scoped to one authenticated identity."""
 

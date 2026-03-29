@@ -63,6 +63,7 @@ from .api.models import (
     TargetAssessmentRequest,
     TreeHealthAndSpeciesRequest,
     TrunkRequest,
+    UpdateJobRequest,
 )
 from .config import load_settings
 from .db import create_schema, init_database, session_scope
@@ -575,6 +576,7 @@ def create_app() -> FastAPI:
             logger=logger,
             uuid_hex_supplier=lambda: uuid.uuid4().hex,
             assert_job_assignment=_assert_job_assignment,
+            assert_job_editable=_assert_job_editable,
             ensure_job_record=_ensure_job_record,
         )
     )

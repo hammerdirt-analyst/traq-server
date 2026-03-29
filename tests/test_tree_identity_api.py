@@ -18,6 +18,7 @@ from starlette.requests import Request
 from app import db as db_module
 from app.db import create_schema
 from app.db_store import DatabaseStore
+from app.services.project_service import ProjectService
 
 
 class TreeIdentityApiTests(unittest.TestCase):
@@ -104,6 +105,39 @@ class TreeIdentityApiTests(unittest.TestCase):
             x_api_key="test-key",
         )
         self.assertEqual(status_response.tree_number, 7)
+
+    def test_client_job_update_persists_project_metadata(self) -> None:
+        token = self._register_and_approve_device("device-project")
+        project = ProjectService().create_project(project="Briarwood")
+
+        create_job = self._endpoint("/v1/jobs", "POST")
+        created = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer A",
+                job_name="Job A",
+                job_address="123 Oak St",
+                job_phone="555-0100",
+                contact_preference="text",
+                billing_name="Customer A",
+                billing_address="123 Oak St",
+            ),
+            x_api_key=token,
+        )
+
+        update_job = self._endpoint("/v1/jobs/{job_id}", "PATCH")
+        updated = update_job(
+            created.job_id,
+            self.main_module.UpdateJobRequest(project_id=project["project_id"]),
+            x_api_key=token,
+        )
+        self.assertEqual(updated.project_id, project["project_id"])
+        self.assertEqual(updated.project, "Briarwood")
+        self.assertEqual(updated.project_slug, "briarwood")
+
+        get_job = self._endpoint("/v1/jobs/{job_id}", "GET")
+        status_response = get_job(created.job_id, x_api_key=token)
+        self.assertEqual(status_response.project_id, project["project_id"])
+        self.assertEqual(status_response.project, "Briarwood")
 
     def test_create_job_allocates_job_numbers_from_db_counter(self) -> None:
         create_job = self._endpoint("/v1/jobs", "POST")

@@ -607,6 +607,12 @@ class ApiRouterTests(unittest.TestCase):
         class DummyJobMutationService:
             def create_job(self, **kwargs):
                 return {
+                    "job_id": kwargs["job_id"],
+                    "job_number": kwargs["job_number"],
+                    "status": kwargs["status"],
+                    "project_id": kwargs.get("project_id"),
+                    "project": "Briarwood" if kwargs.get("project_id") else None,
+                    "project_slug": "briarwood" if kwargs.get("project_id") else None,
                     "customer_name": "Customer A",
                     "tree_number": 7,
                     "address": "123 Oak",
@@ -618,6 +624,29 @@ class ApiRouterTests(unittest.TestCase):
                     "billing_address": "123 Oak",
                     "billing_contact_name": "Alex",
                     "location_notes": "Notes",
+                }
+
+            UNSET = object()
+
+            def update_job(self, job_ref, **kwargs):
+                return {
+                    "job_id": job_ref,
+                    "job_number": "J0001",
+                    "status": "DRAFT",
+                    "project_id": kwargs.get("project_id"),
+                    "project": "Briarwood" if kwargs.get("project_id") else None,
+                    "project_slug": "briarwood" if kwargs.get("project_id") else None,
+                    "customer_name": "Customer A",
+                    "tree_number": 7,
+                    "address": "123 Oak",
+                    "job_name": kwargs.get("job_name") or "Job A",
+                    "job_address": kwargs.get("job_address") or "123 Oak",
+                    "job_phone": "555",
+                    "contact_preference": "text",
+                    "billing_name": "Billing",
+                    "billing_address": "123 Oak",
+                    "billing_contact_name": "Alex",
+                    "location_notes": kwargs.get("location_notes"),
                 }
 
         saved_rounds: list[tuple[str, object]] = []
@@ -636,6 +665,7 @@ class ApiRouterTests(unittest.TestCase):
             logger=type("Logger", (), {"info": lambda *args, **kwargs: None, "exception": lambda *args, **kwargs: None})(),
             uuid_hex_supplier=lambda: "abc123def456",
             assert_job_assignment=lambda job_id, auth: None,
+            assert_job_editable=lambda record, auth: None,
             ensure_job_record=lambda job_id: loaded_record,
         )
 
@@ -661,6 +691,19 @@ class ApiRouterTests(unittest.TestCase):
         self.assertEqual(round_response.round_id, "round_1")
         self.assertEqual(loaded_record.latest_round_id, "round_1")
         self.assertEqual(saved_rounds[0][0], "job_abc123def456")
+
+        update_job = self._router_endpoint(router, "/v1/jobs/{job_id}", "PATCH")
+        updated = update_job(
+            "job_abc123def456",
+            self.main_module.UpdateJobRequest(
+                project_id="project_briarwood",
+                job_name="Job A Updated",
+                location_notes="Front yard",
+            ),
+            x_api_key="test-key",
+        )
+        self.assertEqual(updated.project_id, "project_briarwood")
+        self.assertEqual(updated.job_name, "Job A Updated")
 
     def test_round_manifest_router_builds_expected_endpoint(self) -> None:
         class DummyRound:
