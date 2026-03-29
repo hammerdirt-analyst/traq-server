@@ -22,7 +22,10 @@ class ReleaseVerificationTests(unittest.TestCase):
     def test_pre_deploy_command_includes_expected_modules(self) -> None:
         command = pre_deploy_command()
         self.assertEqual(command[:4], ("uv", "run", "python", "-m"))
-        self.assertIn("tests.test_admin_cli", command)
+        self.assertIn("tests.test_admin_cli_devices_and_context", command)
+        self.assertIn("tests.test_admin_cli_exports_stage_repl", command)
+        self.assertIn("tests.test_admin_cli_jobs_rounds", command)
+        self.assertIn("tests.test_admin_cli_customers_artifacts", command)
         self.assertEqual(command[-1], PRE_DEPLOY_TEST_MODULES[-1])
 
     def test_default_pre_deploy_env_sets_ci_safe_defaults(self) -> None:

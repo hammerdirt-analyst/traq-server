@@ -153,16 +153,15 @@ may still support PDF retrieval but not ``final-json`` export.
 Automated tests
 ---------------
 
-Core regression set::
+The canonical local validation path now lives in
+``docs/testing_and_validation.rst``.
 
-   UV_CACHE_DIR=/tmp/uv-cache uv run python -m unittest \
-     tests.test_config \
-     tests.test_artifact_storage \
-     tests.test_tree_identity_api \
-     tests.test_db_store
+Required pre-push regression command::
 
-Use the narrower target first when iterating on one area. Run the broader suite
-before committing deployment-facing changes.
+   UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/release_verify.py pre-deploy
+
+Use narrower test targets while iterating on one area, then run the canonical
+pre-deploy gate before pushing deployment-facing changes.
 
 Release verification helper
 ---------------------------

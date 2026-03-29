@@ -12,6 +12,7 @@ This documentation is generated from in-code docstrings using Sphinx.
    tree_identity_contract
    cli_operations_model
    local_development
+   testing_and_validation
    database_schema
    database_workflow
    archive_retention

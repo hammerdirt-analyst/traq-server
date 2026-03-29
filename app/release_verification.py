@@ -12,11 +12,16 @@ from urllib import error, request
 
 PRE_DEPLOY_TEST_MODULES: tuple[str, ...] = (
     "tests.test_api_routers",
-    "tests.test_admin_cli",
+    "tests.test_admin_cli_devices_and_context",
+    "tests.test_admin_cli_exports_stage_repl",
+    "tests.test_admin_cli_jobs_rounds",
+    "tests.test_admin_cli_customers_artifacts",
     "tests.test_command_registry",
     "tests.test_config",
     "tests.test_export_sync_service",
+    "tests.test_final_report_images_service",
     "tests.test_media_runtime_service",
+    "tests.test_report_image_runtime_service",
     "tests.test_staging_sync_service",
     "tests.test_tree_identification_service",
 )

@@ -252,7 +252,7 @@ Shared verification helper
 --------------------------
 
 The release gate is now codified in the repo and should be used both by CI and
-operators.
+operators. The full contract is documented in ``docs/testing_and_validation.rst``.
 
 Pre-deploy gate::
 
