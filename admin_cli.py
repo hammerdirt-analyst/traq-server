@@ -5,11 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-try:
-    import readline
-except ImportError:  # pragma: no cover
-    readline = None
-import shlex
 import sys
 from typing import Any
 import uuid
@@ -83,6 +78,12 @@ from app.cli.round_commands import (
     cmd_round_reprocess as _cmd_round_reprocess,
     cmd_round_submit as _cmd_round_submit,
     cmd_round_reopen as _cmd_round_reopen,
+)
+from app.cli.repl_support import (
+    normalize_repl_tokens as _normalize_repl_tokens,
+    repl_command_catalog as _repl_command_catalog,
+    save_repl_history as _save_repl_history,
+    setup_repl_readline as _setup_repl_readline,
 )
 from app.cli.stage_commands import cmd_stage_sync as _cmd_stage_sync
 from app.cli.tree_commands import cmd_tree_identify as _cmd_tree_identify
@@ -553,109 +554,12 @@ def build_parser(*, backend=None) -> argparse.ArgumentParser:
     return parser
 
 
-def _normalize_repl_tokens(raw: str) -> list[str]:
-    normalized = raw.lstrip()
-    if normalized.startswith("/"):
-        normalized = normalized[1:].lstrip()
-    return shlex.split(normalized)
-
-
-def _repl_command_catalog() -> list[str]:
-    return sorted(
-        [
-            "device list",
-            "device pending",
-            "device validate",
-            "device approve",
-            "device revoke",
-            "device issue-token",
-            "customer list",
-            "customer duplicates",
-            "customer create",
-            "customer update",
-            "customer usage",
-            "customer merge",
-            "customer delete",
-            "customer billing list",
-            "customer billing duplicates",
-            "customer billing create",
-            "customer billing update",
-            "customer billing usage",
-            "customer billing merge",
-            "customer billing delete",
-            "job create",
-            "job update",
-            "job list-assignments",
-            "job assign",
-            "job unlock",
-            "job unassign",
-            "job set-status",
-            "job inspect",
-            "round reopen",
-            "round inspect",
-            "review inspect",
-            "final inspect",
-            "final set-final",
-            "final set-correction",
-            "artifact fetch",
-            "export changes",
-            "export image-fetch",
-            "export geojson-fetch",
-            "export images-fetch-all",
-            "stage sync",
-            "tree identify",
-            "net ipv4",
-            "net ipv6",
-            "show",
-            "help",
-            "exit",
-            "quit",
-            "set host",
-            "set api-key",
-            "use local",
-            "use cloud",
-            "use remote",
-        ]
-    )
-
-
-def _setup_repl_readline() -> None:
-    if readline is None:
-        return
-    try:
-        readline.read_history_file(str(_HISTORY_PATH))
-    except FileNotFoundError:
-        pass
-
-    commands = _repl_command_catalog()
-
-    def completer(text: str, state: int) -> str | None:
-        buffer = readline.get_line_buffer().lstrip("/")
-        prefix = buffer if buffer else text
-        matches = [cmd for cmd in commands if cmd.startswith(prefix)]
-        if state >= len(matches):
-            return None
-        return matches[state]
-
-    readline.set_completer(completer)
-    readline.parse_and_bind("tab: complete")
-
-
-def _save_repl_history() -> None:
-    if readline is None:
-        return
-    try:
-        readline.write_history_file(str(_HISTORY_PATH))
-    except OSError:
-        pass
-
-
 def _run_repl(parser: argparse.ArgumentParser | None = None, *, context_name: str | None = None) -> int:
     active_context = context_name or "local"
     host, api_key = _context_defaults(active_context)
     backend = _build_backend(context_name=active_context, host=host, api_key=api_key)
     parser = build_parser(backend=backend)
-    _setup_repl_readline()
+    _setup_repl_readline(history_path=_HISTORY_PATH, commands=_repl_command_catalog())
     print("TRAQ admin CLI interactive mode")
     print("Type 'help' for commands, 'exit' to quit.")
     print(f"context={active_context}")
@@ -666,12 +570,12 @@ def _run_repl(parser: argparse.ArgumentParser | None = None, *, context_name: st
             raw = input("traq-admin> ").strip()
         except (EOFError, KeyboardInterrupt):
             print()
-            _save_repl_history()
+            _save_repl_history(history_path=_HISTORY_PATH)
             return 0
         if not raw:
             continue
         if raw in {"exit", "quit"}:
-            _save_repl_history()
+            _save_repl_history(history_path=_HISTORY_PATH)
             return 0
         if raw == "help":
             print("Meta commands:")

@@ -7,6 +7,7 @@ from typing import Any, Callable
 from urllib import error, parse, request
 
 from .backends import CliBackendBundle, UnsupportedInModeError
+from .file_exports import filename_from_headers, save_bytes_output, save_json_output
 
 
 HttpCaller = Callable[..., tuple[int, Any]]
@@ -507,18 +508,12 @@ class RemoteArtifactBackend(_RemoteBase):
             f"/v1/admin/jobs/{parse.quote(job_id)}/artifacts/{parse.quote(kind)}"
         )
         export_dir = Path.cwd() / "exports" / job_number
-        export_dir.mkdir(parents=True, exist_ok=True)
-        filename = ""
-        content_disposition = headers.get("Content-Disposition") or headers.get("content-disposition") or ""
-        if "filename=" in content_disposition:
-            filename = content_disposition.split("filename=", 1)[1].strip().strip('"')
-        if not filename:
-            filename = f"{job_number}_{kind.replace('-', '_')}"
-        saved_path = export_dir / filename
-        if kind in {"transcript", "final-json"}:
-            saved_path.write_bytes(payload)
-        else:
-            saved_path.write_bytes(payload)
+        filename = filename_from_headers(headers, fallback=f"{job_number}_{kind.replace('-', '_')}")
+        saved_path = save_bytes_output(
+            payload=payload,
+            output_path=None,
+            default_path=export_dir / filename,
+        )
         return {
             "job_number": job_number,
             "job_id": job_id,
@@ -549,15 +544,12 @@ class RemoteExportBackend(_RemoteBase):
         payload, headers = self._download(
             f"/v1/export/jobs/{parse.quote(job_id)}/images/{parse.quote(image_ref)}?variant={parse.quote(variant)}"
         )
-        filename = ""
-        content_disposition = headers.get("Content-Disposition") or headers.get("content-disposition") or ""
-        if "filename=" in content_disposition:
-            filename = content_disposition.split("filename=", 1)[1].strip().strip('"')
-        if not filename:
-            filename = f"{image_ref}"
-        saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / filename)
-        saved_path.parent.mkdir(parents=True, exist_ok=True)
-        saved_path.write_bytes(payload)
+        filename = filename_from_headers(headers, fallback=image_ref)
+        saved_path = save_bytes_output(
+            payload=payload,
+            output_path=output_path,
+            default_path=Path.cwd() / "exports" / job_id / filename,
+        )
         return {
             "job_id": job_id,
             "image_ref": image_ref,
@@ -572,9 +564,11 @@ class RemoteExportBackend(_RemoteBase):
             api_key=self._api_key,
         )
         payload = self._expect_ok(code, body)
-        saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / "export.geojson")
-        saved_path.parent.mkdir(parents=True, exist_ok=True)
-        saved_path.write_text(__import__("json").dumps(payload, indent=2), encoding="utf-8")
+        saved_path = save_json_output(
+            payload=payload,
+            output_path=output_path,
+            default_path=Path.cwd() / "exports" / job_id / "export.geojson",
+        )
         return {
             "job_id": job_id,
             "saved_path": str(saved_path),

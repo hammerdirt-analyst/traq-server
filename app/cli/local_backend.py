@@ -17,6 +17,7 @@ from app.services.job_mutation_service import JobMutationService
 from app.services.tree_identification_service import TreeIdentificationImage, TreeIdentificationService
 
 from .backends import CliBackendBundle, UnsupportedInModeError
+from .file_exports import save_bytes_output, save_json_output
 from .net_commands import _collect_ipv4_candidates, _collect_ipv6_candidates
 
 
@@ -388,9 +389,11 @@ class LocalExportBackend:
         )
         with request.urlopen(req, timeout=30) as resp:
             payload = resp.read()
-            saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / resp.headers.get_filename())
-            saved_path.parent.mkdir(parents=True, exist_ok=True)
-            saved_path.write_bytes(payload)
+            saved_path = save_bytes_output(
+                payload=payload,
+                output_path=output_path,
+                default_path=Path.cwd() / "exports" / job_id / resp.headers.get_filename(),
+            )
             return {
                 "job_id": job_id,
                 "image_ref": image_ref,
@@ -406,9 +409,11 @@ class LocalExportBackend:
         )
         if code != 200:
             raise RuntimeError(f"HTTP {code}: {body}")
-        saved_path = Path(output_path) if output_path else (Path.cwd() / "exports" / job_id / "export.geojson")
-        saved_path.parent.mkdir(parents=True, exist_ok=True)
-        saved_path.write_text(__import__("json").dumps(body, indent=2), encoding="utf-8")
+        saved_path = save_json_output(
+            payload=body,
+            output_path=output_path,
+            default_path=Path.cwd() / "exports" / job_id / "export.geojson",
+        )
         return {
             "job_id": job_id,
             "saved_path": str(saved_path),
