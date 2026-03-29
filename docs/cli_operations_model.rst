@@ -172,6 +172,7 @@ Job administration::
    uv run traq-admin cloud job inspect --job J0001
    uv run traq-admin cloud job list-assignments
    uv run traq-admin cloud job assign --job J0001 --device-id <device_id>
+   uv run traq-admin cloud job unlock --job J0001 --round-id round_1 --device-id <device_id>
 
 Round lifecycle::
 

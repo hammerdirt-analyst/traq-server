@@ -116,6 +116,12 @@ class AccessControlService:
                     status_code=409,
                     detail="Archived jobs require admin reopen before metadata edits.",
                 )
+            latest = (record.latest_round_status or "").strip().upper()
+            if latest == "SUBMITTED_FOR_PROCESSING":
+                raise HTTPException(
+                    status_code=409,
+                    detail="Job metadata is locked while processing. Wait for review return.",
+                )
             return
         latest = (record.latest_round_status or "").strip()
         if latest and latest != "DRAFT":

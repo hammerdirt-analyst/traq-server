@@ -185,6 +185,47 @@ class TreeIdentityApiTests(unittest.TestCase):
         self.assertEqual(status_response.project_id, project["project_id"])
         self.assertEqual(status_response.project, "Arboretum")
 
+    def test_client_job_update_blocks_project_change_while_processing(self) -> None:
+        token = self._register_and_approve_device("device-project-processing")
+        project = ProjectService().create_project(project="American River")
+
+        create_job = self._endpoint("/v1/jobs", "POST")
+        created = create_job(
+            self.main_module.CreateJobRequest(
+                customer_name="Customer Processing",
+                job_name="Job Processing",
+                job_address="123 Oak St",
+                job_phone="555-0100",
+                contact_preference="text",
+                billing_name="Customer Processing",
+                billing_address="123 Oak St",
+            ),
+            x_api_key=token,
+        )
+        create_round = self._endpoint("/v1/jobs/{job_id}/rounds", "POST")
+        round_response = create_round(created.job_id, x_api_key=token)
+
+        store = DatabaseStore()
+        current = store.get_job(created.job_id)
+        store.upsert_job(
+            job_id=created.job_id,
+            job_number=created.job_number,
+            status="SUBMITTED_FOR_PROCESSING",
+            latest_round_id=round_response.round_id,
+            latest_round_status="SUBMITTED_FOR_PROCESSING",
+            details=current,
+        )
+
+        update_job = self._endpoint("/v1/jobs/{job_id}", "PATCH")
+        with self.assertRaises(self.main_module.HTTPException) as exc:
+            update_job(
+                created.job_id,
+                self.main_module.UpdateJobRequest(project_id=project["project_id"]),
+                x_api_key=token,
+            )
+        self.assertEqual(exc.exception.status_code, 409)
+        self.assertIn("locked while processing", exc.exception.detail)
+
     def test_create_job_allocates_job_numbers_from_db_counter(self) -> None:
         create_job = self._endpoint("/v1/jobs", "POST")
         first = create_job(

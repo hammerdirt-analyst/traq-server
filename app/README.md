@@ -68,6 +68,11 @@ Bootstrap notes are tracked in:
   - `app/traq_2_schema/maptwo.md`
 
 ## API Surface (Core)
+- `POST /v1/jobs`
+- `PATCH /v1/jobs/{job_id}`
+- `GET /v1/jobs/{job_id}`
+- `GET /v1/jobs/assigned`
+- `GET /v1/projects`
 - `POST /v1/jobs/{job_id}/rounds`
 - `PUT /v1/jobs/{job_id}/rounds/{round_id}/manifest`
 - `POST /v1/jobs/{job_id}/rounds/{round_id}/submit`
@@ -95,11 +100,17 @@ Job assignment rules:
 - `GET /v1/jobs/assigned` returns only assigned jobs (no automatic global job push).
 - Jobs created by an arborist device are auto-assigned to that same device.
 - There are no preloaded jobs in runtime; jobs are initiated from client submissions.
+- Assigned device clients can update job metadata through `PATCH /v1/jobs/{job_id}`.
+- Metadata updates currently cover `project_id`, `job_name`, `job_address`, and `location_notes`.
+- Metadata updates are allowed in `DRAFT` and after review returns.
+- Metadata updates are blocked while a round is `SUBMITTED_FOR_PROCESSING`.
+- Archived jobs still require admin reopen before device-side edits.
 
 Auth endpoints:
 - `POST /v1/auth/register-device`
 - `GET /v1/auth/device/{device_id}/status`
 - `POST /v1/auth/token`
+- `GET /v1/projects`
 
 Admin endpoints:
 - `GET /v1/admin/devices`
