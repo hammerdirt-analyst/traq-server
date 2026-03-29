@@ -13,6 +13,7 @@ from app.cli.final_commands import register_final_commands
 from app.cli.inspect_commands import register_inspect_commands
 from app.cli.job_commands import register_job_commands
 from app.cli.net_commands import register_net_commands
+from app.cli.project_commands import register_project_commands
 from app.cli.round_commands import register_round_commands
 from app.cli.stage_commands import register_stage_commands
 from app.cli.tree_commands import register_tree_commands
@@ -84,6 +85,22 @@ COMMAND_GROUP_SPECS: tuple[CommandGroupSpec, ...] = (
             ("customer", "merge"),
             ("customer", "delete"),
             ("customer", "billing"),
+        ),
+        uses_http_defaults=True,
+        passes_register_defaults=True,
+    ),
+    CommandGroupSpec(
+        name="project",
+        register_fn=register_project_commands,
+        handler_bindings={
+            "list": "cmd_project_list",
+            "create": "cmd_project_create",
+            "update": "cmd_project_update",
+        },
+        command_paths=(
+            ("project", "list"),
+            ("project", "create"),
+            ("project", "update"),
         ),
         uses_http_defaults=True,
         passes_register_defaults=True,

@@ -172,6 +172,7 @@ Covered command groups:
 
 - device admin
 - customer and billing admin
+- project admin
 - job create, update, assignment, status, and inspect
 - round create, manifest get/set, submit, reprocess, inspect, and reopen
 - review inspect
@@ -191,7 +192,12 @@ Examples:
 # Device and job inspection
 uv run traq-admin cloud device pending
 uv run traq-admin cloud customer list --search Arboretum
+uv run traq-admin cloud project list
 uv run traq-admin cloud job inspect --job J0001
+
+# Project assignment
+uv run traq-admin cloud project create --project "Briarwood"
+uv run traq-admin cloud job update --job J0001 --project-id project_abc123
 
 # Round lifecycle
 uv run traq-admin cloud round create --job J0001

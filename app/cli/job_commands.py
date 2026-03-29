@@ -35,6 +35,7 @@ def cmd_job_create(
             status=args.status,
             customer_id=args.customer_id,
             billing_profile_id=args.billing_profile_id,
+            project_id=getattr(args, "project_id", None),
             tree_number=args.tree_number,
             job_name=args.job_name,
             job_address=args.job_address,
@@ -53,19 +54,23 @@ def cmd_job_update(
     print_json: JsonPrinter,
 ) -> int:
     """Update one operational job record directly in the database."""
+    update_kwargs = dict(
+        customer_id=args.customer_id,
+        billing_profile_id=args.billing_profile_id,
+        tree_number=args.tree_number,
+        job_name=args.job_name,
+        job_address=args.job_address,
+        reason=args.reason,
+        location_notes=args.location_notes,
+        tree_species=args.tree_species,
+        status=args.status,
+    )
+    if getattr(args, "clear_project", False):
+        update_kwargs["project_id"] = None
+    elif getattr(args, "project_id", None) is not None:
+        update_kwargs["project_id"] = args.project_id
     return _wrap(
-        lambda: backend.job.update(
-            args.job,
-            customer_id=args.customer_id,
-            billing_profile_id=args.billing_profile_id,
-            tree_number=args.tree_number,
-            job_name=args.job_name,
-            job_address=args.job_address,
-            reason=args.reason,
-            location_notes=args.location_notes,
-            tree_species=args.tree_species,
-            status=args.status,
-        ),
+        lambda: backend.job.update(args.job, **update_kwargs),
         print_json,
     )
 
@@ -151,6 +156,7 @@ def register_job_commands(
     create_cmd.add_argument("--job-number", required=True)
     create_cmd.add_argument("--customer-id")
     create_cmd.add_argument("--billing-profile-id")
+    create_cmd.add_argument("--project-id")
     create_cmd.add_argument("--tree-number")
     create_cmd.add_argument("--job-name")
     create_cmd.add_argument("--job-address")
@@ -177,6 +183,8 @@ def register_job_commands(
     update_cmd.add_argument("--job", required=True, help="job_id or job_number")
     update_cmd.add_argument("--customer-id")
     update_cmd.add_argument("--billing-profile-id")
+    update_cmd.add_argument("--project-id")
+    update_cmd.add_argument("--clear-project", action="store_true", help="Remove any assigned project")
     update_cmd.add_argument("--tree-number")
     update_cmd.add_argument("--job-name")
     update_cmd.add_argument("--job-address")

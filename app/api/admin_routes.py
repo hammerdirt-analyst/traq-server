@@ -17,6 +17,8 @@ from .models import (
     AdminDeviceApproveRequest,
     AdminDeviceTokenRequest,
     AdminJobCreateRequest,
+    AdminProjectCreateRequest,
+    AdminProjectUpdateRequest,
     AdminJobStatusRequest,
     AdminJobUpdateRequest,
     AdminJobUnlockRequest,
@@ -34,6 +36,7 @@ def build_admin_router(
     save_job_record: Callable[[Any], None],
     db_store: Any,
     customer_service: Any | None = None,
+    project_service: Any | None = None,
     job_mutation_service: Any | None = None,
     inspection_service: Any | None = None,
     artifact_fetch_service: Any | None = None,
@@ -449,6 +452,7 @@ def build_admin_router(
                 status=payload.status,
                 customer_id=payload.customer_id,
                 billing_profile_id=payload.billing_profile_id,
+                project_id=getattr(payload, "project_id", None),
                 tree_number=payload.tree_number,
                 job_name=payload.job_name,
                 job_address=payload.job_address,
@@ -472,11 +476,14 @@ def build_admin_router(
         require_api_key(x_api_key, required_role="admin")
         if job_mutation_service is None:
             raise HTTPException(status_code=501, detail="Job mutation service not configured")
+        fields_set = getattr(payload, "model_fields_set", None) or getattr(payload, "__fields_set__", set())
+        unset_project = getattr(job_mutation_service, "UNSET", object())
         try:
             job = job_mutation_service.update_job(
                 job_ref,
                 customer_id=payload.customer_id,
                 billing_profile_id=payload.billing_profile_id,
+                project_id=getattr(payload, "project_id", None) if "project_id" in fields_set else unset_project,
                 tree_number=payload.tree_number,
                 job_name=payload.job_name,
                 job_address=payload.job_address,
@@ -490,6 +497,56 @@ def build_admin_router(
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return {"ok": True, "job": job}
+
+    @router.get("/v1/admin/projects")
+    def admin_list_projects(
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint listing server-managed projects."""
+        require_api_key(x_api_key, required_role="admin")
+        if project_service is None:
+            raise HTTPException(status_code=501, detail="Project service not configured")
+        return {"ok": True, "projects": project_service.list_projects()}
+
+    @router.post("/v1/admin/projects")
+    def admin_create_project(
+        payload: AdminProjectCreateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint creating one server-managed project."""
+        require_api_key(x_api_key, required_role="admin")
+        if project_service is None:
+            raise HTTPException(status_code=501, detail="Project service not configured")
+        try:
+            project = project_service.create_project(
+                project=payload.project,
+                project_slug=payload.project_slug,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, "project": project}
+
+    @router.patch("/v1/admin/projects/{project_ref}")
+    def admin_update_project(
+        project_ref: str,
+        payload: AdminProjectUpdateRequest,
+        x_api_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        """Admin endpoint updating one server-managed project."""
+        require_api_key(x_api_key, required_role="admin")
+        if project_service is None:
+            raise HTTPException(status_code=501, detail="Project service not configured")
+        try:
+            project = project_service.update_project(
+                project_ref,
+                project=payload.project,
+                project_slug=payload.project_slug,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return {"ok": True, "project": project}
 
     @router.get("/v1/admin/jobs/{job_id}/inspect")
     def admin_inspect_job(

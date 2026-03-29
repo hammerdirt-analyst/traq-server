@@ -214,6 +214,21 @@ class BillingProfile(Base):
     jobs: Mapped[list[Job]] = relationship(back_populates="billing_profile")
 
 
+class Project(Base):
+    """Server-managed project identity assignable to one or more jobs."""
+
+    __tablename__ = "projects"
+
+    id: Mapped[PyUUID] = mapped_column(UUID_TYPE, primary_key=True, default=uuid4)
+    project_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    slug: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    jobs: Mapped[list[Job]] = relationship(back_populates="project")
+
+
 class Operator(Base):
     """Reusable assessor/operator identity derived from final output provenance."""
 
@@ -255,6 +270,7 @@ class Job(Base):
     job_number: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     customer_id: Mapped[PyUUID | None] = mapped_column(UUID_TYPE, ForeignKey("customers.id", ondelete="SET NULL"), nullable=True, index=True)
     billing_profile_id: Mapped[PyUUID | None] = mapped_column(UUID_TYPE, ForeignKey("billing_profiles.id", ondelete="SET NULL"), nullable=True, index=True)
+    project_id: Mapped[PyUUID | None] = mapped_column(UUID_TYPE, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True)
     operator_id: Mapped[PyUUID | None] = mapped_column(UUID_TYPE, ForeignKey("operators.id", ondelete="SET NULL"), nullable=True, index=True)
     tree_id: Mapped[PyUUID | None] = mapped_column(UUID_TYPE, ForeignKey("trees.id", ondelete="SET NULL"), nullable=True, index=True)
     tree_number: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
@@ -276,6 +292,7 @@ class Job(Base):
 
     customer: Mapped[Customer | None] = relationship(back_populates="jobs")
     billing_profile: Mapped[BillingProfile | None] = relationship(back_populates="jobs")
+    project: Mapped[Project | None] = relationship(back_populates="jobs")
     operator: Mapped[Operator | None] = relationship(back_populates="jobs")
     tree: Mapped[Tree | None] = relationship(back_populates="jobs")
     assignments: Mapped[list[JobAssignment]] = relationship(back_populates="job", cascade="all, delete-orphan")

@@ -67,6 +67,11 @@ from app.cli.job_commands import (
     cmd_job_unlock as _cmd_job_unlock,
     cmd_job_update as _cmd_job_update,
 )
+from app.cli.project_commands import (
+    cmd_project_create as _cmd_project_create,
+    cmd_project_list as _cmd_project_list,
+    cmd_project_update as _cmd_project_update,
+)
 from app.cli.net_commands import (
     cmd_net_ipv4 as _cmd_net_ipv4_impl,
     cmd_net_ipv6 as _cmd_net_ipv6_impl,
@@ -448,6 +453,18 @@ def cmd_job_set_status(args: argparse.Namespace) -> int:
 
 def cmd_job_unlock(args: argparse.Namespace) -> int:
     return _cmd_job_unlock(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_project_list(args: argparse.Namespace) -> int:
+    return _cmd_project_list(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_project_create(args: argparse.Namespace) -> int:
+    return _cmd_project_create(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_project_update(args: argparse.Namespace) -> int:
+    return _cmd_project_update(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
 
 def cmd_job_inspect(args: argparse.Namespace) -> int:

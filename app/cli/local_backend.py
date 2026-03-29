@@ -14,6 +14,7 @@ from app.services.customer_service import CustomerService
 from app.services.final_mutation_service import FinalMutationService
 from app.services.inspection_service import InspectionService
 from app.services.job_mutation_service import JobMutationService
+from app.services.project_service import ProjectService
 from app.services.tree_identification_service import TreeIdentificationImage, TreeIdentificationService
 
 from .backends import CliBackendBundle, UnsupportedInModeError
@@ -53,6 +54,11 @@ def _customer_service() -> CustomerService:
 def _job_mutation_service() -> JobMutationService:
     _init_db()
     return JobMutationService()
+
+
+def _project_service() -> ProjectService:
+    _init_db()
+    return ProjectService()
 
 
 def _final_mutation_service() -> FinalMutationService:
@@ -150,6 +156,17 @@ class LocalBillingBackend:
         return _customer_service().merge_billing_profile(billing_profile_id, target_billing_profile_id=into)
     def delete(self, billing_profile_id: str) -> Any:
         return _customer_service().delete_billing_profile(billing_profile_id)
+
+
+class LocalProjectBackend:
+    def list(self) -> Any:
+        return _project_service().list_projects()
+
+    def create(self, **kwargs: Any) -> Any:
+        return _project_service().create_project(**kwargs)
+
+    def update(self, project_ref: str, **kwargs: Any) -> Any:
+        return _project_service().update_project(project_ref, **kwargs)
 
 
 class LocalJobBackend:
@@ -482,6 +499,7 @@ def build_local_backend(*, http: HttpCaller) -> CliBackendBundle:
         device=LocalDeviceBackend(),
         customer=LocalCustomerBackend(),
         billing=LocalBillingBackend(),
+        project=LocalProjectBackend(),
         job=LocalJobBackend(http=http, host=host, api_key=api_key),
         round=LocalRoundBackend(http=http, host=host, api_key=api_key),
         review=LocalReviewBackend(),

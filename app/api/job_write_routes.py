@@ -53,17 +53,23 @@ def build_job_write_router(
             billing_address=payload.billing_address,
             contact_preference=payload.contact_preference,
         )
-        created = job_mutation_service.create_job(
-            job_id=job_id,
-            job_number=job_number,
-            status="DRAFT",
-            customer_id=customer["customer_id"],
-            billing_profile_id=billing["billing_profile_id"] if billing else None,
-            tree_number=payload.tree_number,
-            job_name=payload.job_name,
-            job_address=payload.job_address,
-            location_notes=payload.location_notes,
-        )
+        try:
+            created = job_mutation_service.create_job(
+                job_id=job_id,
+                job_number=job_number,
+                status="DRAFT",
+                customer_id=customer["customer_id"],
+                billing_profile_id=billing["billing_profile_id"] if billing else None,
+                project_id=getattr(payload, "project_id", None),
+                tree_number=payload.tree_number,
+                job_name=payload.job_name,
+                job_address=payload.job_address,
+                location_notes=payload.location_notes,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         record = load_job_record(job_id)
         if record is not None:
             jobs[job_id] = record
@@ -85,6 +91,9 @@ def build_job_write_router(
             job_id=job_id,
             job_number=job_number,
             status="DRAFT",
+            project_id=created.get("project_id"),
+            project=created.get("project"),
+            project_slug=created.get("project_slug"),
             customer_name=created.get("customer_name"),
             tree_number=created.get("tree_number"),
             address=created.get("address"),

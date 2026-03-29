@@ -140,6 +140,7 @@ class StagingSyncService:
         manifest = {
             "job_id": job_id,
             "job_number": job_number,
+            "project_id": row.get("project_id"),
             "project": row.get("project"),
             "project_slug": row.get("project_slug"),
             "client_revision_id": final_payload.get("client_revision_id"),

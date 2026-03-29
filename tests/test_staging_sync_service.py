@@ -54,6 +54,7 @@ class StagingSyncServiceTests(unittest.TestCase):
                             {
                                 "job_id": "job_1",
                                 "job_number": "J0003",
+                                "project_id": "project_1",
                                 "project": "Briarwood",
                                 "project_slug": "briarwood",
                                 "final": {
@@ -88,6 +89,7 @@ class StagingSyncServiceTests(unittest.TestCase):
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual(manifest["job_id"], "job_1")
             self.assertEqual(manifest["job_number"], "J0003")
+            self.assertEqual(manifest["project_id"], "project_1")
             self.assertEqual(manifest["project"], "Briarwood")
             self.assertEqual(manifest["project_slug"], "briarwood")
             self.assertEqual(manifest["client_revision_id"], "client-rev-1")

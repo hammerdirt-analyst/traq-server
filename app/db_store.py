@@ -92,6 +92,9 @@ class DatabaseStore:
                 "billing_profile_id": str(job.billing_profile_id) if job.billing_profile_id else None,
                 "billing_code": job.billing_profile.billing_code if job.billing_profile else None,
                 "billing_name": job.billing_profile.billing_name if job.billing_profile else None,
+                "project_id": job.project.project_id if job.project else None,
+                "project": job.project.name if job.project else None,
+                "project_slug": job.project.slug if job.project else None,
                 "latest_round_id": job.latest_round_id,
                 "latest_round_status": job.latest_round_status.value if job.latest_round_status else None,
             }

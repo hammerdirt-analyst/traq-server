@@ -17,12 +17,17 @@ from sqlalchemy import select
 
 from ..config import load_settings
 from ..db import session_scope
-from ..db_models import BillingProfile, Customer, Job, JobStatus
+from ..db_models import BillingProfile, Customer, Job, JobStatus, Project
 from .tree_store import parse_tree_number, resolve_tree
+
+
+_UNSET = object()
 
 
 class JobMutationService:
     """Create and update operational job records in the database."""
+
+    UNSET = _UNSET
 
     @staticmethod
     def _clean(value: str | None) -> str | None:
@@ -118,6 +123,21 @@ class JobMutationService:
             raise KeyError(f"Billing profile not found: {billing_ref}")
         return row
 
+    def _resolve_project(self, session, project_ref: str | None) -> Project | None:
+        """Resolve a project from authoritative server id or slug."""
+        if project_ref is None:
+            return None
+        normalized = self._clean(project_ref)
+        if normalized is None:
+            return None
+        row = session.scalar(select(Project).where(Project.project_id == normalized))
+        if row is not None:
+            return row
+        row = session.scalar(select(Project).where(Project.slug == normalized.lower()))
+        if row is None:
+            raise KeyError(f"Project not found: {project_ref}")
+        return row
+
     @staticmethod
     def _job_to_dict(row: Job) -> dict[str, Any]:
         """Serialize a job row with its denormalized operational shell."""
@@ -135,6 +155,9 @@ class JobMutationService:
                 "tree_species": row.tree_species,
                 "customer_id": str(row.customer_id) if row.customer_id else None,
                 "billing_profile_id": str(row.billing_profile_id) if row.billing_profile_id else None,
+                "project_id": row.project.project_id if row.project else None,
+                "project": row.project.name if row.project else None,
+                "project_slug": row.project.slug if row.project else None,
                 "tree_id": str(row.tree_id) if row.tree_id else None,
                 "latest_round_id": row.latest_round_id,
                 "latest_round_status": row.latest_round_status.value if row.latest_round_status else None,
@@ -150,6 +173,7 @@ class JobMutationService:
         status: str = "DRAFT",
         customer_id: str | None = None,
         billing_profile_id: str | None = None,
+        project_id: str | None = None,
         tree_number: int | str | None = None,
         job_name: str | None = None,
         job_address: str | None = None,
@@ -174,6 +198,7 @@ class JobMutationService:
                 job,
                 customer_id=customer_id,
                 billing_profile_id=billing_profile_id,
+                project_id=project_id,
                 tree_number=tree_number,
                 job_name=job_name,
                 job_address=job_address,
@@ -192,6 +217,7 @@ class JobMutationService:
         *,
         customer_id: str | None = None,
         billing_profile_id: str | None = None,
+        project_id: str | None | object = _UNSET,
         tree_number: int | str | None = None,
         job_name: str | None = None,
         job_address: str | None = None,
@@ -213,6 +239,7 @@ class JobMutationService:
                 job,
                 customer_id=customer_id,
                 billing_profile_id=billing_profile_id,
+                project_id=project_id,
                 tree_number=tree_number,
                 job_name=job_name,
                 job_address=job_address,
@@ -232,6 +259,7 @@ class JobMutationService:
         *,
         customer_id: str | None,
         billing_profile_id: str | None,
+        project_id: str | None | object,
         tree_number: int | str | None,
         job_name: str | None,
         job_address: str | None,
@@ -250,6 +278,9 @@ class JobMutationService:
         if billing_profile_id is not None:
             billing = self._resolve_billing_profile(session, billing_profile_id)
             job.billing_profile = billing
+        if project_id is not _UNSET:
+            project = self._resolve_project(session, project_id)
+            job.project = project
 
         if customer_relinked and job.customer is not None:
             if job_name is None:
@@ -297,6 +328,9 @@ class JobMutationService:
                 "location_notes": job.location_notes,
                 "tree_species": job.tree_species,
                 "tree_number": job.tree_number,
+                "project_id": job.project.project_id if job.project else None,
+                "project": job.project.name if job.project else None,
+                "project_slug": job.project.slug if job.project else None,
                 **customer_snapshot,
                 **billing_snapshot,
             }
@@ -352,6 +386,9 @@ class JobMutationService:
                 "customer_code": customer_snapshot["customer_code"],
                 "billing_profile_id": billing_snapshot["billing_profile_id"],
                 "billing_code": billing_snapshot["billing_code"],
+                "project_id": job.project.project_id if job.project else None,
+                "project": job.project.name if job.project else None,
+                "project_slug": job.project.slug if job.project else None,
             }
         )
         job_path.write_text(json.dumps(current, indent=2), encoding="utf-8")

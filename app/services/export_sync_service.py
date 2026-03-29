@@ -71,6 +71,7 @@ class ExportSyncService:
                 select(Job).options(
                     selectinload(Job.customer),
                     selectinload(Job.billing_profile),
+                    selectinload(Job.project),
                     selectinload(Job.rounds).selectinload(JobRound.images),
                     selectinload(Job.finals),
                     selectinload(Job.geojson_exports),
@@ -277,6 +278,9 @@ class ExportSyncService:
         return {
             "job_id": job.job_id,
             "job_number": job.job_number,
+            "project_id": job.project.project_id if job.project else None,
+            "project": job.project.name if job.project else None,
+            "project_slug": job.project.slug if job.project else None,
             "category": "in_process",
             "status": job.status.value,
             "updated_at": _iso(changed_at),
@@ -310,6 +314,9 @@ class ExportSyncService:
         return {
             "job_id": job.job_id,
             "job_number": job.job_number,
+            "project_id": job.project.project_id if job.project else None,
+            "project": job.project.name if job.project else None,
+            "project_slug": job.project.slug if job.project else None,
             "category": "completed",
             "status": job.status.value,
             "updated_at": _iso(changed_at),

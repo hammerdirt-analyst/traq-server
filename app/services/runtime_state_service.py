@@ -1,6 +1,7 @@
 """Runtime job/round persistence helpers extracted from the HTTP entrypoint."""
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 from pathlib import Path
@@ -74,6 +75,9 @@ class RuntimeStateService:
             "job_number": record.job_number,
             "status": record.status,
             "customer_name": record.customer_name,
+            "project_id": getattr(record, "project_id", None),
+            "project": getattr(record, "project", None),
+            "project_slug": getattr(record, "project_slug", None),
             "tree_number": record.tree_number,
             "address": record.address,
             "tree_species": record.tree_species,
@@ -104,26 +108,40 @@ class RuntimeStateService:
 
     def job_record_from_payload(self, payload: dict[str, Any], fallback_job_id: str) -> Any:
         """Build an in-memory job record from normalized payload data."""
-        return self._job_record_factory(
-            job_id=str(payload.get("job_id") or fallback_job_id),
-            job_number=str(payload.get("job_number") or fallback_job_id),
-            status=str(payload.get("status") or "DRAFT"),
-            customer_name=payload.get("customer_name"),
-            tree_number=self._parse_tree_number(payload.get("tree_number")),
-            address=payload.get("address"),
-            tree_species=payload.get("tree_species"),
-            reason=payload.get("reason"),
-            job_name=payload.get("job_name"),
-            job_address=payload.get("job_address"),
-            job_phone=payload.get("job_phone"),
-            contact_preference=payload.get("contact_preference"),
-            billing_name=payload.get("billing_name"),
-            billing_address=payload.get("billing_address"),
-            billing_contact_name=payload.get("billing_contact_name"),
-            location_notes=payload.get("location_notes"),
-            latest_round_id=payload.get("latest_round_id"),
-            latest_round_status=payload.get("latest_round_status"),
-        )
+        kwargs = {
+            "job_id": str(payload.get("job_id") or fallback_job_id),
+            "job_number": str(payload.get("job_number") or fallback_job_id),
+            "status": str(payload.get("status") or "DRAFT"),
+            "customer_name": payload.get("customer_name"),
+            "project_id": payload.get("project_id"),
+            "project": payload.get("project"),
+            "project_slug": payload.get("project_slug"),
+            "tree_number": self._parse_tree_number(payload.get("tree_number")),
+            "address": payload.get("address"),
+            "tree_species": payload.get("tree_species"),
+            "reason": payload.get("reason"),
+            "job_name": payload.get("job_name"),
+            "job_address": payload.get("job_address"),
+            "job_phone": payload.get("job_phone"),
+            "contact_preference": payload.get("contact_preference"),
+            "billing_name": payload.get("billing_name"),
+            "billing_address": payload.get("billing_address"),
+            "billing_contact_name": payload.get("billing_contact_name"),
+            "location_notes": payload.get("location_notes"),
+            "latest_round_id": payload.get("latest_round_id"),
+            "latest_round_status": payload.get("latest_round_status"),
+        }
+        return self._make_job_record(**kwargs)
+
+    def _make_job_record(self, **kwargs: Any) -> Any:
+        """Construct one job record while tolerating older test doubles."""
+        try:
+            params = inspect.signature(self._job_record_factory).parameters
+        except (TypeError, ValueError):
+            params = {}
+        if params:
+            kwargs = {key: value for key, value in kwargs.items() if key in params}
+        return self._job_record_factory(**kwargs)
 
     def load_rounds_from_db(self, job_id: str) -> dict[str, Any]:
         """Load persisted round metadata from the authoritative DB store."""

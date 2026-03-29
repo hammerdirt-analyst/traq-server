@@ -39,6 +39,12 @@ class BillingBackend(Protocol):
     def delete(self, billing_profile_id: str) -> Any: ...
 
 
+class ProjectBackend(Protocol):
+    def list(self) -> Any: ...
+    def create(self, **kwargs: Any) -> Any: ...
+    def update(self, project_ref: str, **kwargs: Any) -> Any: ...
+
+
 class JobBackend(Protocol):
     def create(self, **kwargs: Any) -> Any: ...
     def update(self, job_ref: str, **kwargs: Any) -> Any: ...
@@ -123,6 +129,7 @@ class CliBackendBundle:
     device: DeviceBackend
     customer: CustomerBackend
     billing: BillingBackend
+    project: ProjectBackend
     job: JobBackend
     round: RoundBackend
     review: ReviewBackend

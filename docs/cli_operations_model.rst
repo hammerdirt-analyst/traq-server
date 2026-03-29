@@ -157,10 +157,18 @@ Customer and billing administration::
    uv run traq-admin cloud customer billing list --search Customer
    uv run traq-admin cloud customer billing create --billing-name "Customer Billing"
 
+Project administration::
+
+   uv run traq-admin cloud project list
+   uv run traq-admin cloud project create --project "Briarwood"
+   uv run traq-admin cloud project update --project-ref project_abc123 --project "Briarwood West"
+
 Job administration::
 
    uv run traq-admin cloud job create --job-id job_1 --job-number J0001 --customer-id C0001
-   uv run traq-admin cloud job update --job J0001 --job-name "Valley Oak Revisit"
+   uv run traq-admin cloud job create --job-id job_2 --job-number J0002 --customer-id C0001 --project-id project_abc123
+   uv run traq-admin cloud job update --job J0001 --job-name "Valley Oak Revisit" --project-id project_abc123
+   uv run traq-admin cloud job update --job J0001 --clear-project
    uv run traq-admin cloud job inspect --job J0001
    uv run traq-admin cloud job list-assignments
    uv run traq-admin cloud job assign --job J0001 --device-id <device_id>

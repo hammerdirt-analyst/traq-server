@@ -16,6 +16,7 @@ from .services.final_mutation_service import FinalMutationService
 from .services.finalization_service import FinalizationService
 from .services.job_mutation_service import JobMutationService
 from .services.media_runtime_service import MediaRuntimeService
+from .services.project_service import ProjectService
 from .services.review_payload_service import ReviewPayloadService
 from .services.review_form_service import ReviewFormService
 from .services.round_submit_service import RoundSubmitService
@@ -42,6 +43,7 @@ class RuntimeContext:
     finalization_service: FinalizationService = field(init=False)
     job_mutation_service: JobMutationService = field(init=False)
     media_runtime_service: MediaRuntimeService = field(init=False)
+    project_service: ProjectService = field(init=False)
     review_payload_service: ReviewPayloadService = field(init=False)
     review_form_service: ReviewFormService = field(init=False)
     round_submit_service: RoundSubmitService = field(init=False)
@@ -67,6 +69,7 @@ class RuntimeContext:
             artifact_store=self.artifact_store,
             logger=self.logger,
         )
+        self.project_service = ProjectService()
         self.review_payload_service = ReviewPayloadService()
         self.review_form_service = ReviewFormService()
         self.round_submit_service = RoundSubmitService()

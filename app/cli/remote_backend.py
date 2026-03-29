@@ -248,6 +248,43 @@ class RemoteBillingBackend(_RemoteBase):
         return self._expect_ok(code, body)
 
 
+class RemoteProjectBackend(_RemoteBase):
+    def list(self) -> Any:
+        code, body = self._http(
+            "GET",
+            f"{self._host}/v1/admin/projects",
+            api_key=self._api_key,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("projects", [])
+        return payload
+
+    def create(self, **kwargs: Any) -> Any:
+        code, body = self._http(
+            "POST",
+            f"{self._host}/v1/admin/projects",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("project", payload)
+        return payload
+
+    def update(self, project_ref: str, **kwargs: Any) -> Any:
+        code, body = self._http(
+            "PATCH",
+            f"{self._host}/v1/admin/projects/{parse.quote(project_ref)}",
+            api_key=self._api_key,
+            payload=kwargs,
+        )
+        payload = self._expect_ok(code, body)
+        if isinstance(payload, dict):
+            return payload.get("project", payload)
+        return payload
+
+
 class RemoteJobBackend(_RemoteBase):
     def _resolve_job_id(self, job_ref: str) -> str:
         normalized = (job_ref or "").strip()
@@ -633,6 +670,7 @@ def build_remote_backend(*, host: str, api_key: str, http: HttpCaller) -> CliBac
         device=RemoteDeviceBackend(host=host, api_key=api_key, http=http),
         customer=RemoteCustomerBackend(host=host, api_key=api_key, http=http),
         billing=RemoteBillingBackend(host=host, api_key=api_key, http=http),
+        project=RemoteProjectBackend(host=host, api_key=api_key, http=http),
         job=job_backend,
         round=RemoteRoundBackend(host=host, api_key=api_key, http=http, job_backend=job_backend),
         review=RemoteReviewBackend(host=host, api_key=api_key, http=http, job_backend=job_backend),

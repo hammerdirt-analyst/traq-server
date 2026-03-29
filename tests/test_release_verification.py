@@ -35,9 +35,9 @@ class ReleaseVerificationTests(unittest.TestCase):
         self.assertEqual(env["TRAQ_AUTO_CREATE_SCHEMA"], "false")
         self.assertEqual(env["TRAQ_ENABLE_FILE_LOGGING"], "false")
 
-    def test_required_post_deploy_env_rejects_missing_values(self) -> None:
+    def test_required_post_deploy_env_rejects_missing_base_url(self) -> None:
         with self.assertRaises(VerificationError):
-            required_post_deploy_env({})
+            required_post_deploy_env({"TRAQ_CLOUD_ADMIN_BASE_URL": ""})
 
     def test_required_post_deploy_env_accepts_complete_values(self) -> None:
         env = required_post_deploy_env(

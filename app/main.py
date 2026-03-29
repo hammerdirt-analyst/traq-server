@@ -32,6 +32,7 @@ from .api.final_routes import build_final_router
 from .api.image_routes import build_image_router
 from .api.job_read_routes import build_job_read_router
 from .api.job_write_routes import build_job_write_router
+from .api.project_routes import build_project_router
 from .api.recording_routes import build_recording_router
 from .api.round_manifest_routes import build_round_manifest_router
 from .api.round_reprocess_routes import build_round_reprocess_router
@@ -94,6 +95,9 @@ class JobRecord:
     job_number: str
     status: str
     customer_name: str | None = None
+    project_id: str | None = None
+    project: str | None = None
+    project_slug: str | None = None
     tree_number: int | None = None
     address: str | None = None
     tree_species: str | None = None
@@ -208,6 +212,7 @@ def create_app() -> FastAPI:
     finalization_service = runtime.finalization_service
     job_mutation_service = runtime.job_mutation_service
     media_runtime_service = runtime.media_runtime_service
+    project_service = runtime.project_service
     review_form_service = runtime.review_form_service
     review_payload_service = runtime.review_payload_service
     round_submit_service = runtime.round_submit_service
@@ -638,6 +643,13 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(
+        build_project_router(
+            require_api_key=require_api_key,
+            project_service=project_service,
+        )
+    )
+
+    app.include_router(
         build_admin_router(
             require_api_key=require_api_key,
             ensure_job_record=_ensure_job_record,
@@ -647,6 +659,7 @@ def create_app() -> FastAPI:
             save_job_record=_save_job_record,
             db_store=db_store,
             customer_service=customer_service,
+            project_service=project_service,
             job_mutation_service=job_mutation_service,
             inspection_service=InspectionService(settings=settings, db_store=db_store),
             artifact_fetch_service=artifact_fetch_service,

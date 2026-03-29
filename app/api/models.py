@@ -20,6 +20,9 @@ class AssignedJob(BaseModel):
     latest_round_id: str | None = None
     latest_round_status: str | None = None
     customer_name: str
+    project_id: str | None = None
+    project: str | None = None
+    project_slug: str | None = None
     tree_number: int | None = None
     address: str
     tree_species: str
@@ -64,6 +67,9 @@ class CreateJobResponse(BaseModel):
     job_id: str
     job_number: str
     status: str
+    project_id: str | None = None
+    project: str | None = None
+    project_slug: str | None = None
     customer_name: str | None = None
     tree_number: int | None = None
     address: str | None = None
@@ -108,6 +114,10 @@ class CreateJobRequest(BaseModel):
         default=None,
         description="Free text notes describing the tree location on the property.",
     )
+    project_id: str | None = Field(
+        default=None,
+        description="Optional server-managed project identifier selected from the project registry.",
+    )
 
 
 class ProfilePayload(BaseModel):
@@ -129,6 +139,9 @@ class StatusResponse(BaseModel):
     status: str
     latest_round_id: str | None = None
     latest_round_status: str | None = None
+    project_id: str | None = None
+    project: str | None = None
+    project_slug: str | None = None
     tree_number: int | None = None
     review_ready: bool = False
     server_revision_id: str | None = None
@@ -268,6 +281,7 @@ class AdminJobCreateRequest(BaseModel):
     status: str = "DRAFT"
     customer_id: str | None = None
     billing_profile_id: str | None = None
+    project_id: str | None = None
     tree_number: int | str | None = None
     job_name: str | None = None
     job_address: str | None = None
@@ -281,6 +295,7 @@ class AdminJobUpdateRequest(BaseModel):
 
     customer_id: str | None = None
     billing_profile_id: str | None = None
+    project_id: str | None = None
     tree_number: int | str | None = None
     job_name: str | None = None
     job_address: str | None = None
@@ -288,6 +303,20 @@ class AdminJobUpdateRequest(BaseModel):
     location_notes: str | None = None
     tree_species: str | None = None
     status: str | None = None
+
+
+class AdminProjectCreateRequest(BaseModel):
+    """Admin payload used to create one server-managed project."""
+
+    project: str
+    project_slug: str | None = None
+
+
+class AdminProjectUpdateRequest(BaseModel):
+    """Admin payload used to update one server-managed project."""
+
+    project: str | None = None
+    project_slug: str | None = None
 
 
 class SiteFactorsRequest(BaseModel):
