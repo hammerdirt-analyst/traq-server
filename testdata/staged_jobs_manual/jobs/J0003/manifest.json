@@ -1,0 +1,34 @@
+{
+  "job_id": "job_b62ffe12501c",
+  "job_number": "J0003",
+  "project": "Briarwood",
+  "project_slug": "briarwood",
+  "client_revision_id": "ea4941e6-ca8c-464f-8370-ad47bd75c818",
+  "archived_at": "2026-03-25T09:10:08.608364Z",
+  "staged_at": "2026-03-28T00:00:00Z",
+  "artifacts": {
+    "final_json": "./final.json",
+    "final_geojson": "./final.geojson",
+    "traq_pdf": "./traq_page1.pdf"
+  },
+  "images": [
+    {
+      "image_ref": "report_1",
+      "variant": "report",
+      "source_path": "./images/d754d568-5b72-418e-9e09-f84e8f6bc183.report.jpg",
+      "caption": "the tree in the middle"
+    },
+    {
+      "image_ref": "report_2",
+      "variant": "report",
+      "source_path": "./images/abc006d6-9c89-4be7-b6df-b788c3104a30.report.jpg",
+      "caption": "trunk"
+    },
+    {
+      "image_ref": "report_3",
+      "variant": "report",
+      "source_path": "./images/ac5e2134-13b0-4b3e-9036-975b6cffa1e4.report.jpg",
+      "caption": "ooze on trunk"
+    }
+  ]
+}
