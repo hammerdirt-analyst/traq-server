@@ -1,11 +1,10 @@
 {
-  "job_id": "job_briarwood_001",
-  "job_number": "J0001",
-  "project_id": "project_briarwood",
-  "project": "Briarwood",
-  "project_slug": "briarwood",
-  "client_revision_id": "rev_briarwood_001",
-  "archived_at": "2026-03-25T09:10:08.608364Z",
+  "job_id": "job_americanriver_003",
+  "job_number": "J0010",
+  "project": "American River",
+  "project_slug": "american-river",
+  "client_revision_id": "rev_americanriver_003",
+  "archived_at": "2026-03-25T11:30:08.608364Z",
   "staged_at": "2026-03-28T12:45:00Z",
   "artifacts": {
     "final_json": "./final.json",
@@ -17,13 +16,13 @@
       "image_ref": "report_1",
       "variant": "report",
       "source_path": "./images/report_1.svg",
-      "caption": "The tree: in the middle"
+      "caption": "The tree: floodplain view"
     },
     {
       "image_ref": "report_2",
       "variant": "report",
       "source_path": "./images/report_2.svg",
-      "caption": "trunk"
+      "caption": "pruning history"
     }
   ]
 }

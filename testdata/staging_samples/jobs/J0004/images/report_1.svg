@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">
+  <rect width="960" height="640" fill="#eef2e2" />
+  <rect x="40" y="40" width="880" height="560" rx="18" fill="#d3e2c7" stroke="#5c6b4f" stroke-width="4" />
+  <circle cx="300" cy="270" r="90" fill="#7a9b59" />
+  <rect x="285" y="270" width="30" height="180" fill="#6a4a2c" />
+  <text x="480" y="220" font-family="Helvetica, Arial, sans-serif" font-size="34" fill="#263122">Briarwood</text>
+  <text x="480" y="270" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#263122">J0004 · Sequoia sempervirens</text>
+  <text x="480" y="320" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#263122">The tree: north-facing view</text>
+</svg>

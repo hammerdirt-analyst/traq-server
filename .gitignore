@@ -15,6 +15,7 @@ var/
 storage/
 server_data/
 exports/
+staging/
 
 # Local logs and build outputs
 *.log

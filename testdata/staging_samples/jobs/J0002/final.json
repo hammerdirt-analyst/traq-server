@@ -1,0 +1,69 @@
+{
+  "archived_at": "2026-03-25T09:20:08.608364Z",
+  "client_revision_id": "rev_briarwood_002",
+  "job_id": "job_briarwood_002",
+  "job_number": "J0002",
+  "project": "Briarwood",
+  "project_slug": "briarwood",
+  "round_id": "round_j0002",
+  "server_revision_id": "rev_j0002",
+  "user_name": "Roger Erismann",
+  "narrative": {
+    "text": "Briarwood sycamore with moderate overall risk driven by trunk condition, manageable with inspection."
+  },
+  "transcript": "[client_tree_details]\nBriarwood tree 2 transcript.\n\n[trunk]\nObserved bark irregularities on trunk.",
+  "profile": {
+    "name": "Roger Erismann",
+    "isa_number": "WE-380138A",
+    "phone": "916 699 1113",
+    "correspondence_email": "roger@hammerdirt.solutions"
+  },
+  "form": {
+    "schema_name": "demo",
+    "schema_version": "0.0",
+    "data": {
+      "client_tree_details": {
+        "section_id": "client_tree_details",
+        "client": "Briarwood",
+        "tree_number": "2",
+        "tree_species": "Platanus racemosa",
+        "dbh": 26,
+        "height": 62,
+        "gps": {
+          "latitude": 38.613562221539,
+          "longitude": -121.280984158263
+        }
+      },
+      "overall_tree_risk_rating": {
+        "section_id": "overall_tree_risk_rating",
+        "rating": "moderate"
+      },
+      "overall_residual_risk": {
+        "section_id": "overall_residual_risk",
+        "rating": "low"
+      },
+      "recommended_inspection_interval": {
+        "section_id": "recommended_inspection_interval",
+        "text": "12 months"
+      },
+      "crown_and_branches": {
+        "section_id": "crown_and_branches",
+        "main_concerns": "Observed bark irregularities on trunk"
+      }
+    }
+  },
+  "report_images": [
+    {
+      "caption": "The tree: west-facing view",
+      "stored_path": "artifacts/jobs/job_briarwood_002/report_images/report_1.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0002/images/report_1.svg",
+      "uploaded_at": "2026-03-25T09:20:08.608364Z"
+    },
+    {
+      "caption": "trunk detail",
+      "stored_path": "artifacts/jobs/job_briarwood_002/report_images/report_2.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0002/images/report_2.svg",
+      "uploaded_at": "2026-03-25T09:20:08.608364Z"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.275216485269,
+          38.616204792598
+        ]
+      },
+      "properties": {
+        "job_number": "J0004",
+        "user_name": "Roger Erismann",
+        "form_data": {
+          "client_tree_details": {
+            "section_id": "client_tree_details",
+            "tree_number": "4",
+            "tree_species": "Sequoia sempervirens",
+            "dbh": 32,
+            "height": 88,
+            "gps": {
+              "latitude": 38.616204792598,
+              "longitude": -121.275216485269
+            }
+          },
+          "overall_tree_risk_rating": {
+            "section_id": "overall_tree_risk_rating",
+            "rating": "low"
+          },
+          "overall_residual_risk": {
+            "section_id": "overall_residual_risk",
+            "rating": "low"
+          },
+          "recommended_inspection_interval": {
+            "section_id": "recommended_inspection_interval",
+            "text": "24 months"
+          },
+          "crown_and_branches": {
+            "section_id": "crown_and_branches",
+            "main_concerns": "Observed high vigor and normal foliage"
+          }
+        },
+        "images": [
+          {
+            "caption": "The tree: north-facing view",
+            "uploaded_at": "2026-03-25T09:40:08.608364Z"
+          },
+          {
+            "caption": "canopy detail",
+            "uploaded_at": "2026-03-25T09:40:08.608364Z"
+          }
+        ]
+      }
+    }
+  ]
+}

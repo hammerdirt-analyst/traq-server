@@ -1,0 +1,58 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.291476673927,
+          38.62148099724
+        ]
+      },
+      "properties": {
+        "job_number": "J0008",
+        "user_name": "Roger Erismann",
+        "form_data": {
+          "client_tree_details": {
+            "section_id": "client_tree_details",
+            "tree_number": "1",
+            "tree_species": "Populus fremontii",
+            "dbh": 28,
+            "height": 66,
+            "gps": {
+              "latitude": 38.62148099724,
+              "longitude": -121.291476673927
+            }
+          },
+          "overall_tree_risk_rating": {
+            "section_id": "overall_tree_risk_rating",
+            "rating": "moderate"
+          },
+          "overall_residual_risk": {
+            "section_id": "overall_residual_risk",
+            "rating": "low"
+          },
+          "recommended_inspection_interval": {
+            "section_id": "recommended_inspection_interval",
+            "text": "12 months"
+          },
+          "crown_and_branches": {
+            "section_id": "crown_and_branches",
+            "main_concerns": "Observed erosion near root flare"
+          }
+        },
+        "images": [
+          {
+            "caption": "The tree: riverbank view",
+            "uploaded_at": "2026-03-25T11:10:08.608364Z"
+          },
+          {
+            "caption": "root flare",
+            "uploaded_at": "2026-03-25T11:10:08.608364Z"
+          }
+        ]
+      }
+    }
+  ]
+}

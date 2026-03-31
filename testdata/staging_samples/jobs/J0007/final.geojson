@@ -1,0 +1,58 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.430326975555,
+          38.56453333309
+        ]
+      },
+      "properties": {
+        "job_number": "J0007",
+        "user_name": "Roger Erismann",
+        "form_data": {
+          "client_tree_details": {
+            "section_id": "client_tree_details",
+            "tree_number": "3",
+            "tree_species": "Ulmus parvifolia",
+            "dbh": 16,
+            "height": 38,
+            "gps": {
+              "latitude": 38.56453333309,
+              "longitude": -121.430326975555
+            }
+          },
+          "overall_tree_risk_rating": {
+            "section_id": "overall_tree_risk_rating",
+            "rating": "low"
+          },
+          "overall_residual_risk": {
+            "section_id": "overall_residual_risk",
+            "rating": "low"
+          },
+          "recommended_inspection_interval": {
+            "section_id": "recommended_inspection_interval",
+            "text": "24 months"
+          },
+          "crown_and_branches": {
+            "section_id": "crown_and_branches",
+            "main_concerns": "Observed minor bark texture variation"
+          }
+        },
+        "images": [
+          {
+            "caption": "The tree: entry path view",
+            "uploaded_at": "2026-03-25T10:30:08.608364Z"
+          },
+          {
+            "caption": "trunk texture",
+            "uploaded_at": "2026-03-25T10:30:08.608364Z"
+          }
+        ]
+      }
+    }
+  ]
+}

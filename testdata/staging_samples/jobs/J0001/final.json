@@ -1,0 +1,69 @@
+{
+  "archived_at": "2026-03-25T09:10:08.608364Z",
+  "client_revision_id": "rev_briarwood_001",
+  "job_id": "job_briarwood_001",
+  "job_number": "J0001",
+  "project": "Briarwood",
+  "project_slug": "briarwood",
+  "round_id": "round_j0001",
+  "server_revision_id": "rev_j0001",
+  "user_name": "Roger Erismann",
+  "narrative": {
+    "text": "Briarwood oak near the parking area with low residual risk after routine maintenance."
+  },
+  "transcript": "[client_tree_details]\nBriarwood tree 1 transcript.\n\n[crown_and_branches]\nObserved extended branches over the parking area.",
+  "profile": {
+    "name": "Roger Erismann",
+    "isa_number": "WE-380138A",
+    "phone": "916 699 1113",
+    "correspondence_email": "roger@hammerdirt.solutions"
+  },
+  "form": {
+    "schema_name": "demo",
+    "schema_version": "0.0",
+    "data": {
+      "client_tree_details": {
+        "section_id": "client_tree_details",
+        "client": "Briarwood",
+        "tree_number": "1",
+        "tree_species": "Quercus agrifolia",
+        "dbh": 20,
+        "height": 54,
+        "gps": {
+          "latitude": 38.616587584739,
+          "longitude": -121.274592687348
+        }
+      },
+      "overall_tree_risk_rating": {
+        "section_id": "overall_tree_risk_rating",
+        "rating": "low"
+      },
+      "overall_residual_risk": {
+        "section_id": "overall_residual_risk",
+        "rating": "low"
+      },
+      "recommended_inspection_interval": {
+        "section_id": "recommended_inspection_interval",
+        "text": "18 months"
+      },
+      "crown_and_branches": {
+        "section_id": "crown_and_branches",
+        "main_concerns": "Extended branches over the parking area"
+      }
+    }
+  },
+  "report_images": [
+    {
+      "caption": "The tree: in the middle",
+      "stored_path": "artifacts/jobs/job_briarwood_001/report_images/report_1.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0001/images/report_1.svg",
+      "uploaded_at": "2026-03-25T09:10:08.608364Z"
+    },
+    {
+      "caption": "trunk",
+      "stored_path": "artifacts/jobs/job_briarwood_001/report_images/report_2.svg",
+      "path": "/home/roger/projects/codex_trial/agent_client/server/testdata/staged_jobs/jobs/J0001/images/report_2.svg",
+      "uploaded_at": "2026-03-25T09:10:08.608364Z"
+    }
+  ]
+}

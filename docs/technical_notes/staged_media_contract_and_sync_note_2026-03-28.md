@@ -30,7 +30,6 @@ Phase 1 does not require:
 - cron
 - systemd timers
 - background scheduling
-- project metadata to already be authoritative on the server
 
 ## Required Completed-Job Bundle
 
@@ -93,6 +92,7 @@ Recommended phase 1 shape:
 {
   "job_id": "job_b62ffe12501c",
   "job_number": "J0003",
+  "project_id": null,
   "project": null,
   "project_slug": null,
   "client_revision_id": "ea4941e6-ca8c-464f-8370-ad47bd75c818",
@@ -120,6 +120,9 @@ Required fields:
 
 - `job_id`
 - `job_number`
+- `project_id`
+- `project`
+- `project_slug`
 - `client_revision_id` when available
 - `archived_at` when available
 - `staged_at`
@@ -127,10 +130,14 @@ Required fields:
 - `artifacts.final_geojson`
 - `images`
 
+Required field rule for project metadata:
+
+- `project_id`, `project`, and `project_slug` must be present in the manifest
+- unassigned jobs may set those values to `null`
+- assigned jobs must carry the authoritative server values
+
 Recommended fields:
 
-- `project`
-- `project_slug`
 - `artifacts.traq_pdf`
 
 Image record minimum reporter-facing contract:
@@ -211,12 +218,18 @@ Reporter client should not need to know:
 - export cursor logic
 - download variants
 
-## Relationship To Future Project Metadata
+## Relationship To Server Project Metadata
 
-`project` and `project_slug` may be null in phase 1.
+Project metadata is now first-class on the server.
 
-When first-class server project metadata exists, those fields should become
-authoritative manifest fields without changing the rest of the staged contract.
+Staged manifests should therefore carry the authoritative resolved project
+fields from job metadata:
+
+- `project_id`
+- `project`
+- `project_slug`
+
+If a job is unassigned, those manifest fields may be `null`.
 
 ## Proposed CLI Direction
 

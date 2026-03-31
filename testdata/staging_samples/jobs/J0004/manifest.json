@@ -1,11 +1,10 @@
 {
-  "job_id": "job_briarwood_001",
-  "job_number": "J0001",
-  "project_id": "project_briarwood",
+  "job_id": "job_briarwood_004",
+  "job_number": "J0004",
   "project": "Briarwood",
   "project_slug": "briarwood",
-  "client_revision_id": "rev_briarwood_001",
-  "archived_at": "2026-03-25T09:10:08.608364Z",
+  "client_revision_id": "rev_briarwood_004",
+  "archived_at": "2026-03-25T09:40:08.608364Z",
   "staged_at": "2026-03-28T12:45:00Z",
   "artifacts": {
     "final_json": "./final.json",
@@ -17,13 +16,13 @@
       "image_ref": "report_1",
       "variant": "report",
       "source_path": "./images/report_1.svg",
-      "caption": "The tree: in the middle"
+      "caption": "The tree: north-facing view"
     },
     {
       "image_ref": "report_2",
       "variant": "report",
       "source_path": "./images/report_2.svg",
-      "caption": "trunk"
+      "caption": "canopy detail"
     }
   ]
 }

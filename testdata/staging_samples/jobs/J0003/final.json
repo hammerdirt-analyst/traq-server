@@ -1,0 +1,311 @@
+{
+  "archived_at": "2026-03-25T09:10:08.608364Z",
+  "client_revision_id": "ea4941e6-ca8c-464f-8370-ad47bd75c818",
+  "form": {
+    "data": {
+      "advanced_assessment_needed": {
+        "section_id": "advanced_assessment_needed"
+      },
+      "advanced_assessment_type_reason": {
+        "section_id": "advanced_assessment_type_reason"
+      },
+      "client_tree_details": {
+        "address_tree_location": "Eleanor river access, 1st parking lot",
+        "assessors": null,
+        "client": "Field test 1",
+        "crown_spread_dia": 40,
+        "date": null,
+        "dbh": 20,
+        "gps": {
+          "latitude": 38.615439518065,
+          "longitude": -121.278360314182
+        },
+        "height": 54,
+        "of": 1,
+        "section_id": "client_tree_details",
+        "sheet": 1,
+        "time": null,
+        "time_frame": "18th month assessment",
+        "tools_used": "measuring tape, binoculars",
+        "tree_number": "1",
+        "tree_species": "Quercus agrifolia"
+      },
+      "crown_and_branches": {
+        "broken_hangers_max_dia": null,
+        "broken_hangers_number": null,
+        "cankers_galls_burls": false,
+        "cavity_nest_hole_percent": null,
+        "codominant": false,
+        "codominant_notes": null,
+        "conks": false,
+        "cracks": false,
+        "cracks_notes": null,
+        "dead_missing_bark": false,
+        "dead_twigs": true,
+        "dead_twigs_max_dia": 1,
+        "dead_twigs_percent": 5,
+        "heartwood_decay": false,
+        "heartwood_decay_notes": null,
+        "included_bark": false,
+        "lcr_percent": 70,
+        "lightning_damage": false,
+        "likelihood_of_failure": null,
+        "likelihood_of_failure_notes": null,
+        "load_on_defect": null,
+        "load_on_defect_notes": null,
+        "main_concerns": "The main concern are the branches hanging over the parking lot, and that's it.",
+        "over_extended_branches": true,
+        "previous_branch_failures": true,
+        "previous_branch_failures_notes": "possible",
+        "pruning_history": {
+          "crown_cleaned": null,
+          "flush_cuts": null,
+          "lion_tailed": null,
+          "other": "professionally maintained",
+          "raised": null,
+          "reduced": null,
+          "thinned": null,
+          "topped": null
+        },
+        "response_growth": null,
+        "sapwood_damage_decay": false,
+        "section_id": "crown_and_branches",
+        "similar_branches_present": false,
+        "unbalanced_crown": false,
+        "weak_attachments": null,
+        "weak_attachments_notes": null
+      },
+      "data_status": {
+        "section_id": "data_status"
+      },
+      "inspection_limitations": {
+        "section_id": "inspection_limitations"
+      },
+      "inspection_limitations_describe": {
+        "section_id": "inspection_limitations_describe"
+      },
+      "load_factors": {
+        "crown_density": "dense",
+        "interior_branches_density": "dense",
+        "recent_change_in_load_factors": "None noted",
+        "relative_crown_size": "large",
+        "section_id": "load_factors",
+        "vines_mistletoe_moss_notes": "No vines/mistletoe/moss observed",
+        "vines_mistletoe_moss_present": false,
+        "wind_exposure": "partial",
+        "wind_funneling": null,
+        "wind_funneling_notes": null
+      },
+      "mitigation_options": {
+        "options": [
+          {
+            "option": "keep pruning and maintaining it well",
+            "residual_risk": "low"
+          }
+        ],
+        "section_id": "mitigation_options"
+      },
+      "notes_explanations_descriptions": {
+        "notes": "The assessment took place at El Manto River Access, focusing on oaks over the parking lot. A healthy Quercus agrifolia was examined, showing ooze trails and horizontal boreholes, but overall appears healthy with new growth.",
+        "section_id": "notes_explanations_descriptions"
+      },
+      "overall_residual_risk": {
+        "rating": "low",
+        "section_id": "overall_residual_risk"
+      },
+      "overall_tree_risk_rating": {
+        "rating": "low",
+        "section_id": "overall_tree_risk_rating"
+      },
+      "recommended_inspection_interval": {
+        "section_id": "recommended_inspection_interval",
+        "text": "18 months"
+      },
+      "risk_categorization": [
+        {
+          "condition": "extended branches over the parking lot",
+          "condition_number": "1",
+          "consequences": "minor",
+          "failure_and_impact": "unlikely",
+          "failure_likelihood": "possible",
+          "fall_distance": "40'",
+          "impact_likelihood": "medium",
+          "part_size": "1-2\"",
+          "risk_rating": "low",
+          "target_number": "1",
+          "target_protection": null,
+          "tree_part": "Crown"
+        },
+        {
+          "condition": "sap ooze",
+          "condition_number": "2",
+          "consequences": "severe",
+          "failure_and_impact": "unlikely",
+          "failure_likelihood": "improbable",
+          "fall_distance": null,
+          "impact_likelihood": "medium",
+          "part_size": "8\"",
+          "risk_rating": "low",
+          "target_number": null,
+          "target_protection": "none",
+          "tree_part": "Trunk"
+        }
+      ],
+      "roots_and_root_collar": {
+        "cavity": false,
+        "cavity_percent": 30,
+        "collar_buried_not_visible": true,
+        "collar_depth": 4,
+        "conks_mushrooms": false,
+        "cracks": false,
+        "cut_damaged_roots": false,
+        "dead": false,
+        "decay": false,
+        "distance_from_trunk": null,
+        "likelihood_of_failure": null,
+        "load_on_defect": null,
+        "main_concerns": "the pavement that covers thirty percent of the roots",
+        "ooze": false,
+        "response_growth": null,
+        "root_plate_lifting": false,
+        "section_id": "roots_and_root_collar",
+        "soil_weakness": false,
+        "stem_girdling": false
+      },
+      "site_factors": {
+        "common_weather": {
+          "describe": "Strong winds, heavy rain",
+          "heavy_rain": true,
+          "ice": null,
+          "snow": null,
+          "strong_winds": true
+        },
+        "history_of_failures": "No history of failures",
+        "notes": null,
+        "prevailing_wind_direction": "W",
+        "section_id": "site_factors",
+        "site_changes": {
+          "changed_soil_hydrology": false,
+          "grade_change": false,
+          "landscape_environment": "Large urban park",
+          "none": true,
+          "root_cuts": false,
+          "site_clearing": false
+        },
+        "soil_conditions": {
+          "compacted": null,
+          "describe": "Pavement over roots, 30%",
+          "limited_volume": null,
+          "pavement_over_roots": true,
+          "percent": 30,
+          "saturated": null,
+          "shallow": null
+        },
+        "topography": {
+          "aspect": null,
+          "flat": true,
+          "slope": false,
+          "slope_percent": null
+        }
+      },
+      "target_assessment": {
+        "section_id": "target_assessment",
+        "targets": [
+          {
+            "label": "ParkingLot",
+            "occupancy_rate": 2,
+            "practical_to_move": false,
+            "restriction_practical": false,
+            "target_number": "1",
+            "zone_within_1_5x_height": null,
+            "zone_within_1x_height": null,
+            "zone_within_drip_line": true
+          }
+        ]
+      },
+      "tree_health_and_species": {
+        "abiotic": "No abiotic stress observed",
+        "foliage": {
+          "chlorotic_percent": null,
+          "necrotic_percent": null,
+          "none_dead": null,
+          "none_seasonal": false,
+          "normal_percent": 100
+        },
+        "pests": "No pests observed",
+        "section_id": "tree_health_and_species",
+        "species_failure_profile": {
+          "branches": true,
+          "describe": "Extended branches over parking lot, trunk impacts.",
+          "roots": false,
+          "trunk": true
+        },
+        "vigor": "high"
+      },
+      "trunk": {
+        "abnormal_bark_texture_color": true,
+        "cankers_galls_burls": true,
+        "cavity_nest_hole_depth": null,
+        "cavity_nest_hole_percent": null,
+        "codominant_stems": true,
+        "conks_mushrooms": false,
+        "cracks": false,
+        "dead_missing_bark": false,
+        "heartwood_decay": false,
+        "included_bark": false,
+        "lean_corrected": null,
+        "lean_degrees": null,
+        "lightning_damage": false,
+        "likelihood_of_failure": null,
+        "load_on_defect": null,
+        "main_concerns": "the sap ooze in the, there is a, yes, there is sap ooze coming from a crack on the north",
+        "poor_taper": false,
+        "response_growth": null,
+        "sap_ooze": true,
+        "sapwood_damage_decay": false,
+        "section_id": "trunk"
+      },
+      "work_priority": {
+        "priority": "1",
+        "section_id": "work_priority"
+      }
+    },
+    "schema_name": "demo",
+    "schema_version": "0.0"
+  },
+  "job_id": "job_b62ffe12501c",
+  "narrative": {
+    "text": "The assessment was conducted in a large urban park setting, where a Quercus agrifolia, measuring 20 inches in diameter at breast height and approximately 54 feet tall, was evaluated. The tree is situated in a flat area with pavement covering about 30% of its roots. The environmental conditions include strong winds and heavy rain, which may influence the tree's stability and health. The tree exhibits signs of sap ooze, particularly from a crack on the north side, which raises concerns about potential decay or infection. However, the overall vigor of the tree appears high, with no significant abiotic stressors or pest infestations noted.\n\nThe primary target of the assessment is the parking lot located directly beneath the tree's dripline. This area is occasionally occupied, and the branches extend over it, posing a risk to individuals and vehicles. The likelihood of branch failure is considered possible, with a medium impact likelihood, although the overall risk rating for this condition is low. The trunk also presents a concern due to the sap ooze, which has a diameter of approximately eight inches. The likelihood of failure in this case is deemed improbable, with a medium impact likelihood, resulting in a low risk rating as well.\n\nThe crown of the tree is dense and well-maintained, with a live crown ratio of about 70%. There are some dead twigs, but no significant structural defects such as cracks or weak attachments were observed. The main concern lies with the overextended branches that hang over the parking lot, which could potentially lead to minor consequences if they were to fail. The tree has been professionally maintained, and while there have been previous branch failures, similar branches are not present, reducing the immediate risk.\n\nThe root collar is buried by approximately three to four inches, and no signs of decay or damage were found in the root system. However, the pavement covering a portion of the roots remains a concern, as it may limit the tree's access to necessary nutrients and water. There are no indications of stem girdling or other root defects, and the overall condition of the roots appears stable despite the pavement coverage.\n\nIn terms of overall risk, the tree is rated low after considering the identified concerns and potential impacts. Mitigation options include continued pruning and maintenance to manage the extended branches and monitor the sap ooze. Following these measures, the expected residual risk is anticipated to remain low, ensuring that the tree continues to thrive while minimizing potential hazards to the surrounding area."
+  },
+  "profile": {
+    "correspondence_city": "Rancho Cordova",
+    "correspondence_email": "roger@hammerdirt.solutions",
+    "correspondence_state": "CA",
+    "correspondence_street": "2266 Windward ln",
+    "correspondence_zip": "95670",
+    "isa_number": "WE-380138A",
+    "name": "Roger Erismann",
+    "phone": "916 699 1113"
+  },
+  "report_images": [
+    {
+      "caption": "the tree in the middle",
+      "path": "/app/local_data/artifact_cache/jobs/job_b62ffe12501c/sections/job_photos/images/d754d568-5b72-418e-9e09-f84e8f6bc183.report.jpg",
+      "uploaded_at": "2026-03-24T20:16:10.690104Z"
+    },
+    {
+      "caption": "trunk",
+      "path": "/app/local_data/artifact_cache/jobs/job_b62ffe12501c/sections/job_photos/images/abc006d6-9c89-4be7-b6df-b788c3104a30.report.jpg",
+      "uploaded_at": "2026-03-24T20:16:15.013567Z"
+    },
+    {
+      "caption": "ooze on trunk",
+      "path": "/app/local_data/artifact_cache/jobs/job_b62ffe12501c/sections/job_photos/images/ac5e2134-13b0-4b3e-9036-975b6cffa1e4.report.jpg",
+      "uploaded_at": "2026-03-24T20:16:19.536990Z"
+    }
+  ],
+  "round_id": "round_5",
+  "server_revision_id": "rev_round_5",
+  "transcript": "[trunk]\nThere is no dead or missing bark. Abnormal bark texture and color is yes. Codominant stems, yes. Included bark, no. There's no cracks. No sapwood damage that we can see. Canker, there's a canker, yes. Sap ooze, yes. Lightning damage, no. Heartwood decay, not that we can see from here. No evidence of mushrooms or conks at the base or anywhere along the trunk. Cavity nest hole, no. The depth, sorry, poor taper, the taper is good. There is no lean and no evidence of response growth. The main concern is the sap ooze in the, there is a, yes, there is sap ooze coming from a crack on the north side of the tree. It is sticky, black. There is one large incident and two, and it looks like it may be progressing up the tree. So this may require further investigation.\n\n[load_factors]\nThe wind exposure is partial here. The relative crown size is large. The crown density is dense, interior branches are dense. We can't see any vines, mistletoe or moss, and we don't know of any recent or planned changes to the load factors.\n\n[site_factors]\nWe have no history of failures. The topography is flat. No history of site changes. This is a large urban park. The soil conditions is you do have pavement over the roots. 25 to 35 percent of the roots are covered by pavement. The prevailing wind direction is from the west. The common weather is strong winds and heavy rain in the summer and hot and dry in the winter.\n\n[work_priority]\nThis would be a work priority of one.\n\n[target_assessment]\nTarget number one is the parking lot that is occasionally occupied. It is within the dripline of the tree, there is no protection, it is not practical to move, nor is restriction practical.\n\n[crown_and_branches]\nThe crown is balanced. The live crown ratio is about 70%. There are dead twigs and branches, one inch max diameter, about 5%. No broken hangers that we can see. There are some overextended branches. The pruning history is professionally maintained. There's no cracks or lightning damage in the crown, no co-dominance, no included bark that we could see, weak attachments, not plainly visible, no cavity or nest holes visible. Previous branch failures is possible. Similar branches present, no. Dead or missing bark in the crown, no. Cankers, galls, or burls, none that we could see. Sapwood damaged decay, none that we could see. Conks or heartwood decay, none that we could see, and no response growth. The main concern are the branches hanging over the parking lot, and that's it.\n\n[mitigation_options]\nSo mitigation option one is to just keep pruning and maintaining it well, and that should keep the overall residual risk to low.\n\n[client_tree_details]\nOkay, we are out here at El Mento River Access looking at a Quercus agrifolia. This is actually tree number two and sheet one of one. The DBH is 20 inches. The height is roughly 54 feet. The crown spread is 40 feet. This is an 18th month assessment and we're out here with a measuring tape, binoculars, and doing a visual assessment.\n\n[risk_categorization]\nOkay, condition number one is in the crown, and it's the extended branches over the parking lot. The part size is one to two inches, the fall distance is 40 feet, and the target number is one. There is no target protection here. The likelihood of failure is possible. The likelihood of impact is medium. And so that would give us a likelihood of failure and impact unlikely, which would give us, with a consequence of failure of minor, would give us a risk rating of low.\n\nCondition number two is in the trunk. The condition of concern is the sap ooze. The part size is eight inches in diameter. The target protection is none. The likelihood of failure is improbable. The likelihood of impact is medium, which gives us a likelihood of failure and impact of unlikely. Now the consequences would be severe if this impacted somebody, so that still gives us a risk rating of low.\n\n[overall_residual_risk]\nThe overall residual risk is low,\n\n[roots_and_root_collar]\nThe root collar is buried by about three to four inches. Stem girdling, none that we can see. No dead or decaying roots that we can see. No conks or mushrooms present or within this critical root zone. No ooze down here at the root level. No cavities, no cracks, no cut or damaged roots. There's no root plate lifting or soil weakness. No evidence of response growth. Here the main concern is the pavement that covers thirty percent of the roots.\n\n[tree_health_and_species]\nThis tree is a vigorously growing tree with 100% normal foliage for the season. No real evidence of necrosis or chlorosis. Pests, there's none observable with binoculars, and the abiotic stressors, there doesn't appear to be a pattern of abiotic stressors, but there is some evidence of impacts to the trunk.\n\nSo the species failure profile here specifically is the branches hanging over, the extended branches hanging over the parking lot and their potential failure. Although the roots are covered by 30% of the pavement, it doesn't appear to be too much of an issue here.\n\n[overall_tree_risk_rating]\nThis tree has an overall tree risk rating of low.\n\n[notes_explanations_descriptions]\nSo this is another software test. We're here at El Manto River Access on just another beautiful day and doing tree risk assessments on the oaks that have extended branches over the parking lot. Once again, these are real tree risk assessments and this also is a software test. So our main goal is to make sure that the information that is observed out in the field makes it to the transcript and makes it to the customer. So this is a healthy tree, a healthy Quercus agrifolia, or appears healthy, but there is a large ooze trail about three feet up the tree with a couple spots moving up, and there is also what appears to be horizontal boreholes along the two co-dominant stems, almost like sapsuckers. Not insects, but more like sapsuckers. They're very horizontal, going across, cutting perpendicular to the branch. Other than that, the tree looks great. It's got lots of new growth at this part of the year, green and well-maintained.\n\n[recommended_inspection_interval]\nThe recommended inspection interval is 18 months.",
+  "user_name": "Roger Erismann"
+}

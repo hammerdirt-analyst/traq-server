@@ -1,0 +1,58 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.288047310911,
+          38.619447854896
+        ]
+      },
+      "properties": {
+        "job_number": "J0009",
+        "user_name": "Roger Erismann",
+        "form_data": {
+          "client_tree_details": {
+            "section_id": "client_tree_details",
+            "tree_number": "2",
+            "tree_species": "Salix gooddingii",
+            "dbh": 22,
+            "height": 44,
+            "gps": {
+              "latitude": 38.619447854896,
+              "longitude": -121.288047310911
+            }
+          },
+          "overall_tree_risk_rating": {
+            "section_id": "overall_tree_risk_rating",
+            "rating": "low"
+          },
+          "overall_residual_risk": {
+            "section_id": "overall_residual_risk",
+            "rating": "low"
+          },
+          "recommended_inspection_interval": {
+            "section_id": "recommended_inspection_interval",
+            "text": "18 months"
+          },
+          "crown_and_branches": {
+            "section_id": "crown_and_branches",
+            "main_concerns": "Observed seasonal vigor and healthy foliage"
+          }
+        },
+        "images": [
+          {
+            "caption": "The tree: trail-side view",
+            "uploaded_at": "2026-03-25T11:20:08.608364Z"
+          },
+          {
+            "caption": "foliage detail",
+            "uploaded_at": "2026-03-25T11:20:08.608364Z"
+          }
+        ]
+      }
+    }
+  ]
+}
