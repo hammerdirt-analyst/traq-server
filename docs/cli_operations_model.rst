@@ -116,6 +116,9 @@ The current CLI surface is:
 ``artifact``
   ``fetch``
 
+``stage``
+  ``sync``, ``exclusions``, ``exclude``, ``include``
+
 ``tree``
   ``identify``
 
@@ -197,6 +200,13 @@ Export image and GeoJSON retrieval for downstream reporting::
    uv run traq-admin cloud export images-fetch-all --job J0001 --variant report
    uv run traq-admin cloud export geojson-fetch --job-id job_1
 
+Local staging curation for downstream reporter flow::
+
+   uv run traq-admin cloud stage sync --root /home/roger/projects/codex_trial/agent_client/server/staging
+   uv run traq-admin stage exclude --job J0001 --root /home/roger/projects/codex_trial/agent_client/server/staging
+   uv run traq-admin stage exclusions --root /home/roger/projects/codex_trial/agent_client/server/staging
+   uv run traq-admin stage include --job J0001 --root /home/roger/projects/codex_trial/agent_client/server/staging
+
 Standalone tree identification::
 
    uv run traq-admin cloud tree identify --image ./bark.jpg
@@ -250,3 +260,4 @@ If the CLI command surface changes, keep this document current by updating:
 - known limits
 - smoke-test examples
 - any committed fixture/template paths used for testing
+- local staging curation commands when downstream handoff workflows change

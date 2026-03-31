@@ -189,6 +189,7 @@ Covered command groups:
 - review inspect
 - final inspect and artifact fetch
 - export sync and artifact fetch for downstream reporting clients
+- stage sync and local staged-job exclusions for downstream reporter curation
 - standalone tree identification
 
 Current limits:
@@ -232,6 +233,12 @@ uv run traq-admin cloud export image-fetch --job-id job_123 --image-ref img_1 --
 uv run traq-admin cloud export images-fetch-all --job J0001 --variant report
 uv run traq-admin cloud export geojson-fetch --job-id job_456
 
+# Local staging and staged-job exclusions
+uv run traq-admin cloud stage sync --root /home/roger/projects/codex_trial/agent_client/server/staging
+uv run traq-admin stage exclude --job J0001 --root /home/roger/projects/codex_trial/agent_client/server/staging
+uv run traq-admin stage exclusions --root /home/roger/projects/codex_trial/agent_client/server/staging
+uv run traq-admin stage include --job J0001 --root /home/roger/projects/codex_trial/agent_client/server/staging
+
 # Standalone tree identification
 uv run traq-admin cloud tree identify --image ./bark.jpg
 ```
@@ -244,6 +251,8 @@ Export notes:
 - `export image-fetch` downloads one image referenced by the export payload
 - `export images-fetch-all` resolves all export-visible image refs for one job and downloads them in one command
 - `export geojson-fetch` downloads archived GeoJSON for a completed job
+- `stage sync` materializes completed-job bundles into the canonical local staging root
+- `stage exclude` / `stage include` maintain `staging/state/excluded_jobs.json` so local reporter flow can skip jobs without changing server state
 
 Smoke-test helpers kept in this repo:
 
