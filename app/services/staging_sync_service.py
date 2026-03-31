@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import shutil
@@ -39,6 +40,22 @@ class StagingSyncResult:
         }
 
 
+@dataclass(frozen=True)
+class StagingExclusionsResult:
+    """Summary of the local staging exclusion file state."""
+
+    root: str
+    exclusions_path: str
+    excluded_jobs: list[str]
+
+    def to_payload(self) -> dict[str, Any]:
+        return {
+            "root": self.root,
+            "exclusions_path": self.exclusions_path,
+            "excluded_jobs": self.excluded_jobs,
+        }
+
+
 class StagingSyncService:
     """Stage completed-job bundles into a stable local directory tree."""
 
@@ -53,11 +70,15 @@ class StagingSyncService:
         changes = self._backend.export.changes(cursor=cursor_override or previous_cursor)
         completed_rows = list(changes.get("completed") or []) if isinstance(changes, dict) else []
         next_cursor = str(changes.get("cursor") or "").strip() or None if isinstance(changes, dict) else None
+        excluded_jobs = self._load_excluded_jobs()
 
         staged_jobs: list[dict[str, Any]] = []
         failed_jobs: list[dict[str, Any]] = []
         for row in completed_rows:
             if not isinstance(row, dict):
+                continue
+            job_number = str(row.get("job_number") or "").strip().upper()
+            if job_number and job_number in excluded_jobs:
                 continue
             try:
                 staged_jobs.append(self._stage_completed_row(row))
@@ -85,6 +106,48 @@ class StagingSyncService:
             staged_jobs=staged_jobs,
             failed_jobs=failed_jobs,
         )
+
+    def list_exclusions(self) -> StagingExclusionsResult:
+        """Return the current local exclusion list for staged jobs."""
+        return StagingExclusionsResult(
+            root=str(self._root),
+            exclusions_path=str(self._exclusions_path()),
+            excluded_jobs=sorted(self._load_excluded_jobs()),
+        )
+
+    def exclude_job(self, *, job_ref: str) -> dict[str, Any]:
+        """Exclude one job from local staging and remove its bundle if present."""
+        job_number = self._normalize_job_ref(job_ref)
+        excluded = self._load_excluded_jobs()
+        excluded.add(job_number)
+        self._write_excluded_jobs(excluded)
+        bundle_dir = self._jobs_root() / job_number
+        removed_bundle = False
+        if bundle_dir.exists():
+            shutil.rmtree(bundle_dir)
+            removed_bundle = True
+        return {
+            "root": str(self._root),
+            "job_number": job_number,
+            "excluded": True,
+            "removed_bundle": removed_bundle,
+            "exclusions_path": str(self._exclusions_path()),
+        }
+
+    def include_job(self, *, job_ref: str) -> dict[str, Any]:
+        """Remove one job from the local staging exclusion list."""
+        job_number = self._normalize_job_ref(job_ref)
+        excluded = self._load_excluded_jobs()
+        was_excluded = job_number in excluded
+        excluded.discard(job_number)
+        self._write_excluded_jobs(excluded)
+        return {
+            "root": str(self._root),
+            "job_number": job_number,
+            "excluded": False,
+            "was_excluded": was_excluded,
+            "exclusions_path": str(self._exclusions_path()),
+        }
 
     def _stage_completed_row(self, row: dict[str, Any]) -> dict[str, Any]:
         """Stage one completed-job bundle and write its manifest."""
@@ -200,6 +263,36 @@ class StagingSyncService:
         self._state_root().mkdir(parents=True, exist_ok=True)
         self._atomic_write_json(self._state_root() / "export_cursor.json", {"cursor": cursor})
 
+    def _load_excluded_jobs(self) -> set[str]:
+        """Load manually editable excluded job numbers from local staging state."""
+        path = self._exclusions_path()
+        if not path.exists():
+            return set()
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return set()
+        jobs = payload.get("jobs") if isinstance(payload, dict) else None
+        if not isinstance(jobs, list):
+            return set()
+        return {
+            str(job).strip().upper()
+            for job in jobs
+            if str(job).strip()
+        }
+
+    def _write_excluded_jobs(self, jobs: set[str]) -> None:
+        """Persist the local manually editable excluded job list."""
+        self._state_root().mkdir(parents=True, exist_ok=True)
+        payload = {
+            "jobs": sorted(jobs),
+            "updated_at": self._now_iso(),
+        }
+        self._atomic_write_json(self._exclusions_path(), payload)
+
+    def _exclusions_path(self) -> Path:
+        return self._state_root() / "excluded_jobs.json"
+
     def _state_root(self) -> Path:
         return self._root / "state"
 
@@ -213,6 +306,11 @@ class StagingSyncService:
 
     @staticmethod
     def _now_iso() -> str:
-        from datetime import datetime, timezone
-
         return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    @staticmethod
+    def _normalize_job_ref(job_ref: str) -> str:
+        normalized = str(job_ref or "").strip().upper()
+        if not normalized:
+            raise RuntimeError("Job reference is required")
+        return normalized

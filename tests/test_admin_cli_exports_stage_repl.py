@@ -167,6 +167,41 @@ class AdminCliExportsStageReplTests(AdminCliTestCase):
         self.assertEqual(payload["jobs_staged"], 1)
         self.assertTrue((stage_root / "jobs" / "J0003" / "manifest.json").exists())
 
+    @patch("admin_cli._legacy_backend_for_args")
+    def test_stage_exclude_include_and_exclusions_commands_manage_local_file(self, backend_for_args_mock) -> None:
+        backend_for_args_mock.return_value = SimpleNamespace()
+        stage_root = self.storage_root / "staging"
+        bundle_dir = stage_root / "jobs" / "J0001"
+        bundle_dir.mkdir(parents=True, exist_ok=True)
+        (bundle_dir / "manifest.json").write_text("{}", encoding="utf-8")
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_stage_exclude,
+            argparse.Namespace(root=str(stage_root), job="J0001"),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        self.assertTrue(payload["excluded"])
+        self.assertTrue(payload["removed_bundle"])
+        self.assertFalse(bundle_dir.exists())
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_stage_exclusions,
+            argparse.Namespace(root=str(stage_root)),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        self.assertEqual(payload["excluded_jobs"], ["J0001"])
+
+        rc, output = self._stdout_for(
+            admin_cli.cmd_stage_include,
+            argparse.Namespace(root=str(stage_root), job="J0001"),
+        )
+        self.assertEqual(rc, 0)
+        payload = json.loads(output)
+        self.assertFalse(payload["excluded"])
+        self.assertTrue(payload["was_excluded"])
+
     def test_normalize_repl_tokens_strips_optional_leading_slash(self) -> None:
         self.assertEqual(admin_cli._normalize_repl_tokens("/round reopen --job-id job_1 --round-id round_1"), ["round", "reopen", "--job-id", "job_1", "--round-id", "round_1"])
         self.assertEqual(admin_cli._normalize_repl_tokens("job inspect --job J0001"), ["job", "inspect", "--job", "J0001"])

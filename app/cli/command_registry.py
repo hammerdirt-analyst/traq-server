@@ -191,7 +191,12 @@ COMMAND_GROUP_SPECS: tuple[CommandGroupSpec, ...] = (
     CommandGroupSpec(
         name="stage",
         register_fn=register_stage_commands,
-        handler_bindings={"sync": "cmd_stage_sync"},
+        handler_bindings={
+            "sync": "cmd_stage_sync",
+            "exclusions": "cmd_stage_exclusions",
+            "exclude": "cmd_stage_exclude",
+            "include": "cmd_stage_include",
+        },
         command_paths=(("stage", "sync"),),
         uses_http_defaults=True,
         passes_register_defaults=True,

@@ -91,6 +91,11 @@ from app.cli.repl_support import (
     setup_repl_readline as _setup_repl_readline,
 )
 from app.cli.stage_commands import cmd_stage_sync as _cmd_stage_sync
+from app.cli.stage_commands import (
+    cmd_stage_exclude as _cmd_stage_exclude,
+    cmd_stage_exclusions as _cmd_stage_exclusions,
+    cmd_stage_include as _cmd_stage_include,
+)
 from app.cli.tree_commands import cmd_tree_identify as _cmd_tree_identify
 from app.db import create_schema, init_database
 from app.db_store import DatabaseStore
@@ -541,6 +546,18 @@ def cmd_export_images_fetch_all(args: argparse.Namespace) -> int:
 
 def cmd_stage_sync(args: argparse.Namespace) -> int:
     return _cmd_stage_sync(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_stage_exclusions(args: argparse.Namespace) -> int:
+    return _cmd_stage_exclusions(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_stage_exclude(args: argparse.Namespace) -> int:
+    return _cmd_stage_exclude(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
+
+
+def cmd_stage_include(args: argparse.Namespace) -> int:
+    return _cmd_stage_include(args, backend=_legacy_backend_for_args(args), print_json=_print_json)
 
 
 def cmd_net_ipv4(args: argparse.Namespace) -> int:
