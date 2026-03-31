@@ -7,10 +7,12 @@ import contextlib
 import io
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests.admin_cli_support import AdminCliTestCase, admin_cli
+from app.cli import repl_support
 
 
 class AdminCliExportsStageReplTests(AdminCliTestCase):
@@ -208,3 +210,27 @@ class AdminCliExportsStageReplTests(AdminCliTestCase):
         args = parser.parse_args(["customer", "list"])
         self.assertEqual(args.host, "https://cloud.example.run.app")
         self.assertEqual(args.api_key, "cloud-key")
+
+    def test_setup_repl_readline_skips_oversized_history_file(self) -> None:
+        if repl_support.readline is None:
+            self.skipTest("readline unavailable")
+        with TemporaryDirectory() as tempdir:
+            history_path = Path(tempdir) / "history"
+            history_path.write_bytes(b"x" * (repl_support.MAX_HISTORY_BYTES + 1))
+            with patch.object(repl_support.readline, "read_history_file") as read_history_mock:
+                with patch.object(repl_support.readline, "set_completer"):
+                    with patch.object(repl_support.readline, "parse_and_bind"):
+                        repl_support.setup_repl_readline(history_path=history_path, commands=["help"])
+            read_history_mock.assert_not_called()
+
+    def test_setup_repl_readline_loads_normal_history_file(self) -> None:
+        if repl_support.readline is None:
+            self.skipTest("readline unavailable")
+        with TemporaryDirectory() as tempdir:
+            history_path = Path(tempdir) / "history"
+            history_path.write_text("device pending\n", encoding="utf-8")
+            with patch.object(repl_support.readline, "read_history_file") as read_history_mock:
+                with patch.object(repl_support.readline, "set_completer"):
+                    with patch.object(repl_support.readline, "parse_and_bind"):
+                        repl_support.setup_repl_readline(history_path=history_path, commands=["help"])
+            read_history_mock.assert_called_once_with(str(history_path))

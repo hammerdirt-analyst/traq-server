@@ -10,6 +10,9 @@ try:
 except ImportError:  # pragma: no cover
     readline = None
 
+MAX_HISTORY_BYTES = 1024 * 1024
+MAX_HISTORY_LINES = 2000
+
 
 def normalize_repl_tokens(raw: str) -> list[str]:
     """Parse one raw REPL command line into CLI tokens."""
@@ -87,9 +90,15 @@ def setup_repl_readline(*, history_path: Path, commands: list[str] | None = None
     if readline is None:
         return
     try:
-        readline.read_history_file(str(history_path))
+        if history_path.exists() and history_path.stat().st_size <= MAX_HISTORY_BYTES:
+            readline.read_history_file(str(history_path))
     except FileNotFoundError:
         pass
+    except OSError:
+        pass
+
+    if hasattr(readline, "set_history_length"):
+        readline.set_history_length(MAX_HISTORY_LINES)
 
     known_commands = commands or repl_command_catalog()
 
@@ -111,6 +120,7 @@ def save_repl_history(*, history_path: Path) -> None:
     if readline is None:
         return
     try:
+        history_path.parent.mkdir(parents=True, exist_ok=True)
         readline.write_history_file(str(history_path))
     except OSError:
         pass
