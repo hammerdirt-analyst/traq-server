@@ -38,6 +38,8 @@ class PostgresCiSmokeTests(unittest.TestCase):
             os.environ.pop("TRAQ_STORAGE_ROOT", None)
         else:
             os.environ["TRAQ_STORAGE_ROOT"] = self.old_storage_root
+        if db_module._engine is not None:
+            db_module._engine.dispose()
         db_module._engine = None
         db_module._SessionLocal = None
 
