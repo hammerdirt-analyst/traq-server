@@ -341,6 +341,7 @@ class JobRound(Base):
     round_id: Mapped[str] = mapped_column(String(128), index=True)
     status: Mapped[RoundStatus] = mapped_column(SqlEnum(RoundStatus), default=RoundStatus.draft, index=True)
     server_revision_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    client_revision_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     manifest: Mapped[list[dict[str, Any]]] = mapped_column(JSON_TYPE, default=list)
     review_payload: Mapped[dict[str, Any] | None] = mapped_column(JSON_TYPE, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

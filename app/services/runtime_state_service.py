@@ -156,6 +156,7 @@ class RuntimeStateService:
                     status=str(row.get("status") or "DRAFT"),
                     manifest=list(row.get("manifest") or []),
                     server_revision_id=row.get("server_revision_id"),
+                    client_revision_id=row.get("client_revision_id"),
                 )
         except Exception:
             self._logger.exception("DB round listing failed for %s", job_id)
@@ -214,6 +215,7 @@ class RuntimeStateService:
                 round_id=round_record.round_id,
                 status=round_record.status,
                 server_revision_id=round_record.server_revision_id,
+                client_revision_id=getattr(round_record, "client_revision_id", None),
                 manifest=list(round_record.manifest or []),
                 review_payload=review_payload,
             )
@@ -262,6 +264,7 @@ class RuntimeStateService:
                 status=str(persisted_round.get("status") or "DRAFT"),
                 manifest=list(persisted_round.get("manifest") or []),
                 server_revision_id=persisted_round.get("server_revision_id"),
+                client_revision_id=persisted_round.get("client_revision_id"),
             )
             record.rounds[round_id] = round_record
         return record, round_record

@@ -74,12 +74,38 @@ Bootstrap notes are tracked in:
 - `GET /v1/jobs/assigned`
 - `GET /v1/projects`
 - `POST /v1/jobs/{job_id}/rounds`
+- `GET /v1/jobs/{job_id}/rounds/{round_id}`
 - `PUT /v1/jobs/{job_id}/rounds/{round_id}/manifest`
 - `POST /v1/jobs/{job_id}/rounds/{round_id}/submit`
 - `POST /v1/jobs/{job_id}/rounds/{round_id}/reprocess`
 - `GET /v1/jobs/{job_id}/rounds/{round_id}/review`
 - `POST /v1/jobs/{job_id}/final`
 - `GET /v1/jobs/{job_id}/final/report`
+
+## Retry / Reconciliation Contract
+
+The server now exposes one explicit round reconciliation read:
+
+- `GET /v1/jobs/{job_id}/rounds/{round_id}`
+
+This route is meant to support timeout/interruption recovery without forcing
+the client to infer too much from review payloads or top-level job status.
+
+The Phase 1 contract is:
+
+- round is the reconciliation unit
+- `client_revision_id` is persisted as round state
+- accepted recording/image IDs are read from DB-backed round metadata
+- timeout means the client stopped waiting, not that server work definitely
+  rolled back
+
+Upload retry semantics:
+
+- uploads are identified by stable path IDs such as `recording_id` and
+  `image_id`
+- retrying the same upload with the same stable ID is allowed
+- duplicate handling is currently idempotent-by-stable-ID, not a documented
+  duplicate-`409` contract
 
 ## Device Auth and Roles
 

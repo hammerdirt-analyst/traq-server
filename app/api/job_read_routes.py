@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from fastapi import APIRouter, Header, HTTPException
 
-from .models import AssignedJob, StatusResponse
+from .models import AssignedJob, RoundArtifactStatus, RoundReconciliationResponse, StatusResponse
 
 
 def build_job_read_router(
@@ -81,6 +81,91 @@ def build_job_read_router(
             tree_number=record.tree_number,
             review_ready=review_ready,
             server_revision_id=server_revision_id,
+        )
+
+    @router.get("/v1/jobs/{job_id}/rounds/{round_id}", response_model=RoundReconciliationResponse)
+    def get_round(
+        job_id: str,
+        round_id: str,
+        x_api_key: str | None = Header(default=None),
+    ) -> RoundReconciliationResponse:
+        """Return authoritative round reconciliation state for retry recovery."""
+        auth = require_api_key(x_api_key)
+        assert_job_assignment(job_id, auth)
+        record = ensure_job_record(job_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Job not found")
+        persisted_round = db_store.get_job_round(job_id, round_id)
+        if not isinstance(persisted_round, dict):
+            raise HTTPException(status_code=404, detail="Round not found")
+
+        round_record = record.rounds.get(round_id)
+        status = str(
+            (getattr(round_record, "status", None) or persisted_round.get("status") or "DRAFT")
+        )
+        server_revision_id = (
+            getattr(round_record, "server_revision_id", None)
+            or persisted_round.get("server_revision_id")
+        )
+        client_revision_id = (
+            getattr(round_record, "client_revision_id", None)
+            or persisted_round.get("client_revision_id")
+        )
+        recordings_rows = list(db_store.list_round_recordings(job_id, round_id))
+        images_rows = list(db_store.list_round_images(job_id, round_id))
+        review_payload = persisted_round.get("review_payload") or {}
+        review_ready = status == "REVIEW_RETURNED" or isinstance(review_payload, dict)
+
+        if status == "SUBMITTED_FOR_PROCESSING":
+            processing_state = "processing"
+        elif status == "REVIEW_RETURNED":
+            processing_state = "completed"
+        elif status == "FAILED":
+            processing_state = "failed"
+        else:
+            processing_state = "accepted"
+
+        return RoundReconciliationResponse(
+            job_id=job_id,
+            round_id=round_id,
+            status=status,
+            server_revision_id=server_revision_id,
+            client_revision_id=client_revision_id,
+            review_ready=review_ready,
+            processing_state=processing_state,
+            recordings=[
+                RoundArtifactStatus(
+                    section_id=str(row.get("section_id") or ""),
+                    recording_id=str(row.get("recording_id") or ""),
+                    upload_status=str(row.get("upload_status") or ""),
+                )
+                for row in recordings_rows
+                if str(row.get("recording_id") or "")
+            ],
+            images=[
+                RoundArtifactStatus(
+                    section_id=str(row.get("section_id") or ""),
+                    image_id=str(row.get("image_id") or ""),
+                    upload_status=str(row.get("upload_status") or ""),
+                )
+                for row in images_rows
+                if str(row.get("image_id") or "")
+            ],
+            accepted_recording_ids=[
+                str(row.get("recording_id") or "")
+                for row in recordings_rows
+                if str(row.get("recording_id") or "")
+            ],
+            accepted_image_ids=[
+                str(row.get("image_id") or "")
+                for row in images_rows
+                if str(row.get("image_id") or "")
+            ],
+            transcription_failures=(
+                list(review_payload.get("transcription_failures") or [])
+                if isinstance(review_payload, dict)
+                else []
+            ),
         )
 
     @router.get("/v1/jobs/{job_id}/rounds/{round_id}/review")

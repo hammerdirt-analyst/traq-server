@@ -80,6 +80,8 @@ def build_round_submit_router(
         save_round_record(job_id, round_record)
         logger.info("POST /v1/jobs/%s/rounds/%s/submit", job_id, round_id)
         round_record.server_revision_id = round_record.server_revision_id or f"rev_{round_id}"
+        if submit_payload and submit_payload.client_revision_id:
+            round_record.client_revision_id = submit_payload.client_revision_id
         persisted_round = db_store.get_job_round(job_id, round_id)
         existing_round_review = round_submit_service.load_existing_round_review(persisted_round)
         round_submit_service.ensure_round_manifest(

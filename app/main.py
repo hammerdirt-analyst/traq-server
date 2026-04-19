@@ -122,6 +122,7 @@ class RoundRecord:
     status: str
     manifest: list[dict[str, Any]] = field(default_factory=list)
     server_revision_id: str | None = None
+    client_revision_id: str | None = None
 
 
 def create_app() -> FastAPI:

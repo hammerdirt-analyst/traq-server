@@ -391,6 +391,7 @@ class DatabaseStore:
                     "round_id": row.round_id,
                     "status": row.status.value,
                     "server_revision_id": row.server_revision_id,
+                    "client_revision_id": row.client_revision_id,
                     "manifest": list(row.manifest or []),
                     "review_payload": row.review_payload,
                 }
@@ -410,6 +411,7 @@ class DatabaseStore:
                 "round_id": row.round_id,
                 "status": row.status.value,
                 "server_revision_id": row.server_revision_id,
+                "client_revision_id": row.client_revision_id,
                 "manifest": list(row.manifest or []),
                 "review_payload": row.review_payload,
             }
@@ -421,6 +423,7 @@ class DatabaseStore:
         round_id: str,
         status: str,
         server_revision_id: str | None = None,
+        client_revision_id: str | None = None,
         manifest: list[dict[str, Any]] | None = None,
         review_payload: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
@@ -437,6 +440,8 @@ class DatabaseStore:
             row.status = RoundStatus(status.strip().upper())
             if server_revision_id is not None:
                 row.server_revision_id = server_revision_id
+            if client_revision_id is not None:
+                row.client_revision_id = client_revision_id
             if manifest is not None:
                 row.manifest = manifest
             if review_payload is not None:
@@ -446,6 +451,7 @@ class DatabaseStore:
                 "round_id": row.round_id,
                 "status": row.status.value,
                 "server_revision_id": row.server_revision_id,
+                "client_revision_id": row.client_revision_id,
                 "manifest": list(row.manifest or []),
                 "review_payload": row.review_payload,
             }

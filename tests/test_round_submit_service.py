@@ -118,6 +118,27 @@ class RoundSubmitServiceTests(unittest.TestCase):
         self.assertEqual(details["tree_species"], "apple tree")
         self.assertEqual(override["client_revision_id"], "client-rev-1")
 
+    def test_build_base_review_override_keeps_existing_client_revision_when_submit_missing(self) -> None:
+        class SubmitPayload:
+            form = {"client_tree_details": {"client": "Software Test"}}
+            narrative = None
+            client_revision_id = None
+
+        override = self.service.build_base_review_override(
+            job_id="job_1",
+            round_id="round_1",
+            existing_round_review={
+                "draft_form": {"data": {"client_tree_details": {"tree_species": "apple tree"}}},
+                "client_revision_id": "existing-client-rev",
+            },
+            submit_payload=SubmitPayload(),
+            load_latest_review=lambda job_id, exclude_round_id=None: {},
+            apply_form_patch=self._apply_form_patch,
+            normalize_form_schema=lambda form: form,
+        )
+
+        self.assertEqual(override["client_revision_id"], "existing-client-rev")
+
     def test_ensure_round_manifest_supplements_recordings_when_manifest_already_has_items(self) -> None:
         class RoundRecord:
             manifest = [

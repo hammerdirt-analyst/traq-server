@@ -50,11 +50,39 @@ uv run traq-admin local
 
 - `POST /v1/jobs`
 - `POST /v1/jobs/{job_id}/rounds`
+- `GET /v1/jobs/{job_id}/rounds/{round_id}`
 - `POST /v1/jobs/{job_id}/rounds/{round_id}/submit`
 - `GET /v1/jobs/{job_id}/rounds/{round_id}/review`
 - `POST /v1/jobs/{job_id}/final`
 - `GET /v1/jobs/{job_id}/final/report`
 - `POST /v1/trees/identify`
+
+## Retry and Reconciliation
+
+The current workflow remains request/response based, but timeout-safe clients
+should treat some operations as ambiguous rather than as definite failures.
+
+Current contract:
+
+- upload identity is stable-ID based:
+  - `recording_id`
+  - `image_id`
+- retrying the same upload with the same stable ID is allowed
+- duplicate upload handling is idempotent-by-stable-ID rather than a documented
+  `409 already exists` contract
+- client timeout does not imply server rollback
+
+Round recovery endpoint:
+
+- `GET /v1/jobs/{job_id}/rounds/{round_id}`
+
+This route is the authoritative round reconciliation read for:
+
+- current round status
+- `server_revision_id`
+- `client_revision_id`
+- accepted recording/image IDs
+- coarse processing state for timeout/retry recovery
 
 ## Auth boundaries
 

@@ -152,8 +152,12 @@ class DatabaseStoreTests(unittest.TestCase):
             job_id="job_round",
             round_id="round_1",
             status="DRAFT",
+            client_revision_id="client-rev-1",
             manifest=[],
         )
+
+        round_payload = self.store.get_job_round("job_round", "round_1")
+        self.assertEqual(round_payload["client_revision_id"], "client-rev-1")
 
         stored = self.store.upsert_round_recording(
             job_id="job_round",
@@ -184,6 +188,25 @@ class DatabaseStoreTests(unittest.TestCase):
         rows = self.store.list_round_recordings("job_round", "round_1")
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["recording_id"], "rec_1")
+
+        updated = self.store.upsert_round_recording(
+            job_id="job_round",
+            round_id="round_1",
+            section_id="site_factors",
+            recording_id="rec_1",
+            upload_status="uploaded",
+            content_type="audio/x-wav",
+            duration_ms=1400,
+            artifact_path="/tmp/rec_1_retry.wav",
+            metadata_json={
+                "stored_path": "/tmp/rec_1_retry.wav",
+                "uploaded_at": "2026-03-17T00:00:02Z",
+            },
+        )
+        self.assertEqual(updated["artifact_path"], "/tmp/rec_1_retry.wav")
+        rows = self.store.list_round_recordings("job_round", "round_1")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["artifact_path"], "/tmp/rec_1_retry.wav")
 
     def test_round_image_flow(self) -> None:
         self.store.upsert_job(
@@ -231,6 +254,26 @@ class DatabaseStoreTests(unittest.TestCase):
         rows = self.store.list_round_images("job_image", "round_1")
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["image_id"], "img_1")
+
+        updated = self.store.upsert_round_image(
+            job_id="job_image",
+            round_id="round_1",
+            section_id="job_photos",
+            image_id="img_1",
+            upload_status="uploaded",
+            caption="Tree base retried",
+            latitude="38.6",
+            longitude="-121.1",
+            artifact_path="/tmp/img_1_retry.jpg",
+            metadata_json={
+                "stored_path": "/tmp/img_1_retry.jpg",
+                "report_image_path": "/tmp/img_1_retry.report.jpg",
+            },
+        )
+        self.assertEqual(updated["caption"], "Tree base retried")
+        rows = self.store.list_round_images("job_image", "round_1")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["caption"], "Tree base retried")
 
 
 if __name__ == "__main__":

@@ -21,3 +21,6 @@ staging/
 *.log
 test.db
 docs/_build/
+
+# Local review notes
+code_review/

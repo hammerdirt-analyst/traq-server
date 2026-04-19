@@ -577,9 +577,11 @@ class ApiRouterTests(unittest.TestCase):
             def __init__(self) -> None:
                 self.status = "REVIEW_RETURNED"
                 self.server_revision_id = None
+                self.client_revision_id = "client-rev-1"
 
         class DummyJob:
             def __init__(self) -> None:
+                self.job_id = "job_1"
                 self.status = "DRAFT"
                 self.tree_number = 7
                 self.rounds = {"round_1": DummyRound()}
@@ -631,8 +633,22 @@ class ApiRouterTests(unittest.TestCase):
                 "DbStore",
                 (),
                 {
-                    "get_job_round": lambda self, job_id, round_id: {"review_payload": {"cached": True}},
-                    "list_round_images": lambda self, job_id, round_id: [{"image_id": "img_1"}],
+                    "get_job_round": lambda self, job_id, round_id: {
+                        "round_id": round_id,
+                        "status": "DRAFT",
+                        "server_revision_id": "rev_round_1",
+                        "client_revision_id": "client-rev-1",
+                        "review_payload": {
+                            "cached": True,
+                            "transcription_failures": [{"recording_id": "rec_2", "error": "failed"}],
+                        },
+                    },
+                    "list_round_images": lambda self, job_id, round_id: [
+                        {"section_id": "job_photos", "image_id": "img_1", "upload_status": "uploaded"}
+                    ],
+                    "list_round_recordings": lambda self, job_id, round_id: [
+                        {"section_id": "site_factors", "recording_id": "rec_1", "upload_status": "uploaded"}
+                    ],
                 },
             )(),
             logger=type("Logger", (), {"info": lambda *args, **kwargs: None})(),
@@ -650,6 +666,13 @@ class ApiRouterTests(unittest.TestCase):
         get_review = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}/review", "GET")
         review = get_review("job_1", "round_1", x_api_key="test-key")
         self.assertEqual(review["images"][0]["image_id"], "img_1")
+
+        get_round = self._router_endpoint(router, "/v1/jobs/{job_id}/rounds/{round_id}", "GET")
+        round_payload = get_round("job_1", "round_1", x_api_key="test-key")
+        self.assertEqual(round_payload.client_revision_id, "client-rev-1")
+        self.assertEqual(round_payload.accepted_recording_ids, ["rec_1"])
+        self.assertEqual(round_payload.accepted_image_ids, ["img_1"])
+        self.assertEqual(round_payload.processing_state, "completed")
 
     def test_job_write_router_builds_expected_endpoints(self) -> None:
         class DummyAuth:

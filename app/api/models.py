@@ -162,6 +162,32 @@ class StatusResponse(BaseModel):
     server_revision_id: str | None = None
 
 
+class RoundArtifactStatus(BaseModel):
+    """Accepted artifact metadata exposed for one round reconciliation read."""
+
+    section_id: str
+    upload_status: str
+    recording_id: str | None = None
+    image_id: str | None = None
+
+
+class RoundReconciliationResponse(BaseModel):
+    """Authoritative round reconciliation payload for timeout/retry recovery."""
+
+    job_id: str
+    round_id: str
+    status: str
+    server_revision_id: str | None = None
+    client_revision_id: str | None = None
+    review_ready: bool = False
+    processing_state: str
+    recordings: list[RoundArtifactStatus] = Field(default_factory=list)
+    images: list[RoundArtifactStatus] = Field(default_factory=list)
+    accepted_recording_ids: list[str] = Field(default_factory=list)
+    accepted_image_ids: list[str] = Field(default_factory=list)
+    transcription_failures: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class ManifestItem(BaseModel):
     """One manifest row describing a recording or image artifact."""
 
